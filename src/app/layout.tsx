@@ -30,7 +30,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Necessary for Mantine theme management */}
         <ColorSchemeScript />
       </head>
       <body

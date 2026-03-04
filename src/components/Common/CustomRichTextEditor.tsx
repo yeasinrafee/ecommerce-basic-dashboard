@@ -16,8 +16,8 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        bulletList: true,
-        orderedList: true,
+        bulletList: {},
+        orderedList: {},
       }),
       Link.configure({
         openOnClick: false,
@@ -86,7 +86,7 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
           </RichTextEditor.ControlsGroup>
         </RichTextEditor.Toolbar>
 
-        <RichTextEditor.Content minHeight={300} />
+        <RichTextEditor.Content />
       </RichTextEditor>
     </div>
   );

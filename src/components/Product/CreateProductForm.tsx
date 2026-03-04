@@ -69,11 +69,9 @@ export default function CreateProductForm() {
         </CardHeader>
 
         <CardContent className="space-y-8">
-          {/* General Info Section */}
           <div className="space-y-6">
             <h2 className="text-lg font-semibold">General Information</h2>
             <CustomInput label="Product Name" placeholder="Enter product name" />
-            {/* ... other general fields remain same as your original */}
             <div className="space-y-3">
               <Label>Categories</Label>
               <div className="grid grid-cols-2 gap-3">
