@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import CustomRichTextEditor from "../Common/CustomRichTextEditor";
+import CustomCheckbox from "../FormFields/CustomCheckbox";
+import CustomInput from "../FormFields/CustomInput";
 
 const categoriesList = [
   "Electronics",
@@ -72,22 +72,20 @@ export default function CreateProductForm() {
           {/* General Info Section */}
           <div className="space-y-6">
             <h2 className="text-lg font-semibold">General Information</h2>
-            <div className="space-y-2">
-              <Label>Product Name</Label>
-              <Input placeholder="Enter product name" />
-            </div>
+            <CustomInput label="Product Name" placeholder="Enter product name" />
             {/* ... other general fields remain same as your original */}
             <div className="space-y-3">
               <Label>Categories</Label>
               <div className="grid grid-cols-2 gap-3">
                 {categoriesList.map((cat) => (
-                  <div key={cat} className="flex items-center space-x-2">
-                    <Checkbox
-                      checked={categories.includes(cat)}
-                      onCheckedChange={() => toggleCategory(cat)}
-                    />
-                    <span className="text-sm">{cat}</span>
-                  </div>
+                  <CustomCheckbox
+                    key={cat}
+                    checked={categories.includes(cat)}
+                    onCheckedChange={() => toggleCategory(cat)}
+                    label={cat}
+                    containerClassName="items-center gap-2"
+                    labelClassName="text-sm font-normal"
+                  />
                 ))}
               </div>
             </div>
@@ -97,10 +95,11 @@ export default function CreateProductForm() {
           <div className="bg-white border rounded-2xl p-6 space-y-4 shadow-sm">
             <h2 className="text-lg font-semibold">Attributes</h2>
             <div className="flex gap-3">
-              <Input
+              <CustomInput
                 placeholder="e.g. Color, Size"
                 value={attributeInput}
                 onChange={(e) => setAttributeInput(e.target.value)}
+                containerClassName="w-full"
               />
               <Button type="button" onClick={addAttribute}>Add</Button>
             </div>
@@ -118,12 +117,12 @@ export default function CreateProductForm() {
           <div className="bg-white border rounded-2xl p-6 space-y-4 shadow-sm">
             <h2 className="text-lg font-semibold">Additional Information</h2>
             <div className="grid grid-cols-1 gap-3">
-              <Input
+              <CustomInput
                 placeholder="Field Name"
                 value={infoName}
                 onChange={(e) => setInfoName(e.target.value)}
               />
-              <Input
+              <CustomInput
                 placeholder="Field Value"
                 value={infoValue}
                 onChange={(e) => setInfoValue(e.target.value)}
