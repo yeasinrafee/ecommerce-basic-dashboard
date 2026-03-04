@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <div className="flex h-screen bg-gray-50 dark:bg-black dark:text-white">
       {/* Sidebar */}
       <Sidebar
-        routes={routes()}
+        routes={routes}
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
         collapsed={sidebarCollapsed}
