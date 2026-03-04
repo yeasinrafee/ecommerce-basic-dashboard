@@ -9,6 +9,7 @@ import { X } from "lucide-react";
 import CustomRichTextEditor from "../Common/CustomRichTextEditor";
 import CustomCheckbox from "../FormFields/CustomCheckbox";
 import CustomInput from "../FormFields/CustomInput";
+import CustomSelect from "../FormFields/CustomSelect";
 
 const categoriesList = [
   "Electronics",
@@ -28,6 +29,10 @@ export default function CreateProductForm() {
   const [attributeInput, setAttributeInput] = useState("");
   const [infoName, setInfoName] = useState("");
   const [infoValue, setInfoValue] = useState("");
+
+  // Discount fields
+  const [discountType, setDiscountType] = useState<string>("none");
+  const [discountValue, setDiscountValue] = useState<number | null>(null);
 
   const toggleCategory = (category: string) => {
     setCategories((prev) =>
@@ -72,6 +77,34 @@ export default function CreateProductForm() {
           <div className="space-y-6">
             <h2 className="text-lg font-semibold">General Information</h2>
             <CustomInput label="Product Name" placeholder="Enter product name" />
+
+            {/* Discount Type & Value */}
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <CustomSelect
+                  label="Discount Type"
+                  value={discountType}
+                  onValueChange={setDiscountType}
+                  options={[
+                    { value: "none", label: "None" },
+                    { value: "flat", label: "Flat Discount" },
+                    { value: "percent", label: "Percentage Discount" },
+                  ]}
+                  placeholder="Select type"
+                />
+              </div>
+              <div className="flex-1">
+                <CustomInput
+                  label="Discount Value"
+                  type="number"
+                  value={discountValue === null ? "" : discountValue}
+                  onValueChange={setDiscountValue}
+                  placeholder="Enter value"
+                  min={0}
+                  disabled={discountType === "none"}
+                />
+              </div>
+            </div>
             <div className="space-y-3">
               <Label>Categories</Label>
               <div className="grid grid-cols-2 gap-3">
