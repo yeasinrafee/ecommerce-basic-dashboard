@@ -170,8 +170,8 @@ export default function CreateProductForm() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-10">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 lg:flex-row">
-        <div className="flex-1 space-y-6">
+      <div className="mx-auto w-full max-w-full px-4 grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="left-section space-y-6 col-span-7">
           <MainInformation
             productName={productName}
             setProductName={setProductName}
@@ -201,11 +201,13 @@ export default function CreateProductForm() {
         </div>
 
         {/* right column: moved into dedicated component */}
-        <RightSection
+       <div className="col-span-5">
+         <RightSection
           categoriesList={categoriesList}
           tagList={tagList}
           onChange={setRightData}
         />
+       </div>
       </div>
     </div>
   );
