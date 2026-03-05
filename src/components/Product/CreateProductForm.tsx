@@ -11,6 +11,7 @@ import CustomRichTextEditor from "../Common/CustomRichTextEditor";
 import CustomCheckbox from "../FormFields/CustomCheckbox";
 import CustomInput from "../FormFields/CustomInput";
 import CustomSelect from "../FormFields/CustomSelect";
+import CustomDatePicker from "../FormFields/CustomDatePicker";
 
 const categoriesList = [
   "Electronics",
@@ -26,9 +27,11 @@ export default function CreateProductForm() {
   const [attributes, setAttributes] = useState<
     { name: string; value: string; price: string }[]
   >([]);
-  const [additionalInfo, setAdditionalInfo] = useState<{ name: string; value: string }[]>([]);
+  const [additionalInfo, setAdditionalInfo] = useState<
+    { name: string; value: string }[]
+  >([]);
   const [description, setDescription] = useState(""); //
-  
+
   const [attributeName, setAttributeName] = useState("");
   const [attributeValue, setAttributeValue] = useState("");
   const [attributePrice, setAttributePrice] = useState("");
@@ -37,6 +40,8 @@ export default function CreateProductForm() {
 
   // Discount fields
   const [discountValue, setDiscountValue] = useState<number | null>(null);
+  const [discountStart, setDiscountStart] = useState<Date | null>(null);
+  const [discountEnd, setDiscountEnd] = useState<Date | null>(null);
 
   const { control, watch } = useForm<{ discountType: string }>({
     defaultValues: { discountType: "none" },
@@ -46,7 +51,7 @@ export default function CreateProductForm() {
     setCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
-        : [...prev, category]
+        : [...prev, category],
     );
   };
 
@@ -54,7 +59,11 @@ export default function CreateProductForm() {
     if (!attributeName.trim() || !attributeValue.trim()) return;
     setAttributes([
       ...attributes,
-      { name: attributeName.trim(), value: attributeValue.trim(), price: attributePrice.trim() },
+      {
+        name: attributeName.trim(),
+        value: attributeValue.trim(),
+        price: attributePrice.trim(),
+      },
     ]);
     setAttributeName("");
     setAttributeValue("");
@@ -89,38 +98,66 @@ export default function CreateProductForm() {
         <CardContent className="space-y-8">
           <div className="space-y-6">
             <h2 className="text-lg font-semibold">General Information</h2>
-            <CustomInput label="Product Name" placeholder="Enter product name" />
+            <CustomInput
+              label="Product Name"
+              placeholder="Enter product name"
+            />
 
-            {/* Discount Type & Value */}
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <CustomSelect
-                  control={control}
-                  name="discountType"
-                  label="Discount Type"
-                  options={[
-                    { value: "none", label: "None" },
-                    { value: "flat", label: "Flat Discount" },
-                    { value: "percent", label: "Percentage Discount" },
-                  ]}
-                  placeholder="Select type"
-                />
-              </div>
-              <div className="flex-1">
-                <CustomInput
-                  label="Discount Value"
-                  type="number"
-                  value={discountValue === null ? "" : discountValue}
-                  onValueChange={(val) => setDiscountValue(val as number | null)}
-                  placeholder="Enter value"
-                  min={0}
-                  disabled={watch("discountType") === "none"}
-                />
+            {/* Discount Type, Start/End Dates, & Value */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <CustomSelect
+                    control={control}
+                    name="discountType"
+                    label="Discount Type"
+                    labelClassName="mb-2"
+                    triggerClassName="w-full"
+                    options={[
+                      { value: "none", label: "None" },
+                      { value: "flat", label: "Flat Discount" },
+                      { value: "percent", label: "Percentage Discount" },
+                    ]}
+                    placeholder="Select type"
+                  />
+                </div>
+
+                <div>
+                  <CustomInput
+                    label="Discount Value"
+                    type="number"
+                    value={discountValue === null ? "" : discountValue}
+                    onValueChange={(val) =>
+                      setDiscountValue(val as number | null)
+                    }
+                    placeholder="Enter value"
+                    min={0}
+                    disabled={watch("discountType") === "none"}
+                  />
+                </div>
+
+                <div>
+                  <CustomDatePicker
+                    label="Discount Start Date"
+                    value={discountStart}
+                    onChange={setDiscountStart}
+                    disabled={watch("discountType") === "none"}
+                  />
+                </div>
+
+                <div>
+                  <CustomDatePicker
+                    label="Discount End Date"
+                    value={discountEnd}
+                    onChange={setDiscountEnd}
+                    disabled={watch("discountType") === "none"}
+                  />
+                </div>
               </div>
             </div>
             <div className="space-y-3">
               <Label>Categories</Label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {categoriesList.map((cat) => (
                   <CustomCheckbox
                     key={cat}
@@ -166,12 +203,20 @@ export default function CreateProductForm() {
             </div>
             <div className="flex flex-wrap gap-2">
               {attributes.map((attr, index) => (
-                <Badge key={`${attr.name}-${attr.value}-${index}`} className="flex items-center gap-2">
-                  <span>
-                    <strong>{attr.name}:</strong> {attr.value} {attr.price ? `- ${attr.price}` : ""}
+                <div
+                  key={`${attr.name}-${attr.value}-${index}`}
+                  className="flex items-center justify-between border rounded-xl px-4 py-2"
+                >
+                  <span className="text-sm">
+                    <strong>{attr.name}:</strong> {attr.value}
+                    {attr.price ? ` - ${attr.price}` : ""}
                   </span>
-                  <X size={14} className="cursor-pointer" onClick={() => removeAttribute(index)} />
-                </Badge>
+                  <X
+                    size={16}
+                    className="cursor-pointer ml-2"
+                    onClick={() => removeAttribute(index)}
+                  />
+                </div>
               ))}
             </div>
           </div>
@@ -181,22 +226,35 @@ export default function CreateProductForm() {
             <h2 className="text-lg font-semibold">Additional Information</h2>
             <div className="grid grid-cols-1 gap-3">
               <CustomInput
+                label="Name"
                 placeholder="Field Name"
                 value={infoName}
                 onChange={(e) => setInfoName(e.target.value)}
               />
               <CustomInput
+                label="Value"
                 placeholder="Field Value"
                 value={infoValue}
                 onChange={(e) => setInfoValue(e.target.value)}
               />
-              <Button type="button" onClick={addAdditionalInfo}>Add Info</Button>
+              <Button type="button" onClick={addAdditionalInfo}>
+                Add Info
+              </Button>
             </div>
             <div className="space-y-2">
               {additionalInfo.map((info, index) => (
-                <div key={index} className="flex items-center justify-between border rounded-xl px-3 py-2">
-                  <span className="text-sm"><strong>{info.name}:</strong> {info.value}</span>
-                  <X size={16} className="cursor-pointer" onClick={() => removeAdditionalInfo(index)} />
+                <div
+                  key={index}
+                  className="flex items-center justify-between border rounded-xl px-3 py-2"
+                >
+                  <span className="text-sm">
+                    <strong>{info.name}:</strong> {info.value}
+                  </span>
+                  <X
+                    size={16}
+                    className="cursor-pointer"
+                    onClick={() => removeAdditionalInfo(index)}
+                  />
                 </div>
               ))}
             </div>
@@ -205,13 +263,13 @@ export default function CreateProductForm() {
           {/* Description Section with Rich Text Editor */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Description</h2>
-            <CustomRichTextEditor 
-              value={description} 
-              onChange={setDescription} 
+            <CustomRichTextEditor
+              value={description}
+              onChange={setDescription}
             />
           </div>
 
-          <Button 
+          <Button
             className="w-full rounded-2xl text-base py-6"
             onClick={() => console.log("Final HTML Output:", description)}
           >
