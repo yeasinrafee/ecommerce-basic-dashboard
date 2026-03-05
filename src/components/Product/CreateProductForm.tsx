@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import CustomButton from "../Common/CustomButton";
 import { X } from "lucide-react";
 import CustomRichTextEditor from "../Common/CustomRichTextEditor";
 import CustomCheckbox from "../FormFields/CustomCheckbox";
@@ -25,12 +24,12 @@ const categoriesList = [
 export default function CreateProductForm() {
   const [categories, setCategories] = useState<string[]>([]);
   const [attributes, setAttributes] = useState<
-    { name: string; value: string; price: string }[]
+    { name: string; pairs: { value: string; price: string }[] }[]
   >([]);
   const [additionalInfo, setAdditionalInfo] = useState<
     { name: string; value: string }[]
   >([]);
-  const [description, setDescription] = useState(""); //
+  const [description, setDescription] = useState(""); 
 
   const [attributeName, setAttributeName] = useState("");
   const [attributeValue, setAttributeValue] = useState("");
@@ -56,22 +55,37 @@ export default function CreateProductForm() {
   };
 
   const addAttribute = () => {
-    if (!attributeName.trim() || !attributeValue.trim()) return;
-    setAttributes([
-      ...attributes,
-      {
-        name: attributeName.trim(),
-        value: attributeValue.trim(),
-        price: attributePrice.trim(),
-      },
-    ]);
-    setAttributeName("");
+    const name = attributeName.trim();
+    const val = attributeValue.trim();
+    if (!name || !val) return;
+    const price = attributePrice.trim();
+
+    setAttributes((prev) => {
+      const existing = prev.find((a) => a.name === name);
+      if (existing) {
+        return prev.map((a) =>
+          a.name === name
+            ? { ...a, pairs: [...a.pairs, { value: val, price }] }
+            : a,
+        );
+      }
+      return [...prev, { name, pairs: [{ value: val, price }] }];
+    });
+
     setAttributeValue("");
     setAttributePrice("");
   };
 
-  const removeAttribute = (index: number) => {
-    setAttributes(attributes.filter((_, i) => i !== index));
+  const removeAttributePair = (attrName: string, pairIndex: number) => {
+    setAttributes((prev) =>
+      prev
+        .map((a) => {
+          if (a.name !== attrName) return a;
+          const newPairs = a.pairs.filter((_, i) => i !== pairIndex);
+          return { name: a.name, pairs: newPairs };
+        })
+        .filter((a) => a.pairs.length > 0),
+    );
   };
 
   const addAdditionalInfo = () => {
@@ -92,12 +106,12 @@ export default function CreateProductForm() {
     <div className="max-w-3xl mx-auto p-6">
       <Card className="rounded-2xl shadow-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Create Product</CardTitle>
+          <CardTitle className="text-2xl text-center bg-neutral-200 text-black px-4 py-6 rounded-sm">Create Product Form</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-8">
           <div className="space-y-6">
-            <h2 className="text-lg font-semibold">General Information</h2>
+            {/* <h2 className="text-lg font-semibold">General Information</h2> */}
             <CustomInput
               label="Product Name"
               placeholder="Enter product name"
@@ -189,33 +203,40 @@ export default function CreateProductForm() {
                 onChange={(e) => setAttributeValue(e.target.value)}
               />
               <CustomInput
-                label="Price"
-                placeholder="Price"
+                label="Price (optional)"
+                placeholder="Price (optional)"
                 type="number"
                 value={attributePrice}
                 onChange={(e) => setAttributePrice(e.target.value)}
               />
             </div>
             <div>
-              <Button type="button" className="w-full" onClick={addAttribute}>
+              <CustomButton type="button" className="w-full" onClick={addAttribute}>
                 Add
-              </Button>
+              </CustomButton>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {attributes.map((attr, index) => (
-                <div
-                  key={`${attr.name}-${attr.value}-${index}`}
-                  className="flex items-center justify-between border rounded-xl px-4 py-2"
-                >
-                  <span className="text-sm">
-                    <strong>{attr.name}:</strong> {attr.value}
-                    {attr.price ? ` - ${attr.price}` : ""}
-                  </span>
-                  <X
-                    size={16}
-                    className="cursor-pointer ml-2"
-                    onClick={() => removeAttribute(index)}
-                  />
+            <div className="space-y-2">
+              {attributes.map((attr, ai) => (
+                <div key={attr.name} className="border rounded-xl p-2">
+                  <div className="font-semibold mb-1">{attr.name}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {attr.pairs.map((p, pi) => (
+                      <div
+                        key={`${attr.name}-${pi}`}
+                        className="flex items-center justify-between border rounded-xl px-3 py-1"
+                      >
+                        <span className="text-sm">
+                          {p.value}
+                          {p.price ? ` - ${p.price}` : ""}
+                        </span>
+                        <X
+                          size={14}
+                          className="cursor-pointer ml-2"
+                          onClick={() => removeAttributePair(attr.name, pi)}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
@@ -237,9 +258,9 @@ export default function CreateProductForm() {
                 value={infoValue}
                 onChange={(e) => setInfoValue(e.target.value)}
               />
-              <Button type="button" onClick={addAdditionalInfo}>
+              <CustomButton type="button" onClick={addAdditionalInfo}>
                 Add Info
-              </Button>
+              </CustomButton>
             </div>
             <div className="space-y-2">
               {additionalInfo.map((info, index) => (
@@ -269,12 +290,12 @@ export default function CreateProductForm() {
             />
           </div>
 
-          <Button
+          <CustomButton
             className="w-full rounded-2xl text-base py-6"
             onClick={() => console.log("Final HTML Output:", description)}
           >
             Save Product
-          </Button>
+          </CustomButton>
         </CardContent>
       </Card>
     </div>
