@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -22,17 +23,24 @@ const categoriesList = [
 
 export default function CreateProductForm() {
   const [categories, setCategories] = useState<string[]>([]);
-  const [attributes, setAttributes] = useState<string[]>([]);
+  const [attributes, setAttributes] = useState<
+    { name: string; value: string; price: string }[]
+  >([]);
   const [additionalInfo, setAdditionalInfo] = useState<{ name: string; value: string }[]>([]);
   const [description, setDescription] = useState(""); //
-
-  const [attributeInput, setAttributeInput] = useState("");
+  
+  const [attributeName, setAttributeName] = useState("");
+  const [attributeValue, setAttributeValue] = useState("");
+  const [attributePrice, setAttributePrice] = useState("");
   const [infoName, setInfoName] = useState("");
   const [infoValue, setInfoValue] = useState("");
 
   // Discount fields
-  const [discountType, setDiscountType] = useState<string>("none");
   const [discountValue, setDiscountValue] = useState<number | null>(null);
+
+  const { control, watch } = useForm<{ discountType: string }>({
+    defaultValues: { discountType: "none" },
+  });
 
   const toggleCategory = (category: string) => {
     setCategories((prev) =>
@@ -43,13 +51,18 @@ export default function CreateProductForm() {
   };
 
   const addAttribute = () => {
-    if (!attributeInput.trim()) return;
-    setAttributes([...attributes, attributeInput.trim()]);
-    setAttributeInput("");
+    if (!attributeName.trim() || !attributeValue.trim()) return;
+    setAttributes([
+      ...attributes,
+      { name: attributeName.trim(), value: attributeValue.trim(), price: attributePrice.trim() },
+    ]);
+    setAttributeName("");
+    setAttributeValue("");
+    setAttributePrice("");
   };
 
-  const removeAttribute = (attr: string) => {
-    setAttributes(attributes.filter((a) => a !== attr));
+  const removeAttribute = (index: number) => {
+    setAttributes(attributes.filter((_, i) => i !== index));
   };
 
   const addAdditionalInfo = () => {
@@ -82,9 +95,9 @@ export default function CreateProductForm() {
             <div className="flex gap-4">
               <div className="flex-1">
                 <CustomSelect
+                  control={control}
+                  name="discountType"
                   label="Discount Type"
-                  value={discountType}
-                  onValueChange={setDiscountType}
                   options={[
                     { value: "none", label: "None" },
                     { value: "flat", label: "Flat Discount" },
@@ -98,10 +111,10 @@ export default function CreateProductForm() {
                   label="Discount Value"
                   type="number"
                   value={discountValue === null ? "" : discountValue}
-                  onValueChange={setDiscountValue}
+                  onValueChange={(val) => setDiscountValue(val as number | null)}
                   placeholder="Enter value"
                   min={0}
-                  disabled={discountType === "none"}
+                  disabled={watch("discountType") === "none"}
                 />
               </div>
             </div>
@@ -125,20 +138,39 @@ export default function CreateProductForm() {
           {/* Attributes Section */}
           <div className="bg-white border rounded-2xl p-6 space-y-4 shadow-sm">
             <h2 className="text-lg font-semibold">Attributes</h2>
-            <div className="flex gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <CustomInput
-                placeholder="e.g. Color, Size"
-                value={attributeInput}
-                onChange={(e) => setAttributeInput(e.target.value)}
-                containerClassName="w-full"
+                label="Name"
+                placeholder="Name (e.g. Color)"
+                value={attributeName}
+                onChange={(e) => setAttributeName(e.target.value)}
               />
-              <Button type="button" onClick={addAttribute}>Add</Button>
+              <CustomInput
+                label="Value"
+                placeholder="Value (e.g. Red)"
+                value={attributeValue}
+                onChange={(e) => setAttributeValue(e.target.value)}
+              />
+              <CustomInput
+                label="Price"
+                placeholder="Price"
+                type="number"
+                value={attributePrice}
+                onChange={(e) => setAttributePrice(e.target.value)}
+              />
+            </div>
+            <div>
+              <Button type="button" className="w-full" onClick={addAttribute}>
+                Add
+              </Button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {attributes.map((attr) => (
-                <Badge key={attr} className="flex items-center gap-1">
-                  {attr}
-                  <X size={14} className="cursor-pointer" onClick={() => removeAttribute(attr)} />
+              {attributes.map((attr, index) => (
+                <Badge key={`${attr.name}-${attr.value}-${index}`} className="flex items-center gap-2">
+                  <span>
+                    <strong>{attr.name}:</strong> {attr.value} {attr.price ? `- ${attr.price}` : ""}
+                  </span>
+                  <X size={14} className="cursor-pointer" onClick={() => removeAttribute(index)} />
                 </Badge>
               ))}
             </div>

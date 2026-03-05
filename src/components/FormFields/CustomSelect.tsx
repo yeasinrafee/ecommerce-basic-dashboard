@@ -1,6 +1,7 @@
 "use client";
 
-import * as React from "react";
+import { Controller, Control, FieldValues, Path } from "react-hook-form";
+import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -9,107 +10,102 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 
-export interface CustomSelectOption {
+interface SelectOption {
+  label: string;
   value: string;
-  label: React.ReactNode;
-  disabled?: boolean;
-  className?: string;
 }
 
-interface CustomSelectProps
-  extends Omit<React.ComponentProps<typeof Select>, "children"> {
-  id?: string;
-  label?: React.ReactNode;
+interface CustomSelectProps<T extends FieldValues> {
+  name: Path<T>;
+  control: Control<T>;
+  label?: string;
   placeholder?: string;
-  helperText?: React.ReactNode;
-  error?: React.ReactNode;
-  options?: CustomSelectOption[];
-  children?: React.ReactNode;
-  containerClassName?: string;
+  description?: string;
+  options: SelectOption[];
+  fieldToValue?: (val: any) => string;
+  valueToField?: (val: string) => any;
+  disabled?: boolean;
+  className?: string;
+  fieldClassName?: string;
   labelClassName?: string;
   triggerClassName?: string;
   contentClassName?: string;
   itemClassName?: string;
-  helperTextClassName?: string;
+  descriptionClassName?: string;
   errorClassName?: string;
+  onChangeCallback?: (value: string) => void;
 }
 
-const CustomSelect = ({
-  id,
+export default function CustomSelect<T extends FieldValues>({
+  name,
+  control,
   label,
   placeholder = "Select an option",
-  helperText,
-  error,
-  options = [],
-  children,
-  containerClassName,
+  description,
+  options,
+  fieldToValue,
+  valueToField,
+  disabled = false,
+  className,
+  fieldClassName,
   labelClassName,
   triggerClassName,
   contentClassName,
   itemClassName,
-  helperTextClassName,
+  descriptionClassName,
   errorClassName,
-  ...props
-}: CustomSelectProps) => {
-  const generatedId = React.useId();
-  const selectId = id ?? generatedId;
-
-  const helperId = helperText ? `${selectId}-helper` : undefined;
-  const errorId = error ? `${selectId}-error` : undefined;
-  const describedBy = [helperId, errorId].filter(Boolean).join(" ");
-
+  onChangeCallback,
+}: CustomSelectProps<T>) {
   return (
-    <div className={cn("space-y-2", containerClassName)}>
-      {label ? (
-        <Label htmlFor={selectId} className={labelClassName}>
-          {label}
-        </Label>
-      ) : null}
+    <Controller
+      name={name}
+      control={control}
+      render={({ field, fieldState }) => {
+        const selectValue = typeof fieldToValue === "function" ? fieldToValue(field.value) : field.value;
 
-      <Select {...props}>
-        <SelectTrigger
-          id={selectId}
-          className={triggerClassName}
-          aria-describedby={describedBy || undefined}
-          aria-invalid={Boolean(error) || undefined}
-        >
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
+        return (
+          <div data-invalid={fieldState.invalid} className={cn(fieldClassName)}>
+            {label && (
+              <Label htmlFor={`select-${String(name)}`} className={cn(labelClassName)}>
+                {label}
+              </Label>
+            )}
 
-        <SelectContent className={contentClassName}>
-          {children
-            ? children
-            : options.map((option) => (
-                <SelectItem
-                  key={option.value}
-                  value={option.value}
-                  disabled={option.disabled}
-                  className={cn(itemClassName, option.className)}
-                >
-                  {option.label}
-                </SelectItem>
-              ))}
-        </SelectContent>
-      </Select>
+            <Select
+              onValueChange={(v: string) => {
+                field.onChange(typeof valueToField === "function" ? valueToField(v) : v);
+                if (onChangeCallback) onChangeCallback(v);
+              }}
+              value={selectValue}
+              disabled={disabled}
+            >
+              <SelectTrigger id={`select-${String(name)}`} className={cn(triggerClassName)}>
+                <SelectValue placeholder={placeholder} />
+              </SelectTrigger>
+              <SelectContent position="popper" className={cn(contentClassName)}>
+                {options.map((option) => (
+                  <SelectItem key={option.value} value={option.value} className={cn(itemClassName)}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-      {helperText ? (
-        <p
-          id={helperId}
-          className={cn("text-xs text-muted-foreground", helperTextClassName)}
-        >
-          {helperText}
-        </p>
-      ) : null}
+            {description && (
+              <p className={cn("text-xs text-muted-foreground", descriptionClassName)}>
+                {description}
+              </p>
+            )}
 
-      {error ? (
-        <p id={errorId} className={cn("text-xs text-destructive", errorClassName)}>
-          {error}
-        </p>
-      ) : null}
-    </div>
+            {fieldState.invalid && (
+              <p className={cn("text-xs text-destructive", errorClassName)}>
+                {fieldState.error?.message ?? "Invalid"}
+              </p>
+            )}
+          </div>
+        );
+      }}
+    />
   );
-};
-
-export default CustomSelect;
+}
