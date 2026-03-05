@@ -1,11 +1,16 @@
 "use client";
-
-import { RichTextEditor } from '@mantine/tiptap';
-import { useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
-import Image from '@tiptap/extension-image';
-import { IconPhoto } from '@tabler/icons-react';
+import { RichTextEditor } from "@mantine/tiptap";
+import { useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
+import Underline from "@tiptap/extension-underline";
+import Highlight from "@tiptap/extension-highlight";
+import Code from "@tiptap/extension-code";
+import CodeBlock from "@tiptap/extension-code-block";
+import TextAlign from "@tiptap/extension-text-align";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { IconPhoto } from "@tabler/icons-react";
 
 interface EditorProps {
   value: string;
@@ -19,29 +24,33 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
         bulletList: {},
         orderedList: {},
       }),
+      Underline,
+      Highlight,
+      Code,
+      CodeBlock,
+      TextStyle,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       Link.configure({
         openOnClick: false,
       }),
       Image.configure({
-        allowBase64: true, // Useful for quick testing, though not for production
+        allowBase64: true,
       }),
     ],
     content: value,
     onUpdate: ({ editor }) => {
-      // For now, we save as HTML to keep it simple for your form
       onChange(editor.getHTML());
     },
-    immediatelyRender: false, // Fix SSR hydration error
+    immediatelyRender: false,
   });
 
   const addImage = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
     input.onchange = (event: any) => {
       const file = event.target.files[0];
       if (file) {
-        // Create a local temporary URL
         const url = URL.createObjectURL(file);
         editor?.chain().focus().setImage({ src: url }).run();
       }
@@ -51,12 +60,21 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
 
   return (
     <div className="prose-container [&_.tiptap_ul]:list-disc [&_.tiptap_ul]:pl-6 [&_.tiptap_ol]:list-decimal [&_.tiptap_ol]:pl-6 [&_.tiptap_em]:italic [&_.tiptap_del]:line-through">
-      <RichTextEditor editor={editor} className="rounded-xl overflow-hidden border">
-        <RichTextEditor.Toolbar sticky stickyOffset={0} className="flex flex-wrap gap-1 p-1">
+      <RichTextEditor
+        editor={editor}
+        className="rounded-xl overflow-hidden border min-h-[300px]"
+      >
+        <RichTextEditor.Toolbar
+          sticky
+          stickyOffset={0}
+          className="flex flex-wrap gap-1 p-1"
+        >
           <RichTextEditor.ControlsGroup>
             <RichTextEditor.Bold />
             <RichTextEditor.Italic />
+            <RichTextEditor.Underline />
             <RichTextEditor.Strikethrough />
+            <RichTextEditor.Highlight />
             <RichTextEditor.ClearFormatting />
           </RichTextEditor.ControlsGroup>
 
@@ -64,17 +82,33 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
             <RichTextEditor.H1 />
             <RichTextEditor.H2 />
             <RichTextEditor.H3 />
+            <RichTextEditor.H4 />
           </RichTextEditor.ControlsGroup>
 
           <RichTextEditor.ControlsGroup>
             <RichTextEditor.BulletList />
             <RichTextEditor.OrderedList />
-            <RichTextEditor.Link />
-            <RichTextEditor.Unlink />
+            <RichTextEditor.Blockquote />
+            <RichTextEditor.Code />
+            <RichTextEditor.CodeBlock />
+            <RichTextEditor.Hr />
           </RichTextEditor.ControlsGroup>
 
           <RichTextEditor.ControlsGroup>
-            {/* Custom Button for Images */}
+            <RichTextEditor.AlignLeft />
+            <RichTextEditor.AlignCenter />
+            <RichTextEditor.AlignRight />
+            <RichTextEditor.AlignJustify />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Link />
+            <RichTextEditor.Unlink />
+            <RichTextEditor.Undo />
+            <RichTextEditor.Redo />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
             <button
               type="button"
               onClick={addImage}

@@ -76,7 +76,6 @@ const RightSection: React.FC<RightSectionProps> = ({
 
   return (
     <div className="flex w-full flex-col gap-6">
-      {/* Images block at top */}
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
@@ -89,7 +88,7 @@ const RightSection: React.FC<RightSectionProps> = ({
 
         <div className="mt-5 space-y-4">
           <CustomFileUpload
-            label="Main Image"
+            label="Product image"
             description="This hero image represents the product across listings."
             helperText="Formats: PNG, JPG, JPEG, WEBP. Maximum 5MB."
             maxFiles={1}
@@ -97,7 +96,7 @@ const RightSection: React.FC<RightSectionProps> = ({
           />
 
           <CustomFileUpload
-            label="Gallery Images"
+            label="Gallery images"
             description="Supplement the hero shot with contextual photos."
             helperText="Up to 10 images. JPG, PNG, or WEBP."
             maxFiles={10}
