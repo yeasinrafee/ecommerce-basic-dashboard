@@ -67,7 +67,7 @@ const Attributes: React.FC<AttributesProps> = ({ onChange }) => {
     if (onChange) {
       onChange(attributes);
     }
-  }, [attributes, onChange]);
+  }, [attributes]);
 
   return (
     <div className="space-y-6">

@@ -6,7 +6,7 @@ import CustomButton from "../Common/CustomButton";
 import CustomTab, { CustomTabItem } from "../Common/CustomTab";
 import MainInformation from "./ProductForm/MainInformation";
 import GeneralInformation from "./ProductForm/GeneralInformation";
-import Attributes, { AttributesData } from "./ProductForm/Attributes";
+import Attributes, { AttributesData, AttributeRecord, AdditionalInfo as AdditionalInfoType } from "./ProductForm/Attributes";
 import AdditionalInfo from "./ProductForm/AdditionalInfo";
 import Seo, { SeoData } from "./ProductForm/Seo";
 import RightSection, { RightSectionData } from "./ProductForm/RightSection";
@@ -60,12 +60,6 @@ const productStatusOptions = [
   { label: "Inactive", value: "inactive" },
   { label: "Draft", value: "draft" },
 ];
-
-type AttributeRecord = {
-  name: string;
-  pairs: { value: string; price: string }[];
-};
-
 type FormValues = {
   discountType: string;
   brand: string;
@@ -95,7 +89,7 @@ export default function CreateProductForm() {
   const [shortDescription, setShortDescription] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [basePrice, setBasePrice] = React.useState<number | null>(null);
-  const [costPrice, setCostPrice] = React.useState<number | null>(null);
+
   const [discountValue, setDiscountValue] = React.useState<number | null>(null);
   const [discountStart, setDiscountStart] = React.useState<Date | null>(null);
   const [discountEnd, setDiscountEnd] = React.useState<Date | null>(null);
@@ -126,8 +120,6 @@ export default function CreateProductForm() {
         <GeneralInformation
           basePrice={basePrice}
           setBasePrice={setBasePrice}
-          costPrice={costPrice}
-          setCostPrice={setCostPrice}
           selectedDiscountType={selectedDiscountType}
           discountValue={discountValue}
           setDiscountValue={setDiscountValue}
@@ -151,9 +143,11 @@ export default function CreateProductForm() {
       label: "Attributes",
       content: (
         <Attributes
-          onChange={(attrs) =>
-            setAttributesData((prev) => ({ ...prev, attributes: attrs }))
-          }
+          onChange={React.useCallback(
+            (attrs: AttributeRecord[]) =>
+              setAttributesData((prev) => ({ ...prev, attributes: attrs })),
+            [],
+          )}
         />
       ),
     },
@@ -162,9 +156,11 @@ export default function CreateProductForm() {
       label: "Additional Info",
       content: (
         <AdditionalInfo
-          onChange={(info) =>
-            setAttributesData((prev) => ({ ...prev, additionalInfo: info }))
-          }
+          onChange={React.useCallback(
+            (info: AdditionalInfoType[]) =>
+              setAttributesData((prev) => ({ ...prev, additionalInfo: info })),
+            [],
+          )}
         />
       ),
     },

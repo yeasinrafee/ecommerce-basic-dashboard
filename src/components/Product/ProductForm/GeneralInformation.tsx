@@ -13,8 +13,6 @@ interface Option {
 interface GeneralInformationProps {
   basePrice: number | null;
   setBasePrice: (value: number | null) => void;
-  costPrice: number | null;
-  setCostPrice: (value: number | null) => void;
   selectedDiscountType: string;
   discountValue: number | null;
   setDiscountValue: (value: number | null) => void;
@@ -35,8 +33,6 @@ interface GeneralInformationProps {
 const GeneralInformation: React.FC<GeneralInformationProps> = ({
   basePrice,
   setBasePrice,
-  costPrice,
-  setCostPrice,
   selectedDiscountType,
   discountValue,
   setDiscountValue,
@@ -53,6 +49,18 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
   stockStatusOptions,
   productStatusOptions,
 }) => {
+  const finalPrice = React.useMemo(() => {
+    if (basePrice == null) return "";
+    const disc = discountValue ?? 0;
+    switch (selectedDiscountType) {
+      case "flat":
+        return Math.max(0, basePrice - disc);
+      case "percent":
+        return Math.max(0, basePrice - basePrice * (disc / 100));
+      default:
+        return basePrice;
+    }
+  }, [basePrice, selectedDiscountType, discountValue]);
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
@@ -63,14 +71,17 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           onValueChange={(value) => setBasePrice(value as number | null)}
           placeholder="0.00"
         />
-        <CustomInput
-          label="Cost Price (optional)"
-          type="number"
-          value={costPrice === null ? "" : costPrice}
-          onValueChange={(value) => setCostPrice(value as number | null)}
-          placeholder="0.00"
-          min={0}
-        />
+        <div>
+          <label className="block text-sm font-medium text-slate-700">
+            Final Price
+          </label>
+          <CustomInput
+            type="number"
+            value={finalPrice === "" ? "" : finalPrice}
+            disabled
+            className="mt-1"
+          />
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -79,7 +90,6 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           control={control}
           label="Discount Type"
           options={discountOptions}
-          description="Choose how the discount should behave"
         />
         <CustomInput
           label="Discount Value"

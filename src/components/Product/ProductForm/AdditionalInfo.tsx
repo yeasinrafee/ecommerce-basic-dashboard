@@ -2,6 +2,7 @@ import React from "react";
 import { Plus, X } from "lucide-react";
 import CustomButton from "../../Common/CustomButton";
 import CustomInput from "../../FormFields/CustomInput";
+import CustomTextArea from "../../FormFields/CustomTextArea";
 import type { AdditionalInfo as AdditionalInfoType } from "./Attributes";
 
 interface AdditionalInfoProps {
@@ -29,24 +30,25 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({ onChange }) => {
 
   React.useEffect(() => {
     if (onChange) onChange(additionalInfo);
-  }, [additionalInfo, onChange]);
+  }, [additionalInfo]);
 
   return (
     <div className="space-y-4 rounded-2xl border border-slate-200 p-4">
       <div className="text-sm font-semibold text-slate-700">Additional Information</div>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-3">
         <CustomInput
           label="Field Name"
           value={infoName}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => setInfoName(event.target.value)}
         />
-        <CustomInput
+        <CustomTextArea
           label="Field Value"
           value={infoValue}
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) => setInfoValue(event.target.value)}
+          onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setInfoValue(event.target.value)}
+          rows={3}
         />
       </div>
-      <CustomButton type="button" className="w-full" leftIcon={<Plus size={16} />} onClick={addAdditionalInfo}>
+      <CustomButton type="button" className="" leftIcon={<Plus size={16} />} onClick={addAdditionalInfo}>
         Add Info
       </CustomButton>
       <div className="space-y-2">
