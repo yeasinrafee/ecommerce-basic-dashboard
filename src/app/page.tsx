@@ -1,16 +1,10 @@
-import Image from "next/image";
-import Link from "next/link";
+import Login from '@/components/Auth/Login'
+import React from 'react'
 
-export default function Home() {
+const page = () => {
   return (
-    <div className="flex flex-col justify-center items-center h-screen">
-      <h1>Login Form</h1>
-      <Link
-        className="bg-amber-600 text-white py-2 px-4 mt-4"
-        href="/dashboard"
-      >
-        Dashboard
-      </Link>
-    </div>
-  );
+    <div className='h-screen flex justify-center items-center'><Login /></div>
+  )
 }
+
+export default page
