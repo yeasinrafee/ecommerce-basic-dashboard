@@ -1,72 +1,142 @@
-import {
-  BarChart3,
-  Users,
-  Settings,
-  FileText,
-  Bell,
-  Package,
-  Folders,
-  BookOpen,
-  List,
-  Box,
-} from "lucide-react";
+import { 
+  LuLayoutDashboard, 
+  LuBox, 
+  LuCirclePlus, 
+  LuShoppingCart, 
+  LuUsers, 
+  LuLayers, 
+  LuTicketPercent, 
+  LuGlobe, 
+  LuImage, 
+  LuSettings,
+  LuList
+} from "react-icons/lu";
 
-export const routes = () => [
+export interface RouteItem {
+  icon: React.ElementType;
+  label: string;
+  href: string;
+  active?: boolean;
+  subItems?: {
+    icon: React.ElementType;
+    label: string;
+    href: string;
+    active?: boolean;
+  }[];
+}
+
+export const routes: RouteItem[] = [
   {
-    icon: BarChart3,
+    icon: LuLayoutDashboard,
     label: "Dashboard",
     href: "/admin",
-    active: true,
   },
+  // --- Products ---
   {
-    icon: Users,
-    label: "Students Management",
-    href: "/admin/users",
+    icon: LuBox,
+    label: "Products",
+    href: "/dashboard/products",
+    subItems: [
+      { 
+        icon: LuCirclePlus,
+        label: "Create Product", 
+        href: "/dashboard/product/create", 
+      },
+      { 
+        icon: LuList,
+        label: "Manage Products", 
+        href: "/dashboard/products", 
+      },
+    ],
   },
+  // --- Orders ---
   {
-    icon: Users,
-    label: "Instructor Management",
-    href: "/admin/instructor",
-  },
-  {
-    icon: Folders,
-    label: "Category Management",
-    href: "/admin/category",
-  },
-  {
-    icon: BookOpen,
-    label: "Course Management",
-    href: "/admin/course",
-  },
-  {
-    icon: List,
-    label: "Playlist Management",
-    href: "/admin/play-list",
-  },
-  {
-    icon: Package,
-    label: "Module Management",
-    href: "/admin/module",
-  },
-  {
-    icon: FileText,
-    label: "Lesson Management",
-    href: "/admin/lesson",
-  },
-  {
-    icon: Box,
-    label: "Order Management",
+    icon: LuShoppingCart,
+    label: "Orders",
     href: "/admin/orders",
+    subItems: [
+      { 
+        icon: LuCirclePlus,
+        label: "Create Order", 
+        href: "/admin/orders/create", 
+      },
+      { 
+        icon: LuList,
+        label: "Manage Orders", 
+        href: "/admin/orders", 
+      },
+    ],
+  },
+  // --- Categories ---
+  {
+    icon: LuLayers,
+    label: "Categories",
+    href: "/admin/categories",
+    subItems: [
+      { 
+        icon: LuCirclePlus,
+        label: "Create Category", 
+        href: "/admin/categories/create", 
+      },
+      { 
+        icon: LuList,
+        label: "Manage Categories", 
+        href: "/admin/categories", 
+      },
+    ],
+  },
+  // --- Users ---
+  {
+    icon: LuUsers,
+    label: "Users",
+    href: "/admin/users",
+    subItems: [
+      { 
+        icon: LuList,
+        label: "Manage Users", 
+        href: "/admin/users", 
+      },
+    ],
+  },
+  // --- Marketing ---
+  {
+    icon: LuTicketPercent,
+    label: "Promos",
+    href: "/admin/promos",
+    subItems: [
+      { 
+        icon: LuCirclePlus,
+        label: "Create Promo", 
+        href: "/admin/promos/create", 
+      },
+      { 
+        icon: LuList,
+        label: "Manage Promos", 
+        href: "/admin/promos", 
+      },
+    ],
+  },
+  // --- Web Management ---
+  {
+    icon: LuGlobe,
+    label: "Web Management",
+    href: "/admin/web",
+    subItems: [
+      { 
+        icon: LuImage,
+        label: "Banner Management", 
+        href: "/admin/web/banners", 
+      },
+      { 
+        icon: LuSettings,
+        label: "Site Info (Logo, Contact)", 
+        href: "/admin/web/info", 
+      },
+    ],
   },
   {
-    icon: Bell,
-    label: "Event Management",
-    href: "/admin/event",
-  },
-  {
-    icon: Settings,
+    icon: LuSettings,
     label: "Settings",
     href: "/admin/settings",
   },
-
 ];
