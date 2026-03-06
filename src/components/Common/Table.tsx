@@ -27,19 +27,19 @@ type Props<T = Record<string, unknown>> = {
   data: T[];
   pageSize?: number;
   searchKeys?: string[];
-  toolbar?: React.ReactNode; // place external search bar here if desired
+  toolbar?: React.ReactNode; 
   renderRowActions?: (row: T) => React.ReactNode;
   rowKey?: string;
   showIndex?: boolean;
   emptyState?: React.ReactNode;
   className?: string;
-  onSearch?: (term: string) => void; // for server-side search
+  onSearch?: (term: string) => void; 
   serverSide?: boolean;
   currentPage?: number;
   onPageChange?: (page: number) => void;
   totalItems?: number;
-  // filtering/sorting handled externally if needed
-  searchTerm?: string; // external search term (controlled by parent/search bar)
+  
+  searchTerm?: string; 
 };
 
 function getValue(obj: any, path?: string) {
@@ -63,17 +63,10 @@ export default function Table<T = Record<string, unknown>>({
   currentPage: currentPageProp,
   onPageChange,
   totalItems,
-  filters,
-  sorts,
-  filterValues = {},
-  sortState = { key: "", order: null },
-  onFilterChange,
-  onSortChange,
   searchTerm,
 }: Props<T>) {
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filtering: when serverSide is true, caller should provide filtered/paginated data
   const filtered = useMemo(() => {
     if (serverSide) return data;
     if (!searchTerm || onSearch) return data;
