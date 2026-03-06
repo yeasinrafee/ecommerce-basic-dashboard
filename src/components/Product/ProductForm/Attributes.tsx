@@ -1,12 +1,16 @@
 import React from "react";
 import { Plus, X } from "lucide-react";
+import { AiOutlineCheck } from "react-icons/ai";
+import { useForm } from "react-hook-form";
 
 import CustomButton from "../../Common/CustomButton";
 import CustomInput from "../../FormFields/CustomInput";
+import CustomSelect from "../../FormFields/CustomSelect";
 
 export type AttributeRecord = {
   name: string;
   pairs: { value: string; price: string }[];
+  imageId?: string;
 };
 
 export type AdditionalInfo = { name: string; value: string };
@@ -17,14 +21,20 @@ export interface AttributesData {
 }
 
 interface AttributesProps {
-  onChange?: (attributes: AttributeRecord[]) => void;
+  onChange?: (data: AttributesData) => void;
+  galleryImages?: { id: string; name: string; url: string }[];
 }
 
-const Attributes: React.FC<AttributesProps> = ({ onChange }) => {
+const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [] }) => {
   const [attributeName, setAttributeName] = React.useState("");
   const [attributeValue, setAttributeValue] = React.useState("");
   const [attributePrice, setAttributePrice] = React.useState("");
   const [attributes, setAttributes] = React.useState<AttributeRecord[]>([]);
+  const [selectedGalleryImageId, setSelectedGalleryImageId] = React.useState<string | null>(null);
+
+  const { control } = useForm<{ attributeName: string }>({
+    defaultValues: { attributeName: "" },
+  });
 
   const addAttribute = () => {
     const name = attributeName.trim();
@@ -37,14 +47,18 @@ const Attributes: React.FC<AttributesProps> = ({ onChange }) => {
       if (exists) {
         return prev.map((attr) =>
           attr.name === name
-            ? {
-                ...attr,
-                pairs: [...attr.pairs, { value, price }],
-              }
+            ? { ...attr, pairs: [...attr.pairs, { value, price }] }
             : attr,
         );
       }
-      return [...prev, { name, pairs: [{ value, price }] }];
+      return [
+        ...prev,
+        {
+          name,
+          pairs: [{ value, price }],
+          imageId: selectedGalleryImageId ?? undefined,
+        },
+      ];
     });
 
     setAttributeValue("");
@@ -65,20 +79,77 @@ const Attributes: React.FC<AttributesProps> = ({ onChange }) => {
 
   React.useEffect(() => {
     if (onChange) {
-      onChange(attributes);
+      onChange({ attributes, additionalInfo: [] });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attributes]);
+
+  const selectedGalleryImage = galleryImages.find((img) => img.id === selectedGalleryImageId);
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4 rounded-2xl border border-slate-200 p-4">
-        <div className="text-sm font-semibold text-slate-700">Add Attribute</div>
+      {galleryImages && galleryImages.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-slate-700">Gallery images</p>
+            {/* <p className="text-xs text-slate-500">
+              {selectedGalleryImage
+                ? `Selected: ${selectedGalleryImage.name}`
+                : "Choose an image before adding an attribute."}
+            </p> */}
+          </div>
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+            {galleryImages.map((img) => {
+              const isSelected = selectedGalleryImageId === img.id;
+              return (
+                <button
+                  key={img.id}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() =>
+                    setSelectedGalleryImageId((prev) =>
+                      prev === img.id ? null : img.id,
+                    )
+                  }
+                  className={`relative h-12 w-12 flex-shrink-0 overflow-hidden rounded transition border border-slate-200 hover:brightness-95`}
+                >
+                  <img
+                    src={img.url}
+                    alt={img.name}
+                    className="h-full w-full object-cover"
+                  />
+                  {isSelected && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 shadow-md">
+                        <AiOutlineCheck className="h-3 w-3 text-white" aria-hidden />
+                      </span>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-4">
+        <div className="text-sm font-semibold text-slate-700">Attribute</div>
         <div className="grid gap-3 md:grid-cols-3">
-          <CustomInput
+          <CustomSelect
+            name="attributeName"
+            control={control}
             label="Name"
-            placeholder="e.g. Color"
-            value={attributeName}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => setAttributeName(event.target.value)}
+            placeholder="Select attribute"
+            options={[
+              { label: "Color", value: "Color" },
+              { label: "Size", value: "Size" },
+              { label: "Material", value: "Material" },
+              { label: "Style", value: "Style" },
+              { label: "Capacity", value: "Capacity" },
+            ]}
+            onChangeCallback={(v: string) => setAttributeName(v)}
+            className="w-full"
+            triggerClassName="w-full"
           />
           <CustomInput
             label="Value"
@@ -105,37 +176,53 @@ const Attributes: React.FC<AttributesProps> = ({ onChange }) => {
       </div>
 
       <div className="space-y-3">
-        {attributes.map((attr) => (
-          <div
-            key={attr.name}
-            className="rounded-2xl border border-slate-200 p-4 shadow-sm"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-700">
-                {attr.name}
-              </h3>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {attr.pairs.map((pair, index) => (
-                <div
-                  key={`${attr.name}-${index}`}
-                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm"
-                >
-                  <span>
-                    {pair.value}
-                    {pair.price ? ` · ${pair.price}` : ""}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removeAttributePair(attr.name, index)}
-                  >
-                    <X size={14} />
-                  </button>
+        {attributes.map((attr) => {
+          const assignedImage = galleryImages.find((img) => img.id === attr.imageId);
+          return (
+            <div
+              key={attr.name}
+              className="rounded-2xl border border-slate-200 p-4 shadow-sm"
+            >
+              <div className="flex flex-col gap-4 md:flex-row">
+                {assignedImage && (
+                  <div className="flex-shrink-0 rounded border border-slate-200 shadow-sm">
+                    <img
+                      src={assignedImage.url}
+                      alt={assignedImage.name}
+                      className="h-20 w-20 rounded object-cover"
+                    />
+                  </div>
+                )}
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-slate-700">
+                      {attr.name}
+                    </h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {attr.pairs.map((pair, index) => (
+                      <div
+                        key={`${attr.name}-${index}`}
+                        className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm"
+                      >
+                        <span>
+                          {pair.value}
+                          {pair.price ? ` · ${pair.price}` : ""}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeAttributePair(attr.name, index)}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

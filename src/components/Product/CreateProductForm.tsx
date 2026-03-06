@@ -6,7 +6,7 @@ import CustomButton from "../Common/CustomButton";
 import CustomTab, { CustomTabItem } from "../Common/CustomTab";
 import MainInformation from "./ProductForm/MainInformation";
 import GeneralInformation from "./ProductForm/GeneralInformation";
-import Attributes, { AttributesData, AttributeRecord, AdditionalInfo as AdditionalInfoType } from "./ProductForm/Attributes";
+import Attributes, { AttributesData, AdditionalInfo as AdditionalInfoType } from "./ProductForm/Attributes";
 import AdditionalInfo from "./ProductForm/AdditionalInfo";
 import Seo, { SeoData } from "./ProductForm/Seo";
 import RightSection, { RightSectionData } from "./ProductForm/RightSection";
@@ -143,9 +143,13 @@ export default function CreateProductForm() {
       label: "Attributes",
       content: (
         <Attributes
+          galleryImages={rightData.galleryImages}
           onChange={React.useCallback(
-            (attrs: AttributeRecord[]) =>
-              setAttributesData((prev) => ({ ...prev, attributes: attrs })),
+            (data: AttributesData) =>
+              setAttributesData((prev) => ({
+                ...prev,
+                attributes: data.attributes,
+              })),
             [],
           )}
         />

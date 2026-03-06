@@ -33,7 +33,7 @@ const AdditionalInfo: React.FC<AdditionalInfoProps> = ({ onChange }) => {
   }, [additionalInfo]);
 
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 p-4">
+    <div className="space-y-4">
       <div className="text-sm font-semibold text-slate-700">Additional Information</div>
       <div className="grid gap-3">
         <CustomInput
