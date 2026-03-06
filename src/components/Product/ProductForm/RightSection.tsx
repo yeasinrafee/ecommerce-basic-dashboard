@@ -87,21 +87,31 @@ const RightSection: React.FC<RightSectionProps> = ({
         </div>
 
         <div className="mt-5 space-y-4">
-          <CustomFileUpload
-            label="Product image"
-            description="This hero image represents the product across listings."
-            helperText="Formats: PNG, JPG, JPEG, WEBP. Maximum 5MB."
-            maxFiles={1}
-            onFilesChange={handleMainFilesChange}
-          />
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Product image</label>
+            <div className="mt-2">
+              <CustomFileUpload
+                label=""
+                description="This hero image represents the product across listings."
+                helperText="Formats: PNG, JPG, JPEG, WEBP. Maximum 5MB."
+                maxFiles={1}
+                onFilesChange={handleMainFilesChange}
+              />
+            </div>
+          </div>
 
-          <CustomFileUpload
-            label="Gallery images"
-            description="Supplement the hero shot with contextual photos."
-            helperText="Up to 10 images. JPG, PNG, or WEBP."
-            maxFiles={10}
-            onFilesChange={handleGalleryFilesChange}
-          />
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Gallery images</label>
+            <div className="mt-2">
+              <CustomFileUpload
+                label=""
+                description="Supplement the hero shot with contextual photos."
+                helperText="Up to 10 images. JPG, PNG, or WEBP."
+                maxFiles={10}
+                onFilesChange={handleGalleryFilesChange}
+              />
+            </div>
+          </div>
         </div>
       </div>
 

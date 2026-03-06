@@ -67,7 +67,7 @@ export default function CustomSelect<T extends FieldValues>({
         return (
           <div data-invalid={fieldState.invalid} className={cn(fieldClassName)}>
             {label && (
-              <Label htmlFor={`select-${String(name)}`} className={cn(labelClassName)}>
+              <Label htmlFor={`select-${String(name)}`} className={cn("mb-2", labelClassName)}>
                 {label}
               </Label>
             )}
@@ -80,7 +80,7 @@ export default function CustomSelect<T extends FieldValues>({
               value={selectValue}
               disabled={disabled}
             >
-              <SelectTrigger id={`select-${String(name)}`} className={cn(triggerClassName)}>
+              <SelectTrigger id={`select-${String(name)}`} className={cn("w-full", triggerClassName)}>
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
               <SelectContent position="popper" className={cn(contentClassName)}>

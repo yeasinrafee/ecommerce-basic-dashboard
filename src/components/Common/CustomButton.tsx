@@ -19,7 +19,7 @@ export type CustomButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & 
 }
 
 const baseStyles =
-  "inline-flex items-center justify-center rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
+  "inline-flex items-center justify-center rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
 
 const variantClasses: Record<NonNullable<CustomButtonProps["variant"]>, string> = {
   primary:
