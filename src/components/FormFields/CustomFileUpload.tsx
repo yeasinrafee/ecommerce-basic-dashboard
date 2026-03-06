@@ -243,7 +243,7 @@ const CustomFileUpload: React.FC<CustomFileUploadProps> = ({
           setIsDragging(false);
           handleFiles(event.dataTransfer.files);
         }}
-        className={`rounded-2xl border-2 border-dashed p-6 text-center transition focus:outline-none focus:ring  ${
+        className={`rounded-2xl border-2 border-dashed p-6 text-center transition focus:outline-none focus:ring ${disabled ? "cursor-not-allowed" : "cursor-pointer"} ${
           isDragging
             ? "border-indigo-400 bg-indigo-50"
             : "border-slate-300 bg-white"

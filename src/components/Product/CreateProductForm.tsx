@@ -2,15 +2,8 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
-
 import CustomButton from "../Common/CustomButton";
 import CustomTab, { CustomTabItem } from "../Common/CustomTab";
-
-import CustomDatePicker from "../FormFields/CustomDatePicker";
-import CustomInput from "../FormFields/CustomInput";
-import CustomSelect from "../FormFields/CustomSelect";
-import CustomTextArea from "../FormFields/CustomTextArea";
-
 import MainInformation from "./ProductForm/MainInformation";
 import GeneralInformation from "./ProductForm/GeneralInformation";
 import Attributes, { AttributesData } from "./ProductForm/Attributes";
@@ -67,7 +60,6 @@ const productStatusOptions = [
   { label: "Draft", value: "draft" },
 ];
 
-
 type AttributeRecord = {
   name: string;
   pairs: { value: string; price: string }[];
@@ -109,8 +101,6 @@ export default function CreateProductForm() {
   const [stockQuantity, setStockQuantity] = React.useState<number | null>(null);
   const [sku, setSku] = React.useState("");
 
-
-  // callbacks for child data
   const [rightData, setRightData] = React.useState<RightSectionData>({
     mainImage: null,
     galleryImages: [],
@@ -126,7 +116,6 @@ export default function CreateProductForm() {
     metaDescription: "",
     seoKeywords: [],
   });
-
 
   const tabItems: CustomTabItem[] = [
     {
@@ -159,12 +148,12 @@ export default function CreateProductForm() {
     {
       id: "attributes",
       label: "Attributes",
-      content: <Attributes onChange={setAttributesData} />,  
+      content: <Attributes onChange={setAttributesData} />,
     },
     {
       id: "seo",
       label: "SEO",
-      content: <Seo onChange={setSeoData} />,  
+      content: <Seo onChange={setSeoData} />,
     },
   ];
 
@@ -183,8 +172,6 @@ export default function CreateProductForm() {
             control={control}
           />
 
-
-
           <div className="rounded-2xl border border-slate-200 bg-white px-6 py-6 shadow-sm">
             <CustomTab
               tabs={tabItems}
@@ -192,22 +179,24 @@ export default function CreateProductForm() {
               tabListClassName="justify-start"
             />
           </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-6 shadow-sm">
-            <CustomButton className="w-full" onClick={() => console.log("Submit", { productName })}>
-              Save Product
-            </CustomButton>
-          </div>
         </div>
 
         {/* right column: moved into dedicated component */}
-       <div className="col-span-5">
-         <RightSection
-          categoriesList={categoriesList}
-          tagList={tagList}
-          onChange={setRightData}
-        />
-       </div>
+        <div className="col-span-5">
+          <RightSection
+            categoriesList={categoriesList}
+            tagList={tagList}
+            onChange={setRightData}
+          />
+        </div>
+      </div>
+      <div className="w-full flex justify-center py-10">
+        <CustomButton
+          className="px-4"
+          onClick={() => console.log("Submit", { productName })}
+        >
+          Save Product
+        </CustomButton>
       </div>
     </div>
   );
