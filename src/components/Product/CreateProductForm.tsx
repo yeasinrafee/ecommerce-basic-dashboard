@@ -7,6 +7,7 @@ import CustomTab, { CustomTabItem } from "../Common/CustomTab";
 import MainInformation from "./ProductForm/MainInformation";
 import GeneralInformation from "./ProductForm/GeneralInformation";
 import Attributes, { AttributesData } from "./ProductForm/Attributes";
+import AdditionalInfo from "./ProductForm/AdditionalInfo";
 import Seo, { SeoData } from "./ProductForm/Seo";
 import RightSection, { RightSectionData } from "./ProductForm/RightSection";
 
@@ -148,7 +149,24 @@ export default function CreateProductForm() {
     {
       id: "attributes",
       label: "Attributes",
-      content: <Attributes onChange={setAttributesData} />,
+      content: (
+        <Attributes
+          onChange={(attrs) =>
+            setAttributesData((prev) => ({ ...prev, attributes: attrs }))
+          }
+        />
+      ),
+    },
+    {
+      id: "additional",
+      label: "Additional Info",
+      content: (
+        <AdditionalInfo
+          onChange={(info) =>
+            setAttributesData((prev) => ({ ...prev, additionalInfo: info }))
+          }
+        />
+      ),
     },
     {
       id: "seo",
