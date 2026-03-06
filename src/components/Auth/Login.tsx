@@ -8,7 +8,9 @@ import CustomButton from "@/components/Common/CustomButton";
 import { apiClient } from "@/lib/api";
 import { setAuthCookies } from "@/lib/cookies";
 import { useAuthStore } from "@/store/useAuthStore";
-import type { AuthResponse, LoginCredentials } from "@/types/auth";
+import { AuthRoutes } from "@/routes/auth.route";
+import { useRouter } from "next/navigation";
+import type { ApiResponse, AuthData, LoginCredentials } from "@/types/auth";
 
 const ERROR_MESSAGE = "Login failed. Please verify your credentials and try again.";
 
@@ -25,7 +27,8 @@ const resolveErrorMessage = (error: unknown) => {
 };
 
 const Login = () => {
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const router = useRouter();
+  const setUser = useAuthStore((state) => state.setUser); 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -42,13 +45,18 @@ const Login = () => {
     };
 
     try {
-      const response = await apiClient.post<AuthResponse>("/auth/login", credentials);
-      const { user, tokens } = response.data;
+      const response = await apiClient.post<ApiResponse<AuthData>>(AuthRoutes.login, credentials);
+      const payload = response.data.data;
+      if (!payload) {
+        throw new Error('Invalid login response');
+      }
+      const { user, tokens } = payload;
 
-      setAuth(user, tokens);
-      setAuthCookies(tokens);
+      setUser(user);          
+      setAuthCookies(tokens); 
       toast.success(`Welcome back, ${user.name}!`);
       setPassword("");
+      router.push('/dashboard');
     } catch (err: unknown) {
       const message = resolveErrorMessage(err);
       setError(message);

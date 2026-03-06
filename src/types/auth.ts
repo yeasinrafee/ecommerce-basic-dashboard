@@ -16,7 +16,16 @@ export type LoginCredentials = {
   password: string
 }
 
-export type AuthResponse = {
+
+export type AuthData = {
   user: AuthenticatedUser
   tokens: AuthTokens
+}
+
+export type ApiResponse<T> = {
+  success: boolean
+  message: string
+  data: T | null
+  errors: unknown[]
+  meta: Record<string, unknown>
 }
