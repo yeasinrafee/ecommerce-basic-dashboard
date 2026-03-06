@@ -29,11 +29,11 @@ export const routes: RouteItem[] = [
   {
     icon: LuLayoutDashboard,
     label: "Dashboard",
-    href: "/admin",
+    href: "/dashboard",
   },
   {
     icon: LuLayoutDashboard,
-    label: "Admin Dashboard",
+    label: "Manage Admin",
     href: "/dashboard/admin",
   },
   // --- Products ---
@@ -76,7 +76,7 @@ export const routes: RouteItem[] = [
   {
     icon: LuLayers,
     label: "Manage Categories",
-    href: "/dashboard/categories/manage",
+    href: "/dashboard/categories",
   },
   {
     icon: LuList,
