@@ -70,20 +70,23 @@ export const routes: RouteItem[] = [
   // --- Categories ---
   {
     icon: LuLayers,
-    label: "Categories",
-    href: "/admin/categories",
-    subItems: [
-      { 
-        icon: LuCirclePlus,
-        label: "Create Category", 
-        href: "/admin/categories/create", 
-      },
-      { 
-        icon: LuList,
-        label: "Manage Categories", 
-        href: "/admin/categories", 
-      },
-    ],
+    label: "Manage Categories",
+    href: "/dashboard/categories/manage",
+  },
+  {
+    icon: LuList,
+    label: "Manage Brands",
+    href: "/dashboard/brands/manage",
+  },
+  {
+    icon: LuTicketPercent,
+    label: "Manage Tags",
+    href: "/dashboard/tags/manage",
+  },
+  {
+    icon: LuList,
+    label: "Manage Attributes",
+    href: "/dashboard/attributes/manage",
   },
   // --- Users ---
   {
