@@ -31,6 +31,11 @@ export const routes: RouteItem[] = [
     label: "Dashboard",
     href: "/admin",
   },
+  {
+    icon: LuLayoutDashboard,
+    label: "Admin Dashboard",
+    href: "/dashboard/admin",
+  },
   // --- Products ---
   {
     icon: LuBox,

@@ -52,7 +52,14 @@ const Login = () => {
       }
       const { user, tokens } = payload;
 
-      setUser(user);          
+      // only keep non-id properties in zustand
+      const stored = {
+        email: user.email,
+        role: user.role,
+        name: user.name,
+        image: user.image
+      };
+      setUser(stored);
       setAuthCookies(tokens); 
       toast.success(`Welcome back, ${user.name}!`);
       setPassword("");

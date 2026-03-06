@@ -1,10 +1,10 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
-import type { AuthenticatedUser } from "@/types/auth"
+import type { StoredUser } from "@/types/auth"
 
 type AuthState = {
-  user: AuthenticatedUser | null
-  setUser: (user: AuthenticatedUser) => void
+  user: StoredUser | null
+  setUser: (user: StoredUser) => void
   clearUser: () => void
 }
 

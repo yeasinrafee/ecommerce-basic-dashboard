@@ -11,6 +11,9 @@ export type AuthenticatedUser = {
   image: string | null
 }
 
+// subset kept in client state, excludes id
+export type StoredUser = Omit<AuthenticatedUser, 'id'>
+
 export type LoginCredentials = {
   email: string
   password: string

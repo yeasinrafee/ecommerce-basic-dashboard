@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import InitialsAvatar from "@/components/Common/InitialsAvatar";
 import { Badge } from "@/components/ui/badge";
 // import { useTheme } from "next-themes";
 // import { useAppSelector } from "@/redux/hooks";
@@ -40,6 +41,8 @@ import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { clearAuthCookies } from "@/lib/cookies";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -65,6 +68,13 @@ const Header = ({
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [notificationCount, setNotificationCount] = useState(3);
   const router = useRouter();
+  const clearUser = useAuthStore((state) => state.clearUser);
+  const user = useAuthStore((state) => state.user);
+  const clearPersisted = () => {
+    if (useAuthStore.persist && typeof useAuthStore.persist.clearStorage === 'function') {
+      useAuthStore.persist.clearStorage();
+    }
+  };
 
   useEffect(() => {
     setInternalCollapsed(collapsed);
@@ -204,12 +214,15 @@ const Header = ({
             >
               <Avatar className="h-10 w-10">
                 <AvatarImage
-                  src={
-                    "https://cdn-icons-png.flaticon.com/128/2202/2202112.png"
-                  }
-                  alt={"admin"}
+                  src={user?.image || undefined}
+                  alt={user?.name ?? "user"}
                 />
-                <AvatarFallback>{"Admin back"}</AvatarFallback>
+                <AvatarFallback>
+                  <InitialsAvatar
+                    name={user?.name}
+                    className="w-full h-full"
+                  />
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
@@ -217,10 +230,10 @@ const Header = ({
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">
-                  {"admin name"}
+                  {user?.name ?? "Unknown User"}
                 </p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  {"admin email"}
+                  {user?.email ?? ""}
                 </p>
               </div>
             </DropdownMenuLabel>
@@ -240,8 +253,14 @@ const Header = ({
               <span>Help</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-500" 
-            // onClick={handleLogout}
+            <DropdownMenuItem
+              className="text-red-500"
+              onClick={() => {
+                clearAuthCookies();
+                clearUser();
+                clearPersisted();
+                router.push('/');
+              }}
             >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
