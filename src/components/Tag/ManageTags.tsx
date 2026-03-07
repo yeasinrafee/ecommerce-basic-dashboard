@@ -20,7 +20,7 @@ import {
   useDeleteTag,
   usePaginatedTags,
   useUpdateTag,
-} from "@/hooks/tag.api"
+} from "@/hooks/product-tag.api"
 
 export default function ManageTags() {
   const [modalOpen, setModalOpen] = React.useState(false)
