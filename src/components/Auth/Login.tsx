@@ -51,19 +51,19 @@ const Login = () => {
         throw new Error('Invalid login response');
       }
       const { user, tokens } = payload;
-
-      // only keep non-id properties in zustand
       const stored = {
         email: user.email,
         role: user.role,
         name: user.name,
         image: user.image
       };
-      setUser(stored);
-      setAuthCookies(tokens); 
       toast.success(`Welcome back, ${user.name}!`);
-      setPassword("");
       router.push('/dashboard');
+      setTimeout(() => {
+        setUser(stored);
+        setAuthCookies(tokens);
+        setPassword("");
+      }, 0);
     } catch (err: unknown) {
       const message = resolveErrorMessage(err);
       setError(message);
