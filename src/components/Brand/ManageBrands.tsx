@@ -3,24 +3,18 @@
 import React from "react"
 import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
-import CreateTag from "./CreateTag"
+import CreateBrand from "./CreateBrand"
 import Modal from "@/components/Common/Modal"
 import SearchBar from "@/components/FormFields/SearchBar"
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
-import * as productApi from "@/hooks/product-tag.api"
-import * as blogApi from "@/hooks/blog-tag.api"
-import type { Tag } from "@/hooks/product-tag.api"
+import * as api from "@/hooks/brand.api"
+import type { Brand } from "@/hooks/brand.api"
 
-export default function ManageTags({ kind = 'product' }: { kind?: 'product' | 'blog' }) {
+export default function ManageBrands() {
   const [modalOpen, setModalOpen] = React.useState(false)
-  const [editing, setEditing] = React.useState<Tag | null>(null)
+  const [editing, setEditing] = React.useState<Brand | null>(null)
   const [page, setPage] = React.useState(1)
   const limit = 10
 
@@ -28,42 +22,39 @@ export default function ManageTags({ kind = 'product' }: { kind?: 'product' | 'b
   const [searchInput, setSearchInput] = React.useState("")
   const [searchTerm, setSearchTerm] = React.useState<string | undefined>(undefined)
 
-  // debounce search input by 500ms
   React.useEffect(() => {
     const handle = setTimeout(() => {
-      setPage(1) // reset to first page when searching
+      setPage(1)
       setSearchTerm(searchInput.trim() || undefined)
     }, 500)
     return () => clearTimeout(handle)
   }, [searchInput])
 
-  const api = kind === 'blog' ? blogApi : productApi
-
-  const tagsQuery = api.usePaginatedTags(page, limit, searchTerm)
-  const { data, isLoading, error } = tagsQuery
-  const createMutation = api.useCreateTag()
-  const updateMutation = api.useUpdateTag()
-  const deleteMutation = api.useDeleteTag()
+  const brandsQuery = api.usePaginatedBrands(page, limit, searchTerm)
+  const { data, isLoading, error } = brandsQuery
+  const createMutation = api.useCreateBrand()
+  const updateMutation = api.useUpdateBrand()
+  const deleteMutation = api.useDeleteBrand()
 
   const handleCreate = () => {
     setEditing(null)
     setModalOpen(true)
   }
 
-  const handleEdit = (tag: Tag) => {
-    setEditing(tag)
+  const handleEdit = (brand: Brand) => {
+    setEditing(brand)
     setModalOpen(true)
   }
 
-  const [deleteTarget, setDeleteTarget] = React.useState<Tag | null>(null)
+  const [deleteTarget, setDeleteTarget] = React.useState<Brand | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
 
-  const handleDelete = (tag: Tag) => {
-    setDeleteTarget(tag)
+  const handleDelete = (brand: Brand) => {
+    setDeleteTarget(brand)
     setDeleteModalOpen(true)
   }
 
-  const handleSaveTag = async (payload: { name: string }) => {
+  const handleSaveBrand = async (payload: { name: string }) => {
     if (editing) {
       await updateMutation.mutateAsync({ id: editing.id, name: payload.name })
       setEditing((prev) => (prev ? { ...prev, name: payload.name } : prev))
@@ -74,10 +65,10 @@ export default function ManageTags({ kind = 'product' }: { kind?: 'product' | 'b
     setModalOpen(false)
   }
 
-  const columns = React.useMemo<Column<Tag>[]>(
+  const columns = React.useMemo<Column<Brand>[]>(
     () => [
       {
-        header: "Tag",
+        header: "Brand",
         accessor: "name",
       },
       {
@@ -91,7 +82,7 @@ export default function ManageTags({ kind = 'product' }: { kind?: 'product' | 'b
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-medium">{kind === 'blog' ? 'Manage Blog Tags' : 'Manage Product Tags'}</h2>
+      <h2 className="mb-4 text-lg font-medium">Manage Brands</h2>
 
       <div className="flex items-center justify-between mb-4">
         <SearchBar
@@ -99,15 +90,15 @@ export default function ManageTags({ kind = 'product' }: { kind?: 'product' | 'b
           setSearchInput={setSearchInput}
           clearSearch={() => setSearchInput("")}
         />
-        <CustomButton onClick={handleCreate}>Create Tag</CustomButton>
+        <CustomButton onClick={handleCreate}>Create Brand</CustomButton>
       </div>
 
       {isLoading ? (
         <p>Loading...</p>
       ) : error ? (
-        <p className="text-red-500">Failed to load tags</p>
+        <p className="text-red-500">Failed to load brands</p>
       ) : (
-        <Table<Tag>
+        <Table<Brand>
           columns={columns}
           data={data?.data ?? []}
           rowKey="id"
@@ -116,7 +107,7 @@ export default function ManageTags({ kind = 'product' }: { kind?: 'product' | 'b
           currentPage={page}
           totalItems={data?.meta.total ?? 0}
           onPageChange={setPage}
-          renderRowActions={(tag) => (
+          renderRowActions={(brand) => (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -124,12 +115,12 @@ export default function ManageTags({ kind = 'product' }: { kind?: 'product' | 'b
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleEdit(tag)}>
+                <DropdownMenuItem onClick={() => handleEdit(brand)}>
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"
-                  onClick={() => handleDelete(tag)}
+                  onClick={() => handleDelete(brand)}
                 >
                   Delete
                 </DropdownMenuItem>
@@ -139,12 +130,12 @@ export default function ManageTags({ kind = 'product' }: { kind?: 'product' | 'b
         />
       )}
 
-      <CreateTag
+      <CreateBrand
         open={modalOpen}
         onOpenChange={setModalOpen}
         defaultValues={editing ? { name: editing.name } : undefined}
         submitting={createMutation.isPending || updateMutation.isPending}
-        onSubmit={handleSaveTag}
+        onSubmit={handleSaveBrand}
       />
 
       <Modal
@@ -153,7 +144,7 @@ export default function ManageTags({ kind = 'product' }: { kind?: 'product' | 'b
         title="Confirm deletion"
         description={
           deleteTarget
-            ? `Are you sure you want to delete tag "${deleteTarget.name}"? This action cannot be undone.`
+            ? `Are you sure you want to delete brand "${deleteTarget.name}"? This action cannot be undone.`
             : undefined
         }
         footer={

@@ -19,7 +19,7 @@ interface SidebarProps {
     href?: string;
     active?: boolean;
     subItems?: {
-      icon: React.ElementType;
+      icon?: React.ElementType;
       label: string;
       href?: string;
       active?: boolean;

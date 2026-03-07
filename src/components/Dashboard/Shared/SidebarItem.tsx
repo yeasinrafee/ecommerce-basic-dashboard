@@ -28,7 +28,7 @@ interface SidebarItemProps {
   href?: string;
   onClick?: () => void;
   subItems?: {
-    icon: React.ElementType;
+    icon?: React.ElementType;
     label: string;
     href?: string;
     active?: boolean;
@@ -103,7 +103,7 @@ const SidebarItem = ({
               sideOffset={8}
             >
               {subItems.map((item, index) => {
-                const SubIcon = item.icon;
+                const SubIcon = item.icon as React.ElementType | undefined;
                 const isSubItemActive = item.active || pathname === item.href;
 
                 return (
@@ -117,15 +117,15 @@ const SidebarItem = ({
                   >
                     {item.href ? (
                       <Link
-                        href={item.href}
-                        className="flex items-center gap-3 w-full px-2 py-1.5"
-                      >
-                        <SubIcon className="h-4 w-4" />
-                        <span>{item.label}</span>
-                      </Link>
+                          href={item.href}
+                          className="flex items-center gap-3 w-full px-2 py-1.5"
+                        >
+                          {SubIcon ? <SubIcon className="h-4 w-4" /> : null}
+                          <span>{item.label}</span>
+                        </Link>
                     ) : (
                       <button className="flex items-center gap-3 w-full px-2 py-1.5">
-                        <SubIcon className="h-4 w-4" />
+                        {SubIcon ? <SubIcon className="h-4 w-4" /> : null}
                         <span>{item.label}</span>
                       </button>
                     )}
@@ -224,9 +224,9 @@ const SidebarItem = ({
 
       {/* Sub-items 6 -2 */}
       {hasSubItems && expanded && (
-        <div className="ml-0 mt-1 border-l border-slate-700 pl-0">
+        <div className="ml-3 mt-1 border-l border-slate-700 pl-4">
           {subItems.map((item, index) => {
-            const SubIcon = item.icon;
+            const SubIcon = item.icon as React.ElementType | undefined;
             const isSubItemActive = item.active || pathname === item.href;
 
             return (
@@ -242,14 +242,14 @@ const SidebarItem = ({
                 {item.href ? (
                   <Link
                     href={item.href}
-                    className="flex items-center gap-3 w-full"
+                    className="flex items-center gap-3 w-full pl-4"
                   >
-                    <SubIcon className="h-4 w-4" />
+                    {SubIcon ? <SubIcon className="h-4 w-4" /> : null}
                     {item.label}
                   </Link>
                 ) : (
-                  <button className="flex items-center gap-3 w-full">
-                    <SubIcon className="h-4 w-4" />
+                  <button className="flex items-center gap-3 w-full pl-4">
+                    {SubIcon ? <SubIcon className="h-4 w-4" /> : null}
                     {item.label}
                   </button>
                 )}

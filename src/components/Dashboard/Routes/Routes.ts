@@ -18,7 +18,6 @@ export interface RouteItem {
   href: string;
   active?: boolean;
   subItems?: {
-    icon: React.ElementType;
     label: string;
     href: string;
     active?: boolean;
@@ -43,12 +42,10 @@ export const routes: RouteItem[] = [
     href: "/dashboard/products",
     subItems: [
       { 
-        icon: LuCirclePlus,
         label: "Create Product", 
         href: "/dashboard/product/create", 
       },
       { 
-        icon: LuList,
         label: "Manage Products", 
         href: "/dashboard/products", 
       },
@@ -61,12 +58,10 @@ export const routes: RouteItem[] = [
     href: "/admin/orders",
     subItems: [
       { 
-        icon: LuCirclePlus,
         label: "Create Order", 
         href: "/admin/orders/create", 
       },
       { 
-        icon: LuList,
         label: "Manage Orders", 
         href: "/admin/orders", 
       },
@@ -76,7 +71,17 @@ export const routes: RouteItem[] = [
   {
     icon: LuLayers,
     label: "Manage Categories",
-    href: "/dashboard/categories",
+    href: "",
+    subItems: [
+      {
+        label: "Product Categories",
+        href: "/dashboard/categories/product-categories/manage",
+      },
+      {
+        label: "Blog Categories",
+        href: "/dashboard/categories/blog-categories/manage",
+      },
+    ],
   },
   {
     icon: LuList,
@@ -86,7 +91,17 @@ export const routes: RouteItem[] = [
   {
     icon: LuTicketPercent,
     label: "Manage Tags",
-    href: "/dashboard/tags/manage",
+    href: "/dashboard/tags",
+    subItems: [
+      {
+        label: "Product Tags",
+        href: "/dashboard/tags/product-tags/manage",
+      },
+      {
+        label: "Blog Tags",
+        href: "/dashboard/tags/blog-tags/manage",
+      },
+    ],
   },
   {
     icon: LuList,
@@ -100,7 +115,6 @@ export const routes: RouteItem[] = [
     href: "/admin/users",
     subItems: [
       { 
-        icon: LuList,
         label: "Manage Users", 
         href: "/admin/users", 
       },
@@ -113,12 +127,10 @@ export const routes: RouteItem[] = [
     href: "/admin/promos",
     subItems: [
       { 
-        icon: LuCirclePlus,
         label: "Create Promo", 
         href: "/admin/promos/create", 
       },
       { 
-        icon: LuList,
         label: "Manage Promos", 
         href: "/admin/promos", 
       },
@@ -131,12 +143,10 @@ export const routes: RouteItem[] = [
     href: "/admin/web",
     subItems: [
       { 
-        icon: LuImage,
         label: "Banner Management", 
         href: "/admin/web/banners", 
       },
       { 
-        icon: LuSettings,
         label: "Site Info (Logo, Contact)", 
         href: "/admin/web/info", 
       },
