@@ -91,7 +91,7 @@ export default function ManageTags({ kind = 'product' }: { kind?: 'product' | 'b
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-medium">Tags</h2>
+      <h2 className="mb-4 text-lg font-medium">{kind === 'blog' ? 'Manage Blog Tags' : 'Manage Product Tags'}</h2>
 
       <div className="flex items-center justify-between mb-4">
         <SearchBar

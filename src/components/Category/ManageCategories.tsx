@@ -91,7 +91,7 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-medium">Categories</h2>
+      <h2 className="mb-4 text-lg font-medium">{kind === 'blog' ? 'Manage Blog Categories' : 'Manage Product Categories'}</h2>
 
       <div className="flex items-center justify-between mb-4">
         <SearchBar
