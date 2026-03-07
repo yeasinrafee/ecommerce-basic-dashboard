@@ -18,7 +18,8 @@ interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultValues?: Partial<FormSchema>
-  onSubmit?: (data: FormSchema) => void
+  onSubmit?: (data: FormSchema) => Promise<void> | void
+  submitting?: boolean
 }
 
 export default function CreateCategory({
@@ -26,6 +27,7 @@ export default function CreateCategory({
   onOpenChange,
   defaultValues,
   onSubmit,
+  submitting = false,
 }: Props) {
   const isEdit = Boolean(defaultValues && defaultValues.name)
 
@@ -43,10 +45,8 @@ export default function CreateCategory({
     reset({ name: defaultValues?.name ?? "" })
   }, [defaultValues, reset])
 
-  const submit = (data: FormSchema) => {
-    console.log(isEdit ? "update:" : "create:", data)
-    onSubmit?.(data)
-    onOpenChange(false)
+  const submit = async (data: FormSchema) => {
+    await onSubmit?.(data)
   }
 
   return (
@@ -62,7 +62,7 @@ export default function CreateCategory({
           <CustomButton variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </CustomButton>
-          <CustomButton loading={isSubmitting} type="button" onClick={handleSubmit(submit)}>
+          <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
             {isEdit ? "Update" : "Create"}
           </CustomButton>
         </div>

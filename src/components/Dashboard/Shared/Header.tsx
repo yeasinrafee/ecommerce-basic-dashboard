@@ -42,7 +42,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useAuthStore } from "@/store/useAuthStore";
-import { logoutAction } from "@/app/actions/logout";
+import { apiClient } from "@/lib/api";
+import { AuthRoutes } from "@/routes/auth.route";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -77,12 +78,17 @@ const Header = ({
   };
 
   const handleLogout = async () => {
-    await logoutAction().catch((error) => {
-      console.error('Logout action failed', error);
-    });
+    try {
+      await apiClient.post(AuthRoutes.logout);
+    } catch (error) {
+      console.error('Logout request failed', error);
+      return;
+    }
+
     clearUser();
     clearPersisted();
-    router.push('/');
+    router.replace('/');
+    router.refresh();
   };
 
   useEffect(() => {

@@ -74,11 +74,13 @@ const proxyRequest = async (
     const cookieStore = await cookies();
     const accessToken = cookieStore.get("accessToken")?.value;
     const headers = resolveForwardHeaders(req, accessToken);
+    const body = methodAllowsBody(req.method) ? req.body : undefined;
 
     const response = await fetch(targetUrl, {
       method: req.method,
       headers,
-      body: methodAllowsBody(req.method) ? req.body : undefined,
+      body,
+      ...(body ? { duplex: "half" as const } : {}),
       cache: "no-store"
     });
 

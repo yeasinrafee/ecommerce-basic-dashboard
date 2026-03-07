@@ -1,15 +1,29 @@
-"use server";
+// "use server";
 
-import baseUrl from "@/routes/index";
+// import { headers } from "next/headers";
+// import baseUrl from "@/routes/index";
 
-export async function logoutAction() {
-  const response = await fetch(`${baseUrl}/auth/logout`, {
-    method: "POST",
-    credentials: "include",
-    cache: "no-store"
-  });
+// const resolveAppOrigin = async () => {
+//   const headerStore = await headers();
+//   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
 
-  if (!response.ok) {
-    throw new Error("Failed to log out");
-  }
-}
+//   if (!host) {
+//     throw new Error("Failed to resolve request host");
+//   }
+
+//   const protocol = headerStore.get("x-forwarded-proto") ?? "http";
+//   return `${protocol}://${host}`;
+// };
+
+// export async function logoutAction() {
+//   const origin = await resolveAppOrigin();
+
+//   const response = await fetch(`${origin}${baseUrl}/auth/logout`, {
+//     method: "POST",
+//     cache: "no-store"
+//   });
+
+//   if (!response.ok) {
+//     throw new Error("Failed to log out");
+//   }
+// }

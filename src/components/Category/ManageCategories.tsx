@@ -1,14 +1,7 @@
 "use client"
 
 import React from "react"
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table"
+import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
 import CreateCategory from "./CreateCategory"
 import {
@@ -19,22 +12,25 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
-
-type Category = {
-  id: string
-  name: string
-  productCount: number
-}
-
-const STATIC_CATEGORIES: Category[] = [
-  { id: "1", name: "Electronics", productCount: 42 },
-  { id: "2", name: "Apparel", productCount: 18 },
-  { id: "3", name: "Home & Garden", productCount: 27 },
-]
+import {
+  type Category,
+  useCreateCategory,
+  useDeleteCategory,
+  usePaginatedCategories,
+  useUpdateCategory,
+} from "@/hooks/category.api"
 
 export default function ManageCategories() {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Category | null>(null)
+  const [page, setPage] = React.useState(1)
+  const limit = 10
+
+  const categoriesQuery = usePaginatedCategories(page, limit)
+  const { data, isLoading, error } = categoriesQuery
+  const createMutation = useCreateCategory()
+  const updateMutation = useUpdateCategory()
+  const deleteMutation = useDeleteCategory()
 
   const handleCreate = () => {
     setEditing(null)
@@ -47,58 +43,84 @@ export default function ManageCategories() {
   }
 
   const handleDelete = (cat: Category) => {
-    console.log("delete:", cat)
+    if (confirm(`Delete category "${cat.name}"?`)) {
+      deleteMutation.mutate(cat.id)
+    }
   }
+
+  const handleSaveCategory = async (payload: { name: string }) => {
+    if (editing) {
+      await updateMutation.mutateAsync({ id: editing.id, name: payload.name })
+    } else {
+      await createMutation.mutateAsync(payload.name)
+    }
+
+    setModalOpen(false)
+  }
+
+  const columns = React.useMemo<Column<Category>[]>(
+    () => [
+      {
+        header: "Category",
+        accessor: "name",
+      },
+      {
+        header: "Products",
+        cell: () => "-",
+        align: "center",
+      },
+    ],
+    [],
+  )
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-medium">Categories</h2>
-        <CustomButton onClick={handleCreate}>Create Category</CustomButton>
-      </div>
+      <h2 className="mb-4 text-lg font-medium">Categories</h2>
 
-      <Table>
-        <TableHeader>
-          <tr>
-            <TableHead>#</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Products</TableHead>
-            <TableHead>Actions</TableHead>
-          </tr>
-        </TableHeader>
-        <TableBody>
-          {STATIC_CATEGORIES.map((cat, idx) => (
-            <TableRow key={cat.id}>
-              <TableCell>{idx + 1}</TableCell>
-              <TableCell>{cat.name}</TableCell>
-              <TableCell>{cat.productCount}</TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => handleEdit(cat)}>
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem variant="destructive" onClick={() => handleDelete(cat)}>
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <p className="text-red-500">Failed to load categories</p>
+      ) : (
+        <Table<Category>
+          columns={columns}
+          data={data?.data ?? []}
+          rowKey="id"
+          pageSize={limit}
+          serverSide
+          currentPage={page}
+          totalItems={data?.meta.total ?? 0}
+          onPageChange={setPage}
+          toolbar={<CustomButton onClick={handleCreate}>Create Category</CustomButton>}
+          renderRowActions={(cat) => (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleEdit(cat)}>
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => handleDelete(cat)}
+                >
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        />
+      )}
 
       <CreateCategory
         open={modalOpen}
         onOpenChange={setModalOpen}
         defaultValues={editing ? { name: editing.name } : undefined}
-        onSubmit={(data) => console.log("form submit:", data)}
+        submitting={createMutation.isPending || updateMutation.isPending}
+        onSubmit={handleSaveCategory}
       />
     </div>
   )
