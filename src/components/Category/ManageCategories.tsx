@@ -4,6 +4,7 @@ import React from "react"
 import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
 import CreateCategory from "./CreateCategory"
+import Modal from "@/components/Common/Modal"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -42,10 +43,12 @@ export default function ManageCategories() {
     setModalOpen(true)
   }
 
+  const [deleteTarget, setDeleteTarget] = React.useState<Category | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
+
   const handleDelete = (cat: Category) => {
-    if (confirm(`Delete category "${cat.name}"?`)) {
-      deleteMutation.mutate(cat.id)
-    }
+    setDeleteTarget(cat)
+    setDeleteModalOpen(true)
   }
 
   const handleSaveCategory = async (payload: { name: string }) => {
@@ -121,6 +124,38 @@ export default function ManageCategories() {
         defaultValues={editing ? { name: editing.name } : undefined}
         submitting={createMutation.isPending || updateMutation.isPending}
         onSubmit={handleSaveCategory}
+      />
+
+      <Modal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        title="Confirm deletion"
+        description={
+          deleteTarget
+            ? `Are you sure you want to delete category "${deleteTarget.name}"? This action cannot be undone.`
+            : undefined
+        }
+        footer={
+          <div className="flex gap-2">
+            <CustomButton
+              variant="outline"
+              onClick={() => setDeleteModalOpen(false)}
+            >
+              Cancel
+            </CustomButton>
+            <CustomButton
+              variant="outline"
+              className="text-destructive"
+              loading={deleteMutation.isPending}
+              onClick={() => {
+                if (deleteTarget) deleteMutation.mutate(deleteTarget.id)
+                setDeleteModalOpen(false)
+              }}
+            >
+              Delete
+            </CustomButton>
+          </div>
+        }
       />
     </div>
   )

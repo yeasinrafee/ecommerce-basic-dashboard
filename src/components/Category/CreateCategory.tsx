@@ -46,7 +46,13 @@ export default function CreateCategory({
   }, [defaultValues, reset])
 
   const submit = async (data: FormSchema) => {
-    await onSubmit?.(data)
+    if (onSubmit) {
+      await onSubmit(data)
+    }
+
+    if (!isEdit) {
+      reset({ name: "" })
+    }
   }
 
   return (
@@ -59,9 +65,6 @@ export default function CreateCategory({
       description={isEdit ? "Edit category details" : "Create a new category"}
       footer={
         <div className="flex gap-2">
-          <CustomButton variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </CustomButton>
           <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
             {isEdit ? "Update" : "Create"}
           </CustomButton>

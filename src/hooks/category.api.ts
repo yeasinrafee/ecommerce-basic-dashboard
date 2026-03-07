@@ -93,14 +93,16 @@ export const useCreateCategory = () => {
   return useMutation({
     mutationFn: async (name: string) => {
       const response = await apiClient.post<ApiResponse<Category>>(CategoryRoutes.create, { name });
-      return ensurePayload(response.data, "Failed to create category");
+      const data = ensurePayload(response.data, "Failed to create category");
+      return { message: response.data.message, payload: data };
     },
-    onSuccess: async () => {
-      toast.success("Category created successfully");
+    onSuccess: async (result: { message: string; payload: Category }) => {
+      toast.success(result.message || "Category created successfully");
       await queryClient.invalidateQueries({ queryKey: categoryKeys.all });
     },
     onError: (err: any) => {
-      toast.error(err?.message || "Failed to create category");
+      const message = err?.response?.data?.message || err?.message || "Failed to create category";
+      toast.error(message);
     }
   });
 };
@@ -111,14 +113,16 @@ export const useUpdateCategory = () => {
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
       const response = await apiClient.patch<ApiResponse<Category>>(CategoryRoutes.update(id), { name });
-      return ensurePayload(response.data, "Failed to update category");
+      const data = ensurePayload(response.data, "Failed to update category");
+      return { message: response.data.message, payload: data };
     },
-    onSuccess: async () => {
-      toast.success("Category updated successfully");
+    onSuccess: async (result: { message: string; payload: Category }) => {
+      toast.success(result.message || "Category updated successfully");
       await queryClient.invalidateQueries({ queryKey: categoryKeys.all });
     },
     onError: (err: any) => {
-      toast.error(err?.message || "Failed to update category");
+      const message = err?.response?.data?.message || err?.message || "Failed to update category";
+      toast.error(message);
     }
   });
 };
@@ -128,15 +132,17 @@ export const useDeleteCategory = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.delete(CategoryRoutes.delete(id));
-      return id;
+      const response = await apiClient.delete<ApiResponse<null>>(CategoryRoutes.delete(id));
+      const message = response.data.message;
+      return { message, id };
     },
-    onSuccess: async () => {
-      toast.success("Category deleted");
+    onSuccess: async (result: { message?: string; id: string }) => {
+      toast.success(result.message || "Category deleted");
       await queryClient.invalidateQueries({ queryKey: categoryKeys.all });
     },
     onError: (err: any) => {
-      toast.error(err?.message || "Failed to delete category");
+      const message = err?.response?.data?.message || err?.message || "Failed to delete category";
+      toast.error(message);
     }
   });
 };
