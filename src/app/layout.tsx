@@ -7,6 +7,7 @@ import '@mantine/core/styles.css';
 import '@mantine/tiptap/styles.css';
 import { ColorSchemeScript, MantineProvider } from '@mantine/core';
 import { Toaster } from "react-hot-toast";
+import ReactQueryProvider from '@/components/ReactQueryProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,8 +38,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <MantineProvider>
-          {children}
-          <Toaster position="top-right" />
+          <ReactQueryProvider>
+            {children}
+            <Toaster position="top-right" />
+          </ReactQueryProvider>
         </MantineProvider>
       </body>
     </html>

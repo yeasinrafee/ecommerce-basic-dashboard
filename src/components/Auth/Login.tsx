@@ -6,7 +6,6 @@ import CustomInput from "@/components/FormFields/CustomInput";
 import CustomPasswordInput from "@/components/FormFields/CustomPasswordInput";
 import CustomButton from "@/components/Common/CustomButton";
 import { apiClient } from "@/lib/api";
-import { setAuthCookies } from "@/lib/cookies";
 import { useAuthStore } from "@/store/useAuthStore";
 import { AuthRoutes } from "@/routes/auth.route";
 import { useRouter } from "next/navigation";
@@ -50,20 +49,19 @@ const Login = () => {
       if (!payload) {
         throw new Error('Invalid login response');
       }
-      const { user, tokens } = payload;
-
-      // only keep non-id properties in zustand
+      const { user } = payload;
       const stored = {
         email: user.email,
         role: user.role,
         name: user.name,
         image: user.image
       };
-      setUser(stored);
-      setAuthCookies(tokens); 
       toast.success(`Welcome back, ${user.name}!`);
-      setPassword("");
       router.push('/dashboard');
+      setTimeout(() => {
+        setUser(stored);
+        setPassword("");
+      }, 0);
     } catch (err: unknown) {
       const message = resolveErrorMessage(err);
       setError(message);

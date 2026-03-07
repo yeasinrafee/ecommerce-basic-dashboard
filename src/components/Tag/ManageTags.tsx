@@ -3,7 +3,7 @@
 import React from "react"
 import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
-import CreateCategory from "./CreateCategory"
+import CreateTag from "./CreateTag"
 import Modal from "@/components/Common/Modal"
 import SearchBar from "@/components/FormFields/SearchBar"
 import {
@@ -15,16 +15,16 @@ import {
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import {
-  type Category,
-  useCreateCategory,
-  useDeleteCategory,
-  usePaginatedCategories,
-  useUpdateCategory,
-} from "@/hooks/category.api"
+  type Tag,
+  useCreateTag,
+  useDeleteTag,
+  usePaginatedTags,
+  useUpdateTag,
+} from "@/hooks/tag.api"
 
-export default function ManageCategories() {
+export default function ManageTags() {
   const [modalOpen, setModalOpen] = React.useState(false)
-  const [editing, setEditing] = React.useState<Category | null>(null)
+  const [editing, setEditing] = React.useState<Tag | null>(null)
   const [page, setPage] = React.useState(1)
   const limit = 10
 
@@ -41,31 +41,31 @@ export default function ManageCategories() {
     return () => clearTimeout(handle)
   }, [searchInput])
 
-  const categoriesQuery = usePaginatedCategories(page, limit, searchTerm)
-  const { data, isLoading, error } = categoriesQuery
-  const createMutation = useCreateCategory()
-  const updateMutation = useUpdateCategory()
-  const deleteMutation = useDeleteCategory()
+  const tagsQuery = usePaginatedTags(page, limit, searchTerm)
+  const { data, isLoading, error } = tagsQuery
+  const createMutation = useCreateTag()
+  const updateMutation = useUpdateTag()
+  const deleteMutation = useDeleteTag()
 
   const handleCreate = () => {
     setEditing(null)
     setModalOpen(true)
   }
 
-  const handleEdit = (cat: Category) => {
-    setEditing(cat)
+  const handleEdit = (tag: Tag) => {
+    setEditing(tag)
     setModalOpen(true)
   }
 
-  const [deleteTarget, setDeleteTarget] = React.useState<Category | null>(null)
+  const [deleteTarget, setDeleteTarget] = React.useState<Tag | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
 
-  const handleDelete = (cat: Category) => {
-    setDeleteTarget(cat)
+  const handleDelete = (tag: Tag) => {
+    setDeleteTarget(tag)
     setDeleteModalOpen(true)
   }
 
-  const handleSaveCategory = async (payload: { name: string }) => {
+  const handleSaveTag = async (payload: { name: string }) => {
     if (editing) {
       await updateMutation.mutateAsync({ id: editing.id, name: payload.name })
       setEditing((prev) => (prev ? { ...prev, name: payload.name } : prev))
@@ -76,10 +76,10 @@ export default function ManageCategories() {
     setModalOpen(false)
   }
 
-  const columns = React.useMemo<Column<Category>[]>(
+  const columns = React.useMemo<Column<Tag>[]>(
     () => [
       {
-        header: "Category",
+        header: "Tag",
         accessor: "name",
       },
       {
@@ -93,7 +93,7 @@ export default function ManageCategories() {
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-medium">Categories</h2>
+      <h2 className="mb-4 text-lg font-medium">Tags</h2>
 
       <div className="flex items-center justify-between mb-4">
         <SearchBar
@@ -101,15 +101,15 @@ export default function ManageCategories() {
           setSearchInput={setSearchInput}
           clearSearch={() => setSearchInput("")}
         />
-        <CustomButton onClick={handleCreate}>Create Category</CustomButton>
+        <CustomButton onClick={handleCreate}>Create Tag</CustomButton>
       </div>
 
       {isLoading ? (
         <p>Loading...</p>
       ) : error ? (
-        <p className="text-red-500">Failed to load categories</p>
+        <p className="text-red-500">Failed to load tags</p>
       ) : (
-        <Table<Category>
+        <Table<Tag>
           columns={columns}
           data={data?.data ?? []}
           rowKey="id"
@@ -118,7 +118,7 @@ export default function ManageCategories() {
           currentPage={page}
           totalItems={data?.meta.total ?? 0}
           onPageChange={setPage}
-          renderRowActions={(cat) => (
+          renderRowActions={(tag) => (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -126,12 +126,12 @@ export default function ManageCategories() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleEdit(cat)}>
+                <DropdownMenuItem onClick={() => handleEdit(tag)}>
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"
-                  onClick={() => handleDelete(cat)}
+                  onClick={() => handleDelete(tag)}
                 >
                   Delete
                 </DropdownMenuItem>
@@ -141,12 +141,12 @@ export default function ManageCategories() {
         />
       )}
 
-      <CreateCategory
+      <CreateTag
         open={modalOpen}
         onOpenChange={setModalOpen}
         defaultValues={editing ? { name: editing.name } : undefined}
         submitting={createMutation.isPending || updateMutation.isPending}
-        onSubmit={handleSaveCategory}
+        onSubmit={handleSaveTag}
       />
 
       <Modal
@@ -155,7 +155,7 @@ export default function ManageCategories() {
         title="Confirm deletion"
         description={
           deleteTarget
-            ? `Are you sure you want to delete category "${deleteTarget.name}"? This action cannot be undone.`
+            ? `Are you sure you want to delete tag "${deleteTarget.name}"? This action cannot be undone.`
             : undefined
         }
         footer={

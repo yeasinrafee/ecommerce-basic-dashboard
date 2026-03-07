@@ -22,7 +22,7 @@ interface Props {
   submitting?: boolean
 }
 
-export default function CreateCategory({
+export default function CreateTag({
   open,
   onOpenChange,
   defaultValues,
@@ -49,7 +49,7 @@ export default function CreateCategory({
     if (onSubmit) {
       await onSubmit(data)
     }
-+    reset({ name: "" });
+    reset({ name: "" })
   }
 
   return (
@@ -58,8 +58,8 @@ export default function CreateCategory({
       onOpenChange={(v) => {
         onOpenChange(v)
       }}
-      title={isEdit ? "Update Category" : "Create Category"}
-      description={isEdit ? "Edit category details" : "Create a new category"}
+      title={isEdit ? "Update Tag" : "Create Tag"}
+      description={isEdit ? "Edit tag details" : "Create a new tag"}
       footer={
         <div className="flex gap-2">
           <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
