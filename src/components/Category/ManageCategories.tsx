@@ -14,15 +14,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
-import {
-  type Category,
-  useCreateCategory,
-  useDeleteCategory,
-  usePaginatedCategories,
-  useUpdateCategory,
-} from "@/hooks/category.api"
+import * as productApi from "@/hooks/product-category.api"
+import * as blogApi from "@/hooks/blog-category.api"
+import type { Category } from "@/hooks/product-category.api"
 
-export default function ManageCategories() {
+export default function ManageCategories({ kind = 'product' }: { kind?: 'product' | 'blog' }) {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Category | null>(null)
   const [page, setPage] = React.useState(1)
@@ -41,11 +37,13 @@ export default function ManageCategories() {
     return () => clearTimeout(handle)
   }, [searchInput])
 
-  const categoriesQuery = usePaginatedCategories(page, limit, searchTerm)
+  const api = kind === 'blog' ? blogApi : productApi
+
+  const categoriesQuery = api.usePaginatedCategories(page, limit, searchTerm)
   const { data, isLoading, error } = categoriesQuery
-  const createMutation = useCreateCategory()
-  const updateMutation = useUpdateCategory()
-  const deleteMutation = useDeleteCategory()
+  const createMutation = api.useCreateCategory()
+  const updateMutation = api.useUpdateCategory()
+  const deleteMutation = api.useDeleteCategory()
 
   const handleCreate = () => {
     setEditing(null)

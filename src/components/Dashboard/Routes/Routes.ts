@@ -76,7 +76,19 @@ export const routes: RouteItem[] = [
   {
     icon: LuLayers,
     label: "Manage Categories",
-    href: "/dashboard/categories",
+    href: "",
+    subItems: [
+      {
+        icon: LuList,
+        label: "Product Categories",
+        href: "/dashboard/categories/product-categories/manage",
+      },
+      {
+        icon: LuList,
+        label: "Blog Categories",
+        href: "/dashboard/categories/blog-categories/manage",
+      },
+    ],
   },
   {
     icon: LuList,

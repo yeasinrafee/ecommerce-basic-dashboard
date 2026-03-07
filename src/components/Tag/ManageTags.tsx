@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import * as productApi from "@/hooks/product-tag.api"
 import * as blogApi from "@/hooks/blog-tag.api"
+import type { Tag } from "@/hooks/product-tag.api"
 
 export default function ManageTags({ kind = 'product' }: { kind?: 'product' | 'blog' }) {
   const [modalOpen, setModalOpen] = React.useState(false)
