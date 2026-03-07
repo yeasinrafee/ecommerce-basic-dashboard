@@ -14,15 +14,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
-import {
-  type Tag,
-  useCreateTag,
-  useDeleteTag,
-  usePaginatedTags,
-  useUpdateTag,
-} from "@/hooks/product-tag.api"
+import * as productApi from "@/hooks/product-tag.api"
+import * as blogApi from "@/hooks/blog-tag.api"
 
-export default function ManageTags() {
+export default function ManageTags({ kind = 'product' }: { kind?: 'product' | 'blog' }) {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Tag | null>(null)
   const [page, setPage] = React.useState(1)
@@ -41,11 +36,13 @@ export default function ManageTags() {
     return () => clearTimeout(handle)
   }, [searchInput])
 
-  const tagsQuery = usePaginatedTags(page, limit, searchTerm)
+  const api = kind === 'blog' ? blogApi : productApi
+
+  const tagsQuery = api.usePaginatedTags(page, limit, searchTerm)
   const { data, isLoading, error } = tagsQuery
-  const createMutation = useCreateTag()
-  const updateMutation = useUpdateTag()
-  const deleteMutation = useDeleteTag()
+  const createMutation = api.useCreateTag()
+  const updateMutation = api.useUpdateTag()
+  const deleteMutation = api.useDeleteTag()
 
   const handleCreate = () => {
     setEditing(null)

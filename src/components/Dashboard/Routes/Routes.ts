@@ -86,7 +86,19 @@ export const routes: RouteItem[] = [
   {
     icon: LuTicketPercent,
     label: "Manage Tags",
-    href: "/dashboard/tags/manage",
+    href: "/dashboard/tags",
+    subItems: [
+      {
+        icon: LuList,
+        label: "Product Tags",
+        href: "/dashboard/tags/product-tags/manage",
+      },
+      {
+        icon: LuList,
+        label: "Blog Tags",
+        href: "/dashboard/tags/blog-tags/manage",
+      },
+    ],
   },
   {
     icon: LuList,

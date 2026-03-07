@@ -1,9 +1,12 @@
 import React from 'react'
+import ManageTags from '@/components/Tag/ManageTags'
 
-const page = () => {
+const Page = () => {
   return (
-    <div>page</div>
+    <div className="p-4">
+      <ManageTags kind="blog" />
+    </div>
   )
 }
 
-export default page
+export default Page
