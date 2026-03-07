@@ -47,9 +47,13 @@ const ensurePayload = <T>(response: ApiResponse<T>, fallbackMessage: string) => 
   return response.data;
 };
 
-const fetchPaginatedCategories = async (page: number, limit: number): Promise<PagedResult<Category>> => {
+const fetchPaginatedCategories = async (
+  page: number,
+  limit: number,
+  searchTerm?: string
+): Promise<PagedResult<Category>> => {
   const response = await apiClient.get<ApiResponse<Category[]>>(CategoryRoutes.getAllPaginated, {
-    params: { page, limit }
+    params: { page, limit, searchTerm }
   });
 
   const categories = ensurePayload(response.data, "Failed to load categories");
@@ -68,14 +72,19 @@ const fetchAllCategories = async (): Promise<Category[]> => {
 
 export const categoryKeys = {
   all: ["categories"] as const,
-  paginated: (page: number, limit: number) => [...categoryKeys.all, "paginated", page, limit] as const,
+  paginated: (page: number, limit: number, searchTerm?: string) =>
+    [...categoryKeys.all, "paginated", page, limit, searchTerm] as const,
   list: () => [...categoryKeys.all, "list"] as const
 };
 
-export const usePaginatedCategories = (page: number, limit = 10) => {
+export const usePaginatedCategories = (
+  page: number,
+  limit = 10,
+  searchTerm?: string
+) => {
   return useQuery<PagedResult<Category>>({
-    queryKey: categoryKeys.paginated(page, limit),
-    queryFn: () => fetchPaginatedCategories(page, limit),
+    queryKey: categoryKeys.paginated(page, limit, searchTerm),
+    queryFn: () => fetchPaginatedCategories(page, limit, searchTerm),
     placeholderData: keepPreviousData
   });
 };

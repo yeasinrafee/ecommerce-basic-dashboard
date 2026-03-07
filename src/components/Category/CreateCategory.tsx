@@ -49,10 +49,7 @@ export default function CreateCategory({
     if (onSubmit) {
       await onSubmit(data)
     }
-
-    if (!isEdit) {
-      reset({ name: "" })
-    }
++    reset({ name: "" });
   }
 
   return (

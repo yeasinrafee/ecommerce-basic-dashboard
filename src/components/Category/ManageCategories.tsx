@@ -5,6 +5,7 @@ import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
 import CreateCategory from "./CreateCategory"
 import Modal from "@/components/Common/Modal"
+import SearchBar from "@/components/FormFields/SearchBar"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -27,7 +28,20 @@ export default function ManageCategories() {
   const [page, setPage] = React.useState(1)
   const limit = 10
 
-  const categoriesQuery = usePaginatedCategories(page, limit)
+  // search state
+  const [searchInput, setSearchInput] = React.useState("")
+  const [searchTerm, setSearchTerm] = React.useState<string | undefined>(undefined)
+
+  // debounce search input by 500ms
+  React.useEffect(() => {
+    const handle = setTimeout(() => {
+      setPage(1) // reset to first page when searching
+      setSearchTerm(searchInput.trim() || undefined)
+    }, 500)
+    return () => clearTimeout(handle)
+  }, [searchInput])
+
+  const categoriesQuery = usePaginatedCategories(page, limit, searchTerm)
   const { data, isLoading, error } = categoriesQuery
   const createMutation = useCreateCategory()
   const updateMutation = useUpdateCategory()
@@ -54,6 +68,7 @@ export default function ManageCategories() {
   const handleSaveCategory = async (payload: { name: string }) => {
     if (editing) {
       await updateMutation.mutateAsync({ id: editing.id, name: payload.name })
+      setEditing((prev) => (prev ? { ...prev, name: payload.name } : prev))
     } else {
       await createMutation.mutateAsync(payload.name)
     }
@@ -80,6 +95,15 @@ export default function ManageCategories() {
     <div>
       <h2 className="mb-4 text-lg font-medium">Categories</h2>
 
+      <div className="flex items-center justify-between mb-4">
+        <SearchBar
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+          clearSearch={() => setSearchInput("")}
+        />
+        <CustomButton onClick={handleCreate}>Create Category</CustomButton>
+      </div>
+
       {isLoading ? (
         <p>Loading...</p>
       ) : error ? (
@@ -94,7 +118,6 @@ export default function ManageCategories() {
           currentPage={page}
           totalItems={data?.meta.total ?? 0}
           onPageChange={setPage}
-          toolbar={<CustomButton onClick={handleCreate}>Create Category</CustomButton>}
           renderRowActions={(cat) => (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
