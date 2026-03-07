@@ -1,10 +1,12 @@
-const authBase = '/auth';
+import baseUrl from './index';
+
+const authBase = `${baseUrl}/auth`;
 
 export const AuthRoutes = {
-  login: `${authBase}/login`,           
-  refresh: `${authBase}/refresh`,       
-  createAdmin: `${authBase}/admin/create`,
-  logout: `${authBase}/logout`
+  login: `${authBase}/login`,
+  refresh: `${authBase}/refresh`,
+  logout: `${authBase}/logout`,
+  createAdmin: `${authBase}/admin/create`
 };
 
 export default AuthRoutes;

@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
+import type { StateStorage } from "zustand/middleware"
 import type { StoredUser } from "@/types/auth"
 
 type AuthState = {
@@ -8,10 +9,11 @@ type AuthState = {
   clearUser: () => void
 }
 
-const localStorageWrapper =
-  typeof window === "undefined"
-    ? undefined
-    : createJSONStorage(() => window.localStorage)
+const noopStorage: StateStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {}
+}
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -22,7 +24,9 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
-      ...(localStorageWrapper ? { storage: localStorageWrapper } : {}),
+      storage: createJSONStorage(() =>
+        typeof window === "undefined" ? noopStorage : window.localStorage
+      ),
       partialize: (state) => ({ user: state.user })
     }
   )
