@@ -1,6 +1,4 @@
-import baseUrl from './index';
-
-const authBase = `${baseUrl}/auth`;
+const authBase = '/auth';
 
 export const AuthRoutes = {
   login: `${authBase}/login`,
