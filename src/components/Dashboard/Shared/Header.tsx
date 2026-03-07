@@ -41,8 +41,8 @@ import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { clearAuthCookies } from "@/lib/cookies";
 import { useAuthStore } from "@/store/useAuthStore";
+import { logoutAction } from "@/app/actions/logout";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -74,6 +74,15 @@ const Header = ({
     if (useAuthStore.persist && typeof useAuthStore.persist.clearStorage === 'function') {
       useAuthStore.persist.clearStorage();
     }
+  };
+
+  const handleLogout = async () => {
+    await logoutAction().catch((error) => {
+      console.error('Logout action failed', error);
+    });
+    clearUser();
+    clearPersisted();
+    router.push('/');
   };
 
   useEffect(() => {
@@ -255,12 +264,7 @@ const Header = ({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-red-500"
-              onClick={() => {
-                clearAuthCookies();
-                clearUser();
-                clearPersisted();
-                router.push('/');
-              }}
+              onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>

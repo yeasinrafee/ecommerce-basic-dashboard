@@ -8,6 +8,11 @@ type AuthState = {
   clearUser: () => void
 }
 
+const localStorageWrapper =
+  typeof window === "undefined"
+    ? undefined
+    : createJSONStorage(() => window.localStorage)
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -17,9 +22,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
-      storage: createJSONStorage(() =>
-        typeof window === "undefined" ? undefined : window.localStorage
-      ),
+      ...(localStorageWrapper ? { storage: localStorageWrapper } : {}),
       partialize: (state) => ({ user: state.user })
     }
   )

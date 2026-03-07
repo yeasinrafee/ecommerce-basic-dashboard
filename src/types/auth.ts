@@ -32,3 +32,5 @@ export type ApiResponse<T> = {
   errors: unknown[]
   meta: Record<string, unknown>
 }
+
+export type AuthResponse = ApiResponse<AuthData>

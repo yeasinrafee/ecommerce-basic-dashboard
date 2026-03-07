@@ -6,7 +6,6 @@ import CustomInput from "@/components/FormFields/CustomInput";
 import CustomPasswordInput from "@/components/FormFields/CustomPasswordInput";
 import CustomButton from "@/components/Common/CustomButton";
 import { apiClient } from "@/lib/api";
-import { setAuthCookies } from "@/lib/cookies";
 import { useAuthStore } from "@/store/useAuthStore";
 import { AuthRoutes } from "@/routes/auth.route";
 import { useRouter } from "next/navigation";
@@ -50,7 +49,7 @@ const Login = () => {
       if (!payload) {
         throw new Error('Invalid login response');
       }
-      const { user, tokens } = payload;
+      const { user } = payload;
       const stored = {
         email: user.email,
         role: user.role,
@@ -61,7 +60,6 @@ const Login = () => {
       router.push('/dashboard');
       setTimeout(() => {
         setUser(stored);
-        setAuthCookies(tokens);
         setPassword("");
       }, 0);
     } catch (err: unknown) {
