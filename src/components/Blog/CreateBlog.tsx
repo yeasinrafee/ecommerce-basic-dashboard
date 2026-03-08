@@ -9,6 +9,7 @@ import CustomButton from "@/components/Common/CustomButton"
 import CustomRichTextEditor from "@/components/Common/CustomRichTextEditor"
 import CustomCheckbox from "@/components/FormFields/CustomCheckbox"
 import CustomSelect from "@/components/FormFields/CustomSelect"
+import { useCreateBlog } from '@/hooks/blog.api'
 import { useForm } from "react-hook-form"
 import { useAllCategories } from "@/hooks/blog-category.api"
 import { useAllTags } from "@/hooks/blog-tag.api"
@@ -46,10 +47,12 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const categoryForm = useForm<{ category: string }>({ defaultValues: { category: defaultValues?.category ?? "" } });
   const categoriesQuery = useAllCategories();
   const categories = categoriesQuery.data ?? [];
-  const categoryOptions = React.useMemo(() => categories.map((c) => ({ label: c.name, value: c.slug })), [categories]);
+  const categoryOptions = React.useMemo(() => categories.map((c) => ({ label: c.name, value: c.id })), [categories]);
   const tagsQuery = useAllTags();
   const allTags = tagsQuery.data ?? [];
-  const tagList = React.useMemo(() => allTags.map((t) => t.name), [allTags]);
+  const tagList = React.useMemo(() => allTags.map((t) => ({ id: t.id, name: t.name })), [allTags]);
+
+  const createMutation = useCreateBlog();
 
   React.useEffect(() => {
     setTitle(defaultValues?.title ?? "")
@@ -66,23 +69,30 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
     setTags((prev) => (prev.includes(t) ? prev.filter((p) => p !== t) : [...prev, t]))
   }
 
-  const handleSave = () => {
-    const payload: BlogValues = {
-      title,
-      shortDescription,
-      content,
-      author,
-      category,
-      tags,
-      image: imageFiles.length ? imageFiles[0].url : defaultValues?.image,
-    }
-    if (onSave) onSave(payload)
-    else console.log("Blog (UI-only) save:", payload)
+  const handleSave = async () => {
+    const fd = new FormData();
+    fd.append('title', title ?? '');
+    fd.append('authorName', author ?? '');
+    fd.append('shortDescription', shortDescription ?? '');
+    fd.append('content', content ?? '');
+    fd.append('categoryId', category ?? '');
+    fd.append('tagIds', JSON.stringify(tags ?? []));
 
-    if (asPage && !onSave) {
-      router.push("/dashboard/blog/manage")
-    } else if (!asPage) {
-      onOpenChange?.(false)
+    if (imageFiles.length && imageFiles[0].file) {
+      fd.append('image', imageFiles[0].file, imageFiles[0].name);
+    }
+
+    try {
+      const result = await createMutation.mutateAsync(fd);
+      if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags });
+
+      if (asPage && !onSave) {
+        router.push('/dashboard/blog/manage');
+      } else if (!asPage) {
+        onOpenChange?.(false);
+      }
+    } catch (err) {
+      // errors are shown by the hook; nothing else to do here
     }
   }
   const formInner = (
@@ -128,7 +138,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
           <h3 className="text-lg font-semibold text-slate-900">Tags</h3>
           <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
             {tagList.map((t) => (
-              <CustomCheckbox key={t} label={t} checked={tags.includes(t)} onCheckedChange={() => toggleTag(t)} />
+              <CustomCheckbox key={t.id} label={t.name} checked={tags.includes(t.id)} onCheckedChange={() => toggleTag(t.id)} />
             ))}
           </div>
         </div>
