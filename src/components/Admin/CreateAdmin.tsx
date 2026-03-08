@@ -8,14 +8,28 @@ import Modal from "@/components/Common/Modal";
 import CustomInput from "@/components/FormFields/CustomInput";
 import CustomButton from "@/components/Common/CustomButton";
 import { useCreateAdmin, useUpdateAdmin } from "@/hooks/admin.api";
+import CustomFileUpload, { type CustomFileUploadFile } from "@/components/FormFields/CustomFileUpload";
 
-const schema = z.object({
+const createSchema = z
+  .object({
+    name: z.string().min(2, "Name is required"),
+    email: z.string().email("A valid email is required"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Confirm password is required")
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords must match",
+    path: ["confirmPassword"]
+  });
+
+const editSchema = z.object({
   name: z.string().min(2, "Name is required"),
-  email: z.string().email("A valid email is required"),
-  password: z.string().min(8, "Password must be at least 8 characters").optional()
+  email: z.string().email("A valid email is required")
 });
 
-type FormSchema = z.infer<typeof schema>;
+type CreateFormSchema = z.infer<typeof createSchema>;
+type EditFormSchema = z.infer<typeof editSchema>;
+type FormSchema = CreateFormSchema | EditFormSchema;
 
 interface Props {
   open: boolean;
@@ -26,9 +40,13 @@ interface Props {
 export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props) {
   const isEdit = Boolean(defaultValues?.id);
 
+  const activeSchema = isEdit ? editSchema : createSchema;
+
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormSchema>({
-    resolver: zodResolver(schema),
-    defaultValues: { name: defaultValues?.name ?? "", email: defaultValues?.email ?? "", password: undefined }
+    resolver: zodResolver(activeSchema),
+    defaultValues: isEdit
+      ? { name: defaultValues?.name ?? "", email: defaultValues?.email ?? "" }
+      : { name: "", email: "", password: "", confirmPassword: "" }
   });
 
   React.useEffect(() => {
@@ -37,18 +55,25 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
 
   const createMutation = useCreateAdmin();
   const updateMutation = useUpdateAdmin();
+  const [uploadedFiles, setUploadedFiles] = React.useState<CustomFileUploadFile[]>([]);
 
   const onSubmit = async (data: FormSchema) => {
     if (isEdit && defaultValues?.id) {
-      await updateMutation.mutateAsync({ id: defaultValues.id, payload: { name: data.name, email: data.email } });
+      const editData = data as EditFormSchema;
+      await updateMutation.mutateAsync({ id: defaultValues.id, payload: { name: editData.name, email: editData.email } });
       onOpenChange(false);
       return;
     }
 
+    const createData = data as CreateFormSchema;
+
     const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("email", data.email);
-    if (data.password) formData.append("password", data.password);
+    formData.append("name", createData.name);
+    formData.append("email", createData.email);
+    if (createData.password) formData.append("password", createData.password);
+    if (uploadedFiles && uploadedFiles.length > 0) {
+      formData.append("image", uploadedFiles[0].file);
+    }
     // image handling left to future: users can extend to append file under 'image'
 
     await createMutation.mutateAsync(formData);
@@ -72,9 +97,18 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
     >
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-4">
-          <CustomInput label="Name" {...register("name")} error={errors.name?.message} requiredMark />
-          <CustomInput label="Email" {...register("email")} error={errors.email?.message} requiredMark />
-          {!isEdit && <CustomInput label="Password" type="password" {...register("password")} error={errors.password?.message} requiredMark />}
+          <CustomInput label="Name" {...register("name" as any)} error={(errors as any).name?.message} requiredMark />
+          <CustomInput label="Email" {...register("email" as any)} error={(errors as any).email?.message} requiredMark />
+          {!isEdit && (
+            <>
+              <CustomInput label="Password" type="password" {...register("password" as any)} error={(errors as any).password?.message} requiredMark />
+              <CustomInput label="Confirm Password" type="password" {...register("confirmPassword" as any)} error={(errors as any).confirmPassword?.message} requiredMark />
+            </>
+          )}
+          <div>
+            <label className="block mb-2 text-sm font-medium">Profile Image</label>
+            <CustomFileUpload maxFiles={1} onFilesChange={setUploadedFiles} />
+          </div>
         </div>
       </form>
     </Modal>

@@ -18,6 +18,7 @@ import { MoreHorizontal } from "lucide-react";
 import { usePaginatedAdmins, useUpdateAdmin, useDeleteAdmin, useBulkUpdateAdminStatus } from "@/hooks/admin.api";
 import type { Admin } from "@/hooks/admin.api";
 import CustomSelect from "@/components/FormFields/CustomSelect";
+import { initialsPlaceholder } from "@/utils/image-placeholder";
 
 export default function ManageAdmin() {
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -92,14 +93,17 @@ export default function ManageAdmin() {
     () => [
       {
         header: (
-          <input
-            type="checkbox"
-            checked={items.length > 0 && items.every((it) => selected[it.id])}
-            onChange={(e) => {
-              if (e.target.checked) selectAllOnPage();
-              else clearSelection();
-            }}
-          />
+          <div className="flex items-center justify-center gap-2">
+            <input
+              type="checkbox"
+              checked={items.length > 0 && items.every((it) => selected[it.id])}
+              onChange={(e) => {
+                if (e.target.checked) selectAllOnPage();
+                else clearSelection();
+              }}
+            />
+            <span className="text-sm">Select</span>
+          </div>
         ),
         cell: (row) => (
           <input
@@ -112,7 +116,29 @@ export default function ManageAdmin() {
       },
       {
         header: "Name",
-        accessor: "name",
+        cell: (row) => {
+          const image = row.image ?? null;
+          const { initials, backgroundColor } = initialsPlaceholder(row.name ?? row.user?.email ?? "");
+
+          return (
+            <div className="flex items-center gap-3">
+              {image ? (
+                <img src={image} alt={row.name} className="h-8 w-8 rounded-sm object-cover" />
+              ) : (
+                <div
+                  className="h-8 w-8 rounded-sm flex items-center justify-center text-sm font-medium text-black"
+                  style={{ backgroundColor }}
+                >
+                  {initials}
+                </div>
+              )}
+
+              <div className="flex flex-col">
+                <span className="font-medium">{row.name}</span>
+              </div>
+            </div>
+          );
+        },
       },
       {
         header: "Email",
@@ -157,7 +183,7 @@ export default function ManageAdmin() {
             placeholder="Bulk status"
             triggerClassName="w-40"
           />
-          <CustomButton onClick={applyBulkStatus} loading={bulkUpdateMutation.isPending}>Update Status</CustomButton>
+          <CustomButton disabled={selectedIds.length === 0} onClick={applyBulkStatus} loading={bulkUpdateMutation.isPending}>Update Status</CustomButton>
           <CustomButton onClick={() => { setEditing(null); setModalOpen(true); }}>Create Admin</CustomButton>
         </div>
       </div>
@@ -200,10 +226,28 @@ export default function ManageAdmin() {
 function InlineStatusSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   // lightweight wrapper to use CustomSelect via a small form control
   const { control, reset } = useForm<{ status: string }>({ defaultValues: { status: value } });
+  const [val, setVal] = React.useState<string>(value);
+  const timerRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
     reset({ status: value });
+    setVal(value);
   }, [value, reset]);
+
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const handleChange = (v: string) => {
+    setVal(v);
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => {
+      onChange(v);
+      timerRef.current = null;
+    }, 500);
+  };
 
   return (
     <CustomSelect
@@ -212,7 +256,7 @@ function InlineStatusSelect({ value, onChange }: { value: string; onChange: (v: 
       options={[{ label: "Active", value: "ACTIVE" }, { label: "Inactive", value: "INACTIVE" }]}
       fieldToValue={(v: any) => v ?? ""}
       valueToField={(v: string) => v}
-      onChangeCallback={(v: string) => onChange(v)}
+      onChangeCallback={handleChange}
       placeholder="Status"
       triggerClassName="w-32"
     />
