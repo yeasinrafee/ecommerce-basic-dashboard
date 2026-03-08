@@ -64,7 +64,7 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
     setDeleteModalOpen(true)
   }
 
-  const handleSaveCategory = async (payload: { name: string }) => {
+  const handleSaveCategory = async (payload: FormData | { name: string }) => {
     if (editing) {
       if (payload instanceof FormData) {
         await updateMutation.mutateAsync({ id: editing.id, payload })

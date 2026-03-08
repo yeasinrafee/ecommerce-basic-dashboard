@@ -54,7 +54,7 @@ export default function ManageBrands() {
     setDeleteModalOpen(true)
   }
 
-  const handleSaveBrand = async (payload: { name: string }) => {
+  const handleSaveBrand = async (payload: FormData | { name: string }) => {
     if (editing) {
       if (payload instanceof FormData) {
         await updateMutation.mutateAsync({ id: editing.id, payload })
@@ -78,7 +78,7 @@ export default function ManageBrands() {
       {
         header: "Brand",
         cell: (row) => {
-          const image = row.image ?? null;
+          const image = (row as any).image ?? null;
           const { initials, backgroundColor } = initialsPlaceholder(row.name ?? "");
 
           return (
