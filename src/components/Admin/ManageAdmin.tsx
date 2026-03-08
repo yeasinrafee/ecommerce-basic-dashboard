@@ -47,6 +47,9 @@ export default function ManageAdmin() {
   const [selected, setSelected] = React.useState<Record<string, boolean>>({});
   const selectedIds = React.useMemo(() => Object.keys(selected).filter((k) => selected[k]), [selected]);
 
+  const [deleteTarget, setDeleteTarget] = React.useState<Admin | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+
   const toggleSelect = (id: string) => {
     setSelected((s) => ({ ...s, [id]: !s[id] }));
   };
@@ -67,8 +70,24 @@ export default function ManageAdmin() {
   };
 
   const handleDelete = (admin: Admin) => {
-    if (!confirm(`Delete admin ${admin.name}?`)) return;
-    deleteMutation.mutate(admin.id);
+    setDeleteTarget(admin);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    const id = deleteTarget.id;
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        setDeleteModalOpen(false);
+        setDeleteTarget(null);
+        setSelected((prev) => {
+          const copy = { ...prev };
+          delete copy[id];
+          return copy;
+        });
+      }
+    });
   };
 
   const handleInlineStatusChange = (id: string, status: "ACTIVE" | "INACTIVE") => {
@@ -225,6 +244,22 @@ export default function ManageAdmin() {
           editing
             ? { id: editing.id, name: editing.name, email: editing.user?.email, image: editing.image }
             : undefined
+        }
+      />
+      <Modal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        title="Confirm deletion"
+        description={
+          deleteTarget
+            ? `Are you sure you want to delete admin "${deleteTarget.name}"? This will permanently remove the admin.`
+            : undefined
+        }
+        footer={
+          <div className="flex gap-2">
+            <CustomButton variant="outline" onClick={() => setDeleteModalOpen(false)}>Cancel</CustomButton>
+            <CustomButton variant="outline" className="text-destructive" loading={deleteMutation.isPending} onClick={confirmDelete}>Delete</CustomButton>
+          </div>
         }
       />
     </div>
