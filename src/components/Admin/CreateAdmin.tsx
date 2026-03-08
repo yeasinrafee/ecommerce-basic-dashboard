@@ -34,7 +34,7 @@ type FormSchema = CreateFormSchema | EditFormSchema;
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  defaultValues?: Partial<FormSchema> & { id?: string };
+  defaultValues?: Partial<FormSchema> & { id?: string; image?: string | null };
 }
 
 export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props) {
@@ -56,7 +56,7 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
   const createMutation = useCreateAdmin();
   const updateMutation = useUpdateAdmin();
   const [uploadedFiles, setUploadedFiles] = React.useState<CustomFileUploadFile[]>([]);
-  const existingImage = (defaultValues as any)?.image as string | undefined | null;
+  const existingImage = defaultValues?.image;
 
   const onSubmit = async (data: FormSchema) => {
     if (isEdit && defaultValues?.id) {
