@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { SAMPLE_BLOGS, type BlogItem } from "@/data/blog-sample"
+import { usePaginatedBlogs } from "@/hooks/blog.api"
 
 export default function ManageBlogs() {
   const router = useRouter()
@@ -27,9 +27,12 @@ export default function ManageBlogs() {
     return () => clearTimeout(handle)
   }, [searchInput])
 
-  const [data] = React.useState<BlogItem[]>(SAMPLE_BLOGS)
+  const { data: paged, isLoading, isError } = usePaginatedBlogs(page, limit, searchTerm)
 
-  const [deleteTarget, setDeleteTarget] = React.useState<BlogItem | null>(null)
+  const blogs = paged?.data ?? []
+  const total = paged?.meta?.total ?? 0
+
+  const [deleteTarget, setDeleteTarget] = React.useState<any | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
 
   const handleCreate = () => {
@@ -51,12 +54,12 @@ export default function ManageBlogs() {
     setDeleteTarget(null)
   }
 
-  const columns = React.useMemo<Column<BlogItem>[]>(
+  const columns = React.useMemo<Column<any>[]>(
     () => [
       { header: "Title", accessor: "title" },
-      { header: "Author", accessor: "author" },
-      { header: "Category", accessor: "category" },
-      { header: "Tags", cell: (row) => (row.tags && row.tags.length ? row.tags.join(", ") : "-") },
+      { header: "Author", accessor: "authorName" },
+      { header: "Category", cell: (row) => (row.category?.name || "-") },
+      { header: "Tags", cell: (row) => (row.tags && row.tags.length ? row.tags.map((t: any) => t.name || t).join(", ") : "-") },
       { header: "Created", accessor: "createdAt", cell: (row) => new Date(row.createdAt).toLocaleString() }
     ],
     []
@@ -71,14 +74,14 @@ export default function ManageBlogs() {
         <CustomButton onClick={handleCreate}>Create Blog</CustomButton>
       </div>
 
-      <Table<BlogItem>
+      <Table<any>
         columns={columns}
-        data={data}
+        data={blogs}
         rowKey="id"
         pageSize={limit}
-        serverSide={false}
+        serverSide={true}
         currentPage={page}
-        totalItems={data.length}
+        totalItems={total}
         onPageChange={setPage}
         renderRowActions={(item) => (
           <DropdownMenu>
