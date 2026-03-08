@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import Image from "next/image"
 import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
 import CreateCategory from "./CreateCategory"
@@ -95,7 +96,7 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
           return (
             <div className="flex items-center gap-3">
               {image ? (
-                <img src={image} alt={row.name} className="h-8 w-8 rounded-sm object-cover" />
+                <Image src={image} alt={row.name} width={32} height={32} className="h-8 w-8 rounded-sm object-cover" />
               ) : (
                 <div
                   className="h-8 w-8 rounded-sm flex items-center justify-center text-sm font-medium text-black"
