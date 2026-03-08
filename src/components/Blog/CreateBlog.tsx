@@ -10,6 +10,8 @@ import CustomRichTextEditor from "@/components/Common/CustomRichTextEditor"
 import CustomCheckbox from "@/components/FormFields/CustomCheckbox"
 import CustomSelect from "@/components/FormFields/CustomSelect"
 import { useForm } from "react-hook-form"
+import { useAllCategories } from "@/hooks/blog-category.api"
+import { useAllTags } from "@/hooks/blog-tag.api"
 import { useRouter } from "next/navigation"
 
 interface BlogValues {
@@ -31,8 +33,6 @@ interface Props {
   asPage?: boolean
 }
 
-const SAMPLE_CATEGORIES = ["News", "Tutorial", "Opinion", "Release"]
-const SAMPLE_TAGS = ["React", "Node", "Prisma", "Cloud", "UX", "Design"]
 
 export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, submitting = false, asPage = false }: Props) {
   const router = useRouter()
@@ -44,6 +44,12 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const [tags, setTags] = React.useState<string[]>(defaultValues?.tags ?? [])
   const [imageFiles, setImageFiles] = React.useState<any[]>([])
   const categoryForm = useForm<{ category: string }>({ defaultValues: { category: defaultValues?.category ?? "" } });
+  const categoriesQuery = useAllCategories();
+  const categories = categoriesQuery.data ?? [];
+  const categoryOptions = React.useMemo(() => categories.map((c) => ({ label: c.name, value: c.slug })), [categories]);
+  const tagsQuery = useAllTags();
+  const allTags = tagsQuery.data ?? [];
+  const tagList = React.useMemo(() => allTags.map((t) => t.name), [allTags]);
 
   React.useEffect(() => {
     setTitle(defaultValues?.title ?? "")
@@ -111,16 +117,17 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
             control={categoryForm.control}
             label="Category"
             placeholder="Select category"
-            options={SAMPLE_CATEGORIES.map((c) => ({ label: c, value: c }))}
+            options={categoryOptions}
             onChangeCallback={(v: string) => setCategory(v)}
             triggerClassName="w-full rounded-md border px-3 py-2 bg-white"
+            disabled={categoriesQuery.isLoading}
           />
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900">Tags</h3>
           <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
-            {SAMPLE_TAGS.map((t) => (
+            {tagList.map((t) => (
               <CustomCheckbox key={t} label={t} checked={tags.includes(t)} onCheckedChange={() => toggleTag(t)} />
             ))}
           </div>
