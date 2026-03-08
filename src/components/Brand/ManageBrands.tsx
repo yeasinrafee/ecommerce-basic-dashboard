@@ -4,7 +4,7 @@ import React from "react"
 import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
 import CreateBrand from "./CreateBrand"
-import Modal from "@/components/Common/Modal"
+import DeleteModal from "@/components/Common/DeleteModal"
 import SearchBar from "@/components/FormFields/SearchBar"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
@@ -138,36 +138,17 @@ export default function ManageBrands() {
         onSubmit={handleSaveBrand}
       />
 
-      <Modal
+      <DeleteModal
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
         title="Confirm deletion"
-        description={
-          deleteTarget
-            ? `Are you sure you want to delete brand "${deleteTarget.name}"? This action cannot be undone.`
-            : undefined
-        }
-        footer={
-          <div className="flex gap-2">
-            <CustomButton
-              variant="outline"
-              onClick={() => setDeleteModalOpen(false)}
-            >
-              Cancel
-            </CustomButton>
-            <CustomButton
-              variant="outline"
-              className="text-destructive"
-              loading={deleteMutation.isPending}
-              onClick={() => {
-                if (deleteTarget) deleteMutation.mutate(deleteTarget.id)
-                setDeleteModalOpen(false)
-              }}
-            >
-              Delete
-            </CustomButton>
-          </div>
-        }
+        description={deleteTarget ? `Are you sure you want to delete brand "${deleteTarget.name}"? This action cannot be undone.` : undefined}
+        loading={deleteMutation.isPending}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteMutation.mutate(deleteTarget.id, { onSuccess: () => setDeleteModalOpen(false) });
+          }
+        }}
       />
     </div>
   )

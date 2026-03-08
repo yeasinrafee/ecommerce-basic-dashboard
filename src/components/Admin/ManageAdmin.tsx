@@ -4,7 +4,7 @@ import React from "react";
 import Table, { type Column } from "@/components/Common/Table";
 import CustomButton from "@/components/Common/CustomButton";
 import CreateAdmin from "./CreateAdmin";
-import Modal from "@/components/Common/Modal";
+import DeleteModal from "@/components/Common/DeleteModal";
 import SearchBar from "@/components/FormFields/SearchBar";
 import { useForm } from "react-hook-form";
 import {
@@ -246,21 +246,13 @@ export default function ManageAdmin() {
             : undefined
         }
       />
-      <Modal
+      <DeleteModal
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
         title="Confirm deletion"
-        description={
-          deleteTarget
-            ? `Are you sure you want to delete admin "${deleteTarget.name}"? This will permanently remove the admin.`
-            : undefined
-        }
-        footer={
-          <div className="flex gap-2">
-            <CustomButton variant="outline" onClick={() => setDeleteModalOpen(false)}>Cancel</CustomButton>
-            <CustomButton variant="outline" className="text-destructive" loading={deleteMutation.isPending} onClick={confirmDelete}>Delete</CustomButton>
-          </div>
-        }
+        description={deleteTarget ? `Are you sure you want to delete admin "${deleteTarget.name}"? This will permanently remove the admin.` : undefined}
+        loading={deleteMutation.isPending}
+        onConfirm={confirmDelete}
       />
     </div>
   );
