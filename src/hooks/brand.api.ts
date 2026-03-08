@@ -12,6 +12,10 @@ export interface Brand {
   updatedAt: string;
 }
 
+export interface BrandDetail extends Brand {
+  image?: string | null;
+}
+
 export interface BrandListMeta {
   page: number;
   limit: number;
@@ -100,8 +104,13 @@ export const useCreateBrand = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (name: string) => {
-      const response = await apiClient.post<ApiResponse<Brand>>(BrandRoutes.create, { name });
+    mutationFn: async (payload: string | FormData) => {
+      let response;
+      if (typeof FormData !== 'undefined' && payload instanceof FormData) {
+        response = await apiClient.post<ApiResponse<Brand>>(BrandRoutes.create, payload);
+      } else {
+        response = await apiClient.post<ApiResponse<Brand>>(BrandRoutes.create, { name: payload });
+      }
       const data = ensurePayload(response.data, "Failed to create brand");
       return { message: response.data.message, payload: data };
     },
@@ -120,8 +129,14 @@ export const useUpdateBrand = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const response = await apiClient.patch<ApiResponse<Brand>>(BrandRoutes.update(id), { name });
+    mutationFn: async ({ id, payload }: { id: string; payload: string | FormData }) => {
+      let response;
+      if (typeof FormData !== 'undefined' && payload instanceof FormData) {
+        response = await apiClient.patch<ApiResponse<Brand>>(BrandRoutes.update(id), payload as FormData);
+      } else {
+        response = await apiClient.patch<ApiResponse<Brand>>(BrandRoutes.update(id), { name: payload });
+      }
+
       const data = ensurePayload(response.data, "Failed to update brand");
       return { message: response.data.message, payload: data };
     },

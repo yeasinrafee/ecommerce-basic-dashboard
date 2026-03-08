@@ -4,14 +4,9 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 export type CustomButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  /**
-   * Visual variant; primary is the default with `bg-brand-primary`/`text-white`.
-   * Other common options included but you can override completely with `className`.
-   */
+ 
   variant?: "primary" | "secondary" | "outline" | "ghost" | "link"
-  /** size presets */
   size?: "sm" | "md" | "lg"
-  /** show a spinner and disable the button */
   loading?: boolean
   className?: string
   leftIcon?: React.ReactNode
@@ -19,7 +14,7 @@ export type CustomButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & 
 }
 
 const baseStyles =
-  "inline-flex items-center justify-center rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
+  "inline-flex items-center justify-center rounded transition-colors cursor-pointer"
 
 const variantClasses: Record<NonNullable<CustomButtonProps["variant"]>, string> = {
   primary:

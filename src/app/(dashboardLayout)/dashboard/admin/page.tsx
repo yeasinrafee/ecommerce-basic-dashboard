@@ -1,9 +1,12 @@
-import React from 'react'
+"use client"
 
-const page = () => {
+import React from "react";
+import ManageAdmin from "@/components/Admin/ManageAdmin";
+
+export default function Page() {
   return (
-    <div>page</div>
-  )
+    <div className="p-4">
+      <ManageAdmin />
+    </div>
+  );
 }
-
-export default page

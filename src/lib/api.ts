@@ -34,15 +34,22 @@ apiClient.interceptors.request.use((config) => {
     config.url = normalizeUrlForBase(config.url, config.baseURL)
   }
 
+  const headersObj = AxiosHeaders.from(config.headers || {});
   const token = getAccessTokenFromCookie()
 
-  if (!token) {
-    return config
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    headersObj.delete('Content-Type');
+  } else {
+    headersObj.set('Content-Type', 'application/json');
   }
 
-  const headers = AxiosHeaders.from(config.headers)
-  headers.set("Authorization", `Bearer ${token}`)
-  config.headers = headers
+  if (token) {
+    headersObj.set('Authorization', `Bearer ${token}`);
+  } else {
+    headersObj.delete('Authorization');
+  }
+
+  config.headers = headersObj;
 
   return config
 })

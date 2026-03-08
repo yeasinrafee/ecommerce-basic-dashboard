@@ -1,10 +1,11 @@
 "use client"
 
 import React from "react"
+import Image from "next/image"
 import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
 import CreateCategory from "./CreateCategory"
-import Modal from "@/components/Common/Modal"
+import DeleteModal from "@/components/Common/DeleteModal"
 import SearchBar from "@/components/FormFields/SearchBar"
 import {
   DropdownMenu,
@@ -17,6 +18,7 @@ import { MoreHorizontal } from "lucide-react"
 import * as productApi from "@/hooks/product-category.api"
 import * as blogApi from "@/hooks/blog-category.api"
 import type { Category } from "@/hooks/product-category.api"
+import { initialsPlaceholder } from "@/utils/image-placeholder";
 
 export default function ManageCategories({ kind = 'product' }: { kind?: 'product' | 'blog' }) {
   const [modalOpen, setModalOpen] = React.useState(false)
@@ -63,12 +65,20 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
     setDeleteModalOpen(true)
   }
 
-  const handleSaveCategory = async (payload: { name: string }) => {
+  const handleSaveCategory = async (payload: FormData | { name: string }) => {
     if (editing) {
-      await updateMutation.mutateAsync({ id: editing.id, name: payload.name })
-      setEditing((prev) => (prev ? { ...prev, name: payload.name } : prev))
+      if (payload instanceof FormData) {
+        await updateMutation.mutateAsync({ id: editing.id, payload })
+      } else {
+        await updateMutation.mutateAsync({ id: editing.id, payload: payload.name })
+        setEditing((prev) => (prev ? { ...prev, name: payload.name } : prev))
+      }
     } else {
-      await createMutation.mutateAsync(payload.name)
+      if (payload instanceof FormData) {
+        await createMutation.mutateAsync(payload)
+      } else {
+        await createMutation.mutateAsync(payload.name)
+      }
     }
 
     setModalOpen(false)
@@ -78,7 +88,30 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
     () => [
       {
         header: "Category",
-        accessor: "name",
+        cell: (row) => {
+          // Some category types (blog/product) include an `image` field
+          const image = (row as any).image ?? null;
+          const { initials, backgroundColor } = initialsPlaceholder(row.name ?? "");
+
+          return (
+            <div className="flex items-center gap-3">
+              {image ? (
+                <Image src={image} alt={row.name} width={32} height={32} className="h-8 w-8 rounded-sm object-cover" />
+              ) : (
+                <div
+                  className="h-8 w-8 rounded-sm flex items-center justify-center text-sm font-medium text-black"
+                  style={{ backgroundColor }}
+                >
+                  {initials}
+                </div>
+              )}
+
+              <div className="flex flex-col">
+                <span className="font-medium">{row.name}</span>
+              </div>
+            </div>
+          )
+        },
       },
       {
         header: "Products",
@@ -147,36 +180,17 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
         onSubmit={handleSaveCategory}
       />
 
-      <Modal
+      <DeleteModal
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
         title="Confirm deletion"
-        description={
-          deleteTarget
-            ? `Are you sure you want to delete category "${deleteTarget.name}"? This action cannot be undone.`
-            : undefined
-        }
-        footer={
-          <div className="flex gap-2">
-            <CustomButton
-              variant="outline"
-              onClick={() => setDeleteModalOpen(false)}
-            >
-              Cancel
-            </CustomButton>
-            <CustomButton
-              variant="outline"
-              className="text-destructive"
-              loading={deleteMutation.isPending}
-              onClick={() => {
-                if (deleteTarget) deleteMutation.mutate(deleteTarget.id)
-                setDeleteModalOpen(false)
-              }}
-            >
-              Delete
-            </CustomButton>
-          </div>
-        }
+        description={deleteTarget ? `Are you sure you want to delete category "${deleteTarget.name}"? This action cannot be undone.` : undefined}
+        loading={deleteMutation.isPending}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteMutation.mutate(deleteTarget.id, { onSuccess: () => setDeleteModalOpen(false) });
+          }
+        }}
       />
     </div>
   )

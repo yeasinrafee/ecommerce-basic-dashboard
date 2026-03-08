@@ -1,21 +1,20 @@
 "use client"
+
 import React from "react"
-import Image from "next/image"
 import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
-import CreateBrand from "./CreateBrand"
+import CreateAttribute from "./CreateAttribute"
 import DeleteModal from "@/components/Common/DeleteModal"
 import SearchBar from "@/components/FormFields/SearchBar"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
-import * as api from "@/hooks/brand.api"
-import type { Brand } from "@/hooks/brand.api"
-import { initialsPlaceholder } from "@/utils/image-placeholder";
+import * as api from "@/hooks/attribute.api"
+import type { Attribute } from "@/hooks/attribute.api"
 
-export default function ManageBrands() {
+export default function ManageAttributes() {
   const [modalOpen, setModalOpen] = React.useState(false)
-  const [editing, setEditing] = React.useState<Brand | null>(null)
+  const [editing, setEditing] = React.useState<Attribute | null>(null)
   const [page, setPage] = React.useState(1)
   const limit = 10
 
@@ -31,89 +30,64 @@ export default function ManageBrands() {
     return () => clearTimeout(handle)
   }, [searchInput])
 
-  const brandsQuery = api.usePaginatedBrands(page, limit, searchTerm)
-  const { data, isLoading, error } = brandsQuery
-  const createMutation = api.useCreateBrand()
-  const updateMutation = api.useUpdateBrand()
-  const deleteMutation = api.useDeleteBrand()
+  const attrsQuery = api.usePaginatedAttributes(page, limit, searchTerm)
+  const { data, isLoading, error } = attrsQuery
+  const createMutation = api.useCreateAttribute()
+  const updateMutation = api.useUpdateAttribute()
+  const deleteMutation = api.useDeleteAttribute()
 
   const handleCreate = () => {
     setEditing(null)
     setModalOpen(true)
   }
 
-  const handleEdit = (brand: Brand) => {
-    setEditing(brand)
+  const handleEdit = (attr: Attribute) => {
+    setEditing(attr)
     setModalOpen(true)
   }
 
-  const [deleteTarget, setDeleteTarget] = React.useState<Brand | null>(null)
+  const [deleteTarget, setDeleteTarget] = React.useState<Attribute | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
 
-  const handleDelete = (brand: Brand) => {
-    setDeleteTarget(brand)
+  const handleDelete = (attr: Attribute) => {
+    setDeleteTarget(attr)
     setDeleteModalOpen(true)
   }
 
-  const handleSaveBrand = async (payload: FormData | { name: string }) => {
+  const handleSave = async (payload: { name: string; values?: string[] }) => {
     if (editing) {
-      if (payload instanceof FormData) {
-        await updateMutation.mutateAsync({ id: editing.id, payload })
-      } else {
-        await updateMutation.mutateAsync({ id: editing.id, payload: payload.name })
-        setEditing((prev) => (prev ? { ...prev, name: payload.name } : prev))
-      }
+      await updateMutation.mutateAsync({ id: editing.id, payload })
+      setEditing((prev) => (prev ? { ...prev, name: payload.name, values: payload.values ?? [] } : prev))
     } else {
-      if (payload instanceof FormData) {
-        await createMutation.mutateAsync(payload)
-      } else {
-        await createMutation.mutateAsync(payload.name)
-      }
+      await createMutation.mutateAsync(payload)
     }
 
     setModalOpen(false)
   }
 
-  const columns = React.useMemo<Column<Brand>[]>(
+  const columns = React.useMemo<Column<Attribute>[]>(
     () => [
       {
-        header: "Brand",
-        cell: (row) => {
-          const image = (row as any).image ?? null;
-          const { initials, backgroundColor } = initialsPlaceholder(row.name ?? "");
-
-          return (
-            <div className="flex items-center gap-3">
-              {image ? (
-                <Image src={image} alt={row.name} width={32} height={32} className="h-8 w-8 rounded-sm object-cover" />
-              ) : (
-                <div
-                  className="h-8 w-8 rounded-sm flex items-center justify-center text-sm font-medium text-black"
-                  style={{ backgroundColor }}
-                >
-                  {initials}
-                </div>
-              )}
-
-              <div className="flex flex-col">
-                <span className="font-medium">{row.name}</span>
-              </div>
-            </div>
-          )
-        },
+        header: "Name",
+        accessor: "name",
       },
       {
-        header: "Products",
-        cell: () => "-",
-        align: "center",
+        header: "Values",
+        cell: (row) => (row.values && row.values.length > 0 ? row.values.join(', ') : '-'),
+        align: "left",
       },
+      {
+        header: "Created",
+        accessor: "createdAt",
+        cell: (row) => new Date(row.createdAt).toLocaleString()
+      }
     ],
     [],
   )
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-medium">Manage Brands</h2>
+      <h2 className="mb-4 text-lg font-medium">Manage Attributes</h2>
 
       <div className="flex items-center justify-between mb-4">
         <SearchBar
@@ -121,15 +95,15 @@ export default function ManageBrands() {
           setSearchInput={setSearchInput}
           clearSearch={() => setSearchInput("")}
         />
-        <CustomButton onClick={handleCreate}>Create Brand</CustomButton>
+        <CustomButton onClick={handleCreate}>Create Attribute</CustomButton>
       </div>
 
       {isLoading ? (
         <p>Loading...</p>
       ) : error ? (
-        <p className="text-red-500">Failed to load brands</p>
+        <p className="text-red-500">Failed to load attributes</p>
       ) : (
-        <Table<Brand>
+        <Table<Attribute>
           columns={columns}
           data={data?.data ?? []}
           rowKey="id"
@@ -138,7 +112,7 @@ export default function ManageBrands() {
           currentPage={page}
           totalItems={data?.meta.total ?? 0}
           onPageChange={setPage}
-          renderRowActions={(brand) => (
+          renderRowActions={(attr) => (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -146,12 +120,12 @@ export default function ManageBrands() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleEdit(brand)}>
+                <DropdownMenuItem onClick={() => handleEdit(attr)}>
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"
-                  onClick={() => handleDelete(brand)}
+                  onClick={() => handleDelete(attr)}
                 >
                   Delete
                 </DropdownMenuItem>
@@ -161,19 +135,19 @@ export default function ManageBrands() {
         />
       )}
 
-      <CreateBrand
+      <CreateAttribute
         open={modalOpen}
         onOpenChange={setModalOpen}
-        defaultValues={editing ? { name: editing.name } : undefined}
+        defaultValues={editing ? { name: editing.name, values: editing.values } : undefined}
         submitting={createMutation.isPending || updateMutation.isPending}
-        onSubmit={handleSaveBrand}
+        onSubmit={handleSave}
       />
 
       <DeleteModal
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
         title="Confirm deletion"
-        description={deleteTarget ? `Are you sure you want to delete brand "${deleteTarget.name}"? This action cannot be undone.` : undefined}
+        description={deleteTarget ? `Are you sure you want to delete attribute "${deleteTarget.name}"? This action cannot be undone.` : undefined}
         loading={deleteMutation.isPending}
         onConfirm={() => {
           if (deleteTarget) {

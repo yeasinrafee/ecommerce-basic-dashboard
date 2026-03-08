@@ -100,8 +100,13 @@ export const useCreateCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (name: string) => {
-      const response = await apiClient.post<ApiResponse<Category>>(BlogCategoryRoutes.create, { name });
+    mutationFn: async (payload: string | FormData) => {
+      let response;
+      if (typeof FormData !== 'undefined' && payload instanceof FormData) {
+        response = await apiClient.post<ApiResponse<Category>>(BlogCategoryRoutes.create, payload);
+      } else {
+        response = await apiClient.post<ApiResponse<Category>>(BlogCategoryRoutes.create, { name: payload });
+      }
       const data = ensurePayload(response.data, "Failed to create category");
       return { message: response.data.message, payload: data };
     },
@@ -120,8 +125,13 @@ export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const response = await apiClient.patch<ApiResponse<Category>>(BlogCategoryRoutes.update(id), { name });
+    mutationFn: async ({ id, payload }: { id: string; payload: string | FormData }) => {
+      let response;
+      if (typeof FormData !== 'undefined' && payload instanceof FormData) {
+        response = await apiClient.patch<ApiResponse<Category>>(BlogCategoryRoutes.update(id), payload as FormData);
+      } else {
+        response = await apiClient.patch<ApiResponse<Category>>(BlogCategoryRoutes.update(id), { name: payload });
+      }
       const data = ensurePayload(response.data, "Failed to update category");
       return { message: response.data.message, payload: data };
     },
