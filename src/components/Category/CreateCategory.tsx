@@ -7,6 +7,7 @@ import * as z from "zod"
 import CustomInput from "@/components/FormFields/CustomInput"
 import Modal from "@/components/Common/Modal"
 import CustomButton from "@/components/Common/CustomButton"
+import CustomFileUpload, { type CustomFileUploadFile } from "@/components/FormFields/CustomFileUpload"
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -18,7 +19,7 @@ interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultValues?: Partial<FormSchema>
-  onSubmit?: (data: FormSchema) => Promise<void> | void
+  onSubmit?: (data: FormSchema | FormData) => Promise<void> | void
   submitting?: boolean
 }
 
@@ -45,11 +46,22 @@ export default function CreateCategory({
     reset({ name: defaultValues?.name ?? "" })
   }, [defaultValues, reset])
 
+  const [uploadedFiles, setUploadedFiles] = React.useState<CustomFileUploadFile[]>([])
+  const existingImage = (defaultValues as any)?.image as string | undefined
+  const showExistingImage = Boolean(defaultValues && existingImage && uploadedFiles.length === 0)
+
   const submit = async (data: FormSchema) => {
     if (onSubmit) {
-      await onSubmit(data)
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        const formData = new FormData()
+        formData.append("name", data.name)
+        formData.append("image", uploadedFiles[0].file)
+        await onSubmit(formData as any)
+      } else {
+        await onSubmit(data)
+      }
     }
-+    reset({ name: "" });
+    reset({ name: "" });
   }
 
   return (
@@ -76,6 +88,16 @@ export default function CreateCategory({
             error={errors.name?.message}
             requiredMark
           />
+          <div>
+            <label className="block mb-2 text-sm font-medium">Image</label>
+            {showExistingImage ? (
+              <div className="mb-2">
+                <img src={existingImage} alt="Existing" className="h-32 w-32 object-cover rounded-md" />
+                <p className="text-xs text-slate-500 mt-1">Existing image. Upload a new file below to replace.</p>
+              </div>
+            ) : null}
+            <CustomFileUpload maxFiles={1} onFilesChange={setUploadedFiles} />
+          </div>
         </div>
       </form>
     </Modal>

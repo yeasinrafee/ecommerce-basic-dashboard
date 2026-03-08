@@ -65,10 +65,18 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
 
   const handleSaveCategory = async (payload: { name: string }) => {
     if (editing) {
-      await updateMutation.mutateAsync({ id: editing.id, name: payload.name })
-      setEditing((prev) => (prev ? { ...prev, name: payload.name } : prev))
+      if (payload instanceof FormData) {
+        await updateMutation.mutateAsync({ id: editing.id, payload })
+      } else {
+        await updateMutation.mutateAsync({ id: editing.id, payload: payload.name })
+        setEditing((prev) => (prev ? { ...prev, name: payload.name } : prev))
+      }
     } else {
-      await createMutation.mutateAsync(payload.name)
+      if (payload instanceof FormData) {
+        await createMutation.mutateAsync(payload)
+      } else {
+        await createMutation.mutateAsync(payload.name)
+      }
     }
 
     setModalOpen(false)

@@ -1,5 +1,4 @@
 "use client"
-
 import React from "react"
 import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
@@ -56,10 +55,18 @@ export default function ManageBrands() {
 
   const handleSaveBrand = async (payload: { name: string }) => {
     if (editing) {
-      await updateMutation.mutateAsync({ id: editing.id, name: payload.name })
-      setEditing((prev) => (prev ? { ...prev, name: payload.name } : prev))
+      if (payload instanceof FormData) {
+        await updateMutation.mutateAsync({ id: editing.id, payload })
+      } else {
+        await updateMutation.mutateAsync({ id: editing.id, payload: payload.name })
+        setEditing((prev) => (prev ? { ...prev, name: payload.name } : prev))
+      }
     } else {
-      await createMutation.mutateAsync(payload.name)
+      if (payload instanceof FormData) {
+        await createMutation.mutateAsync(payload)
+      } else {
+        await createMutation.mutateAsync(payload.name)
+      }
     }
 
     setModalOpen(false)

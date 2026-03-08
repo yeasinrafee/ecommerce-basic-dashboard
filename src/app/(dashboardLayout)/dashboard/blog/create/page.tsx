@@ -25,7 +25,7 @@ export default function Page({ searchParams }: Props) {
     : undefined
 
   return (
-    <div className="p-4">
+    <div className="p-4 bg-white">
       <CreateBlog asPage defaultValues={defaultValues} />
     </div>
   )
