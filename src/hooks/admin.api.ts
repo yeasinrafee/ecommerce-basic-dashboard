@@ -97,7 +97,7 @@ export const useUpdateAdmin = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, payload }: { id: string; payload: AdminUpdatePayload }) => {
+    mutationFn: async ({ id, payload }: { id: string; payload: any }) => {
       const response = await apiClient.patch<ApiResponse<Admin>>(AdminRoutes.update(id), payload);
       const data = ensurePayload(response.data, "Failed to update admin");
       return { message: response.data.message, payload: data };

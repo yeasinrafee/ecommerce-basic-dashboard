@@ -56,11 +56,21 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
   const createMutation = useCreateAdmin();
   const updateMutation = useUpdateAdmin();
   const [uploadedFiles, setUploadedFiles] = React.useState<CustomFileUploadFile[]>([]);
+  const existingImage = (defaultValues as any)?.image as string | undefined | null;
 
   const onSubmit = async (data: FormSchema) => {
     if (isEdit && defaultValues?.id) {
       const editData = data as EditFormSchema;
-      await updateMutation.mutateAsync({ id: defaultValues.id, payload: { name: editData.name, email: editData.email } });
+      // if a new image was uploaded, send multipart/form-data
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        const formData = new FormData();
+        formData.append('name', editData.name);
+        formData.append('email', editData.email);
+        formData.append('image', uploadedFiles[0].file);
+        await updateMutation.mutateAsync({ id: defaultValues.id, payload: formData });
+      } else {
+        await updateMutation.mutateAsync({ id: defaultValues.id, payload: { name: editData.name, email: editData.email } });
+      }
       onOpenChange(false);
       return;
     }
@@ -107,6 +117,12 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
           )}
           <div>
             <label className="block mb-2 text-sm font-medium">Profile Image</label>
+            {isEdit && existingImage ? (
+              <div className="mb-2">
+                <img src={existingImage} alt="Existing" className="h-32 w-32 object-cover rounded-md" />
+                <p className="text-xs text-slate-500 mt-1">Existing image. Upload a new file below to replace.</p>
+              </div>
+            ) : null}
             <CustomFileUpload maxFiles={1} onFilesChange={setUploadedFiles} />
           </div>
         </div>

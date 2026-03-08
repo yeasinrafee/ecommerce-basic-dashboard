@@ -40,9 +40,19 @@ apiClient.interceptors.request.use((config) => {
     return config
   }
 
-  const headers = AxiosHeaders.from(config.headers)
-  headers.set("Authorization", `Bearer ${token}`)
-  config.headers = headers
+  // Ensure FormData requests are sent with the browser-managed Content-Type
+  // (so boundary is added). Remove any preset Content-Type when body is FormData.
+  const headersObj: Record<string, any> = { ...(config.headers || {}) };
+
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    // let the browser set Content-Type with boundary
+    if (headersObj['Content-Type']) delete headersObj['Content-Type'];
+  } else {
+    headersObj['Content-Type'] = 'application/json';
+  }
+
+  headersObj['Authorization'] = `Bearer ${token}`;
+  config.headers = headersObj;
 
   return config
 })

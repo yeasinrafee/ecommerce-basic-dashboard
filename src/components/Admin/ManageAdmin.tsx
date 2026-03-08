@@ -218,7 +218,15 @@ export default function ManageAdmin() {
         />
       )}
 
-      <CreateAdmin open={modalOpen} onOpenChange={setModalOpen} defaultValues={editing ? { id: editing.id, name: editing.name, email: editing.user?.email } : undefined} />
+      <CreateAdmin
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        defaultValues={
+          editing
+            ? { id: editing.id, name: editing.name, email: editing.user?.email, image: editing.image }
+            : undefined
+        }
+      />
     </div>
   );
 }
