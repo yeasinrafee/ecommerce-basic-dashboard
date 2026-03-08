@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { usePaginatedBlogs } from "@/hooks/blog.api"
 
 export default function ManageBlogs() {
@@ -39,11 +40,11 @@ export default function ManageBlogs() {
     router.push("/dashboard/blog/create")
   }
 
-  const handleEdit = (item: BlogItem) => {
+  const handleEdit = (item: any) => {
     router.push(`/dashboard/blog/create?id=${item.id}`)
   }
 
-  const handleDelete = (item: BlogItem) => {
+  const handleDelete = (item: any) => {
     setDeleteTarget(item)
     setDeleteModalOpen(true)
   }
@@ -56,10 +57,20 @@ export default function ManageBlogs() {
 
   const columns = React.useMemo<Column<any>[]>(
     () => [
+      { header: "Image", cell: (row) => row.image ? <Image src={row.image} alt="" width={60} height={40} className="object-cover" /> : null },
       { header: "Title", accessor: "title" },
       { header: "Author", accessor: "authorName" },
       { header: "Category", cell: (row) => (row.category?.name || "-") },
-      { header: "Tags", cell: (row) => (row.tags && row.tags.length ? row.tags.map((t: any) => t.name || t).join(", ") : "-") },
+      { header: "Tags", cell: (row) => {
+        if (!row.tags || !row.tags.length) return "-";
+        return row.tags
+          .map((bt: any) => {
+            const tag = bt.tag ? bt.tag : bt;
+            return tag?.name || "";
+          })
+          .filter((n: string) => !!n)
+          .join(", ");
+      } },
       { header: "Created", accessor: "createdAt", cell: (row) => new Date(row.createdAt).toLocaleString() }
     ],
     []
