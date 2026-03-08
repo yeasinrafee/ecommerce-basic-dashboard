@@ -53,6 +53,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const tagList = React.useMemo(() => allTags.map((t) => ({ id: t.id, name: t.name })), [allTags]);
 
   const createMutation = useCreateBlog();
+  const isSaving = (createMutation as any).isPending || submitting;
 
   React.useEffect(() => {
     setTitle(defaultValues?.title ?? "")
@@ -70,6 +71,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   }
 
   const handleSave = async () => {
+    if (isSaving) return;
     const fd = new FormData();
     fd.append('title', title ?? '');
     fd.append('authorName', author ?? '');
@@ -157,7 +159,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         {formInner}
 
         <div className="flex gap-2 mt-6">
-          <CustomButton loading={submitting} onClick={handleSave}>Save Blog</CustomButton>
+          <CustomButton loading={isSaving} disabled={isSaving} onClick={handleSave}>Save Blog</CustomButton>
         </div>
       </div>
     )
@@ -171,7 +173,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
       description={defaultValues ? "Edit the blog post details" : "Create a new blog post"}
       footer={
         <div className="flex gap-2">
-          <CustomButton loading={submitting} onClick={handleSave}>Save Blog</CustomButton>
+          <CustomButton loading={isSaving} disabled={isSaving} onClick={handleSave}>Save Blog</CustomButton>
         </div>
       }
     >
