@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import * as api from "@/hooks/brand.api"
 import type { Brand } from "@/hooks/brand.api"
+import { initialsPlaceholder } from "@/utils/image-placeholder";
 
 export default function ManageBrands() {
   const [modalOpen, setModalOpen] = React.useState(false)
@@ -76,7 +77,29 @@ export default function ManageBrands() {
     () => [
       {
         header: "Brand",
-        accessor: "name",
+        cell: (row) => {
+          const image = row.image ?? null;
+          const { initials, backgroundColor } = initialsPlaceholder(row.name ?? "");
+
+          return (
+            <div className="flex items-center gap-3">
+              {image ? (
+                <img src={image} alt={row.name} className="h-8 w-8 rounded-sm object-cover" />
+              ) : (
+                <div
+                  className="h-8 w-8 rounded-sm flex items-center justify-center text-sm font-medium text-black"
+                  style={{ backgroundColor }}
+                >
+                  {initials}
+                </div>
+              )}
+
+              <div className="flex flex-col">
+                <span className="font-medium">{row.name}</span>
+              </div>
+            </div>
+          )
+        },
       },
       {
         header: "Products",
