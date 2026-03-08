@@ -200,7 +200,7 @@ export default function ManageAdmin() {
             fieldToValue={(v) => v}
             onChangeCallback={(v: string) => setBulkStatus(v)}
             placeholder="Bulk status"
-            triggerClassName="w-40"
+            triggerClassName="w-40 min-h-10 bg-white"
           />
           <CustomButton disabled={selectedIds.length === 0} onClick={applyBulkStatus} loading={bulkUpdateMutation.isPending}>Update Status</CustomButton>
           <CustomButton onClick={() => { setEditing(null); setModalOpen(true); }}>Create Admin</CustomButton>
@@ -259,7 +259,6 @@ export default function ManageAdmin() {
 }
 
 function InlineStatusSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  // lightweight wrapper to use CustomSelect via a small form control
   const { control, reset } = useForm<{ status: string }>({ defaultValues: { status: value } });
   const [val, setVal] = React.useState<string>(value);
   const timerRef = React.useRef<number | null>(null);
