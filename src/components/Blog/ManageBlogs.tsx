@@ -3,30 +3,16 @@
 import React from "react"
 import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
-import CreateBlog from "./CreateBlog"
 import DeleteModal from "@/components/Common/DeleteModal"
 import SearchBar from "@/components/FormFields/SearchBar"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
-
-type BlogItem = {
-  id: string
-  title: string
-  author: string
-  category: string
-  tags: string[]
-  createdAt: string
-}
-
-const SAMPLE_DATA: BlogItem[] = [
-  { id: "1", title: "Introducing Our New Feature", author: "Jane Doe", category: "Release", tags: ["Product", "Release"], createdAt: new Date().toISOString() },
-  { id: "2", title: "How to Optimize Performance", author: "John Smith", category: "Tutorial", tags: ["Performance", "Node"], createdAt: new Date().toISOString() },
-]
+import { useRouter } from "next/navigation"
+import { SAMPLE_BLOGS, type BlogItem } from "@/data/blog-sample"
 
 export default function ManageBlogs() {
-  const [modalOpen, setModalOpen] = React.useState(false)
-  const [editing, setEditing] = React.useState<BlogItem | null>(null)
+  const router = useRouter()
   const [page, setPage] = React.useState(1)
   const limit = 10
 
@@ -41,19 +27,17 @@ export default function ManageBlogs() {
     return () => clearTimeout(handle)
   }, [searchInput])
 
-  const [data] = React.useState<BlogItem[]>(SAMPLE_DATA)
+  const [data] = React.useState<BlogItem[]>(SAMPLE_BLOGS)
 
   const [deleteTarget, setDeleteTarget] = React.useState<BlogItem | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
 
   const handleCreate = () => {
-    setEditing(null)
-    setModalOpen(true)
+    router.push("/dashboard/blog/create")
   }
 
   const handleEdit = (item: BlogItem) => {
-    setEditing(item)
-    setModalOpen(true)
+    router.push(`/dashboard/blog/create?id=${item.id}`)
   }
 
   const handleDelete = (item: BlogItem) => {
@@ -108,8 +92,6 @@ export default function ManageBlogs() {
           </DropdownMenu>
         )}
       />
-
-      <CreateBlog open={modalOpen} onOpenChange={setModalOpen} defaultValues={editing ?? undefined} onSave={(v) => { console.log('Saved (UI-only):', v); setModalOpen(false); }} />
 
       <DeleteModal open={deleteModalOpen} onOpenChange={setDeleteModalOpen} title="Confirm deletion" description={deleteTarget ? `Are you sure you want to delete blog "${deleteTarget.title}"? This action cannot be undone.` : undefined} loading={false} onConfirm={confirmDelete} />
     </div>

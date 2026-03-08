@@ -1,7 +1,6 @@
 import { 
   LuLayoutDashboard, 
   LuBox, 
-  LuCirclePlus, 
   LuShoppingCart, 
   LuUsers, 
   LuLayers, 
@@ -105,8 +104,12 @@ export const routes: RouteItem[] = [
   },
   {
     icon: LuImage,
-    label: "Manage Blogs",
+    label: "Blogs",
     href: "/dashboard/blog/manage",
+    subItems: [
+      { label: "Create Blog", href: "/dashboard/blog/create" },
+      { label: "Manage Blogs", href: "/dashboard/blog/manage" },
+    ],
   },
   {
     icon: LuList,
