@@ -8,6 +8,8 @@ import CustomFileUpload from "@/components/FormFields/CustomFileUpload"
 import CustomButton from "@/components/Common/CustomButton"
 import CustomRichTextEditor from "@/components/Common/CustomRichTextEditor"
 import CustomCheckbox from "@/components/FormFields/CustomCheckbox"
+import CustomSelect from "@/components/FormFields/CustomSelect"
+import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
 
 interface BlogValues {
@@ -41,6 +43,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const [category, setCategory] = React.useState(defaultValues?.category ?? "")
   const [tags, setTags] = React.useState<string[]>(defaultValues?.tags ?? [])
   const [imageFiles, setImageFiles] = React.useState<any[]>([])
+  const categoryForm = useForm<{ category: string }>({ defaultValues: { category: defaultValues?.category ?? "" } });
 
   React.useEffect(() => {
     setTitle(defaultValues?.title ?? "")
@@ -48,6 +51,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
     setContent(defaultValues?.content ?? "")
     setAuthor(defaultValues?.author ?? "")
     setCategory(defaultValues?.category ?? "")
+    categoryForm.reset({ category: defaultValues?.category ?? "" })
     setTags(defaultValues?.tags ?? [])
     setImageFiles([])
   }, [defaultValues, open])
@@ -102,18 +106,20 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Category</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-md border px-3 py-2">
-            <option value="">Select category</option>
-            {SAMPLE_CATEGORIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+          <CustomSelect<{ category: string }>
+            name="category"
+            control={categoryForm.control}
+            label="Category"
+            placeholder="Select category"
+            options={SAMPLE_CATEGORIES.map((c) => ({ label: c, value: c }))}
+            onChangeCallback={(v: string) => setCategory(v)}
+            triggerClassName="w-full rounded-md border px-3 py-2 bg-white"
+          />
         </div>
 
-        <div>
-          <div className="text-sm font-medium mb-2">Tags</div>
-          <div className="flex flex-col gap-2">
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+          <h3 className="text-lg font-semibold text-slate-900">Tags</h3>
+          <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
             {SAMPLE_TAGS.map((t) => (
               <CustomCheckbox key={t} label={t} checked={tags.includes(t)} onCheckedChange={() => toggleTag(t)} />
             ))}
@@ -134,7 +140,6 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         {formInner}
 
         <div className="flex gap-2 mt-6">
-          <CustomButton variant="outline" onClick={() => router.push("/dashboard/blog/manage")}>Cancel</CustomButton>
           <CustomButton loading={submitting} onClick={handleSave}>Save Blog</CustomButton>
         </div>
       </div>
@@ -149,7 +154,6 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
       description={defaultValues ? "Edit the blog post details" : "Create a new blog post"}
       footer={
         <div className="flex gap-2">
-          <CustomButton variant="outline" onClick={() => onOpenChange?.(false)}>Cancel</CustomButton>
           <CustomButton loading={submitting} onClick={handleSave}>Save Blog</CustomButton>
         </div>
       }

@@ -52,7 +52,7 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
       const file = event.target.files[0];
       if (file) {
         const url = URL.createObjectURL(file);
-        editor?.chain().focus().setImage({ src: url }).run();
+        editor?.chain().focus().setImage({ src: url, alt: file.name }).run();
       }
     };
     input.click();
@@ -120,7 +120,7 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
           </RichTextEditor.ControlsGroup>
         </RichTextEditor.Toolbar>
 
-        <RichTextEditor.Content />
+        <RichTextEditor.Content className="p-4 [&_img]:max-w-full [&_img]:h-auto [&_img]:max-h-[200px]" />
       </RichTextEditor>
     </div>
   );
