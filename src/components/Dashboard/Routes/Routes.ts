@@ -104,6 +104,11 @@ export const routes: RouteItem[] = [
     ],
   },
   {
+    icon: LuImage,
+    label: "Manage Blogs",
+    href: "/dashboard/blog/manage",
+  },
+  {
     icon: LuList,
     label: "Manage Attributes",
     href: "/dashboard/attributes/manage",
