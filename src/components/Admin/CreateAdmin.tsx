@@ -57,6 +57,7 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
   const updateMutation = useUpdateAdmin();
   const [uploadedFiles, setUploadedFiles] = React.useState<CustomFileUploadFile[]>([]);
   const existingImage = defaultValues?.image;
+  const showExistingImage = isEdit && existingImage && uploadedFiles.length === 0;
 
   const onSubmit = async (data: FormSchema) => {
     if (isEdit && defaultValues?.id) {
@@ -117,7 +118,7 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
           )}
           <div>
             <label className="block mb-2 text-sm font-medium">Profile Image</label>
-            {isEdit && existingImage ? (
+            {showExistingImage ? (
               <div className="mb-2">
                 <img src={existingImage} alt="Existing" className="h-32 w-32 object-cover rounded-md" />
                 <p className="text-xs text-slate-500 mt-1">Existing image. Upload a new file below to replace.</p>
