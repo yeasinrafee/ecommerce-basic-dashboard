@@ -20,6 +20,17 @@ import * as api from "@/hooks/zone-policy.api"
 import type { ZonePolicy } from "@/hooks/zone-policy.api"
 import CustomSelect from "@/components/FormFields/CustomSelect"
 
+// Format names like "MATTHEW_BANKS" -> "Matthew Banks"
+const formatUpperUnderscore = (input?: string) => {
+  if (!input) return ""
+  const s = input.replace(/_+/g, " ").toLowerCase()
+  return s
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ")
+}
+
 export default function ManageZonePolicy() {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<ZonePolicy | null>(null)
@@ -56,8 +67,15 @@ export default function ManageZonePolicy() {
   }
 
   const handleEdit = (policy: ZonePolicy) => {
-    setEditing(policy)
-    setModalOpen(true)
+    const initial = {
+      policyName: policy.policyName,
+      deliveryTime: policy.deliveryTime,
+      shippingCost: policy.shippingCost,
+      status: policy.status,
+      zoneIds: policy.zones ? policy.zones.map((r) => r.zone.id) : []
+    }
+    const encoded = encodeURIComponent(JSON.stringify(initial))
+    router.push(`/dashboard/zone-policies/create?initial=${encoded}`)
   }
 
   const [deleteTarget, setDeleteTarget] = React.useState<ZonePolicy | null>(null)
@@ -80,8 +98,8 @@ export default function ManageZonePolicy() {
 
   const clearSelection = () => setSelected({})
 
-  const [bulkStatus, setBulkStatus] = React.useState<string>("ACTIVE")
-  const bulkForm = useForm<{ status: string }>({ defaultValues: { status: bulkStatus } })
+  const [bulkStatus, setBulkStatus] = React.useState<"ACTIVE" | "INACTIVE">("ACTIVE")
+  const bulkForm = useForm<{ status: "ACTIVE" | "INACTIVE" }>({ defaultValues: { status: bulkStatus } })
 
   React.useEffect(() => {
     bulkForm.reset({ status: bulkStatus })
@@ -99,7 +117,7 @@ export default function ManageZonePolicy() {
     setDeleteModalOpen(true)
   }
 
-  const handleSavePolicy = async (payload: { policyName: string; deliveryTime: number; shippingCost: number; status?: string }) => {
+  const handleSavePolicy = async (payload: { policyName: string; deliveryTime: number; shippingCost: number; status?: "ACTIVE" | "INACTIVE"; zoneIds?: string[] }) => {
     if (editing) {
       await updateMutation.mutateAsync({ id: editing.id, payload })
     } else {
@@ -135,6 +153,15 @@ export default function ManageZonePolicy() {
         className: "w-12 text-center"
       },
       { header: "Policy Name", accessor: "policyName" },
+      {
+        header: "Zones",
+        accessor: "zones",
+        cell: (row) => (
+          row.zones && row.zones.length > 0
+            ? row.zones.map((z) => formatUpperUnderscore(z.zone?.name)).filter(Boolean).join(' - ')
+            : "-"
+        )
+      },
       { header: "Delivery Time", accessor: "deliveryTime", cell: (row) => row.deliveryTime },
       { header: "Shipping Cost", accessor: "shippingCost", cell: (row) => row.shippingCost },
       {
@@ -162,12 +189,11 @@ export default function ManageZonePolicy() {
             options={[{ label: "Active", value: "ACTIVE" }, { label: "Inactive", value: "INACTIVE" }]}
             valueToField={(v) => v}
             fieldToValue={(v) => v}
-            onChangeCallback={(v: string) => setBulkStatus(v)}
+            onChangeCallback={(v: string) => setBulkStatus(v as "ACTIVE" | "INACTIVE")}
             placeholder="Bulk status"
             triggerClassName="w-40 min-h-10 bg-white"
           />
           <CustomButton disabled={selectedIds.length === 0} onClick={applyBulkStatus} loading={bulkUpdateMutation.isPending}>Update Status</CustomButton>
-          <CustomButton onClick={() => { setEditing(null); setModalOpen(true); }}>Create Policy</CustomButton>
         </div>
       </div>
 
@@ -225,9 +251,9 @@ export default function ManageZonePolicy() {
   )
 }
 
-function InlineStatusSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const { control, reset } = useForm<{ status: string }>({ defaultValues: { status: value } })
-  const [val, setVal] = React.useState<string>(value)
+function InlineStatusSelect({ value, onChange }: { value: "ACTIVE" | "INACTIVE"; onChange: (v: "ACTIVE" | "INACTIVE") => void }) {
+  const { control, reset } = useForm<{ status: "ACTIVE" | "INACTIVE" }>({ defaultValues: { status: value } })
+  const [val, setVal] = React.useState<"ACTIVE" | "INACTIVE">(value)
   const timerRef = React.useRef<number | null>(null)
 
   React.useEffect(() => {
@@ -242,10 +268,11 @@ function InlineStatusSelect({ value, onChange }: { value: string; onChange: (v: 
   }, [])
 
   const handleChange = (v: string) => {
-    setVal(v)
+    const val = v as "ACTIVE" | "INACTIVE"
+    setVal(val)
     if (timerRef.current) window.clearTimeout(timerRef.current)
     timerRef.current = window.setTimeout(() => {
-      onChange(v)
+      onChange(val)
       timerRef.current = null
     }, 500)
   }

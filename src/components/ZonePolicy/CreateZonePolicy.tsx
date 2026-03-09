@@ -11,6 +11,17 @@ import CustomButton from "@/components/Common/CustomButton"
 import CustomCheckbox from "@/components/FormFields/CustomCheckbox"
 import { useAvailableZones } from '@/hooks/zone.api'
 
+// Format names like "MATTHEW_BANKS" -> "Matthew Banks"
+const formatUpperUnderscore = (input?: string) => {
+  if (!input) return ""
+  const s = input.replace(/_+/g, " ").toLowerCase()
+  return s
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ")
+}
+
 const schema = z.object({
   policyName: z.string().min(1, "Policy name is required"),
   deliveryTime: z.coerce.number().min(0, "Delivery time is required"),
@@ -100,7 +111,7 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
             <div className="flex flex-col gap-2">
               {zones && zones.length > 0 ? (
                 zones.map((z) => (
-                  <CustomCheckbox key={z.id} label={z.name} checked={selectedZones.includes(z.id)} onCheckedChange={() => toggleZone(z.id)} />
+                  <CustomCheckbox key={z.id} label={formatUpperUnderscore(z.name)} checked={selectedZones.includes(z.id)} onCheckedChange={() => toggleZone(z.id)} />
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground">No zones available</p>

@@ -9,7 +9,7 @@ export interface ZonePolicy {
   policyName: string;
   deliveryTime: number;
   shippingCost: number;
-  status?: string;
+  status?: "ACTIVE" | "INACTIVE";
   createdAt: string;
   updatedAt: string;
   zones?: { zoneId: string; zone: { id: string; name: string } }[];
@@ -103,7 +103,7 @@ export const useCreateZonePolicy = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: { policyName: string; deliveryTime: number; shippingCost: number; status?: string; zoneIds?: string[] }) => {
+    mutationFn: async (payload: { policyName: string; deliveryTime: number; shippingCost: number; status?: "ACTIVE" | "INACTIVE"; zoneIds?: string[] }) => {
       const response = await apiClient.post<ApiResponse<ZonePolicy>>(ZonePolicyRoutes.create, payload);
       const data = ensurePayload(response.data, "Failed to create zone policy");
       return { message: response.data.message, payload: data };
@@ -163,7 +163,7 @@ export const useBulkUpdateZonePolicies = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ ids, status }: { ids: string[]; status: string }) => {
+    mutationFn: async ({ ids, status }: { ids: string[]; status: "ACTIVE" | "INACTIVE" }) => {
       const response = await apiClient.patch<ApiResponse<{ updated: number }>>(ZonePolicyRoutes.bulkUpdateStatus, { ids, status });
       const data = ensurePayload(response.data, "Failed to update zone policies");
       return { message: response.data.message, payload: data };
