@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { useForm } from "react-hook-form"
 import { useRouter } from 'next/navigation'
 import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
@@ -17,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import * as api from "@/hooks/zone-policy.api"
 import type { ZonePolicy } from "@/hooks/zone-policy.api"
+import CustomSelect from "@/components/FormFields/CustomSelect"
 
 export default function ManageZonePolicy() {
   const [modalOpen, setModalOpen] = React.useState(false)
@@ -40,7 +42,12 @@ export default function ManageZonePolicy() {
   const createMutation = api.useCreateZonePolicy()
   const updateMutation = api.useUpdateZonePolicy()
   const deleteMutation = api.useDeleteZonePolicy()
+  const bulkUpdateMutation = api.useBulkUpdateZonePolicies()
   const router = useRouter()
+
+  const handleInlineStatusChange = (id: string, status: "ACTIVE" | "INACTIVE") => {
+    updateMutation.mutate({ id, payload: { status } })
+  }
 
   const handleCreate = () => {
     // navigate to dedicated create page
@@ -55,6 +62,37 @@ export default function ManageZonePolicy() {
 
   const [deleteTarget, setDeleteTarget] = React.useState<ZonePolicy | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
+
+  const [selected, setSelected] = React.useState<Record<string, boolean>>({})
+  const selectedIds = React.useMemo(() => Object.keys(selected).filter((k) => selected[k]), [selected])
+
+  const toggleSelect = (id: string) => {
+    setSelected((s) => ({ ...s, [id]: !s[id] }))
+  }
+
+  const selectAllOnPage = () => {
+    const newSel: Record<string, boolean> = { ...selected };
+    (data?.data ?? []).forEach((it) => {
+      newSel[it.id] = true
+    })
+    setSelected(newSel)
+  }
+
+  const clearSelection = () => setSelected({})
+
+  const [bulkStatus, setBulkStatus] = React.useState<string>("ACTIVE")
+  const bulkForm = useForm<{ status: string }>({ defaultValues: { status: bulkStatus } })
+
+  React.useEffect(() => {
+    bulkForm.reset({ status: bulkStatus })
+  }, [bulkStatus])
+
+  const applyBulkStatus = () => {
+    if (selectedIds.length === 0) return
+    bulkUpdateMutation.mutate({ ids: selectedIds, status: bulkStatus }, {
+      onSuccess: () => clearSelection()
+    })
+  }
 
   const handleDelete = (policy: ZonePolicy) => {
     setDeleteTarget(policy)
@@ -73,13 +111,42 @@ export default function ManageZonePolicy() {
 
   const columns = React.useMemo<Column<ZonePolicy>[]>(
     () => [
+      {
+        header: (
+          <div className="flex items-center justify-center gap-2">
+            <input
+              type="checkbox"
+              checked={(data?.data ?? []).length > 0 && (data?.data ?? []).every((it) => selected[it.id])}
+              onChange={(e) => {
+                if (e.target.checked) selectAllOnPage()
+                else clearSelection()
+              }}
+            />
+            <span className="text-sm">Select</span>
+          </div>
+        ),
+        cell: (row) => (
+          <input
+            type="checkbox"
+            checked={!!selected[row.id]}
+            onChange={() => toggleSelect(row.id)}
+          />
+        ),
+        className: "w-12 text-center"
+      },
       { header: "Policy Name", accessor: "policyName" },
       { header: "Delivery Time", accessor: "deliveryTime", cell: (row) => row.deliveryTime },
       { header: "Shipping Cost", accessor: "shippingCost", cell: (row) => row.shippingCost },
-      { header: "Status", accessor: "status" },
+      {
+        header: "Status",
+        accessor: "status",
+        cell: (row) => (
+          <InlineStatusSelect value={row.status ?? "INACTIVE"} onChange={(s) => handleInlineStatusChange(row.id, s as "ACTIVE" | "INACTIVE")} />
+        )
+      },
       { header: "Created", accessor: "createdAt", cell: (row) => new Date(row.createdAt).toLocaleString() }
     ],
-    []
+    [data, selected]
   )
 
   return (
@@ -88,7 +155,20 @@ export default function ManageZonePolicy() {
 
       <div className="flex items-center justify-between mb-4">
         <SearchBar searchInput={searchInput} setSearchInput={setSearchInput} clearSearch={() => setSearchInput("")} />
-        <CustomButton onClick={handleCreate}>Create Policy</CustomButton>
+        <div className="flex items-center gap-2">
+          <CustomSelect
+            name="status"
+            control={bulkForm.control}
+            options={[{ label: "Active", value: "ACTIVE" }, { label: "Inactive", value: "INACTIVE" }]}
+            valueToField={(v) => v}
+            fieldToValue={(v) => v}
+            onChangeCallback={(v: string) => setBulkStatus(v)}
+            placeholder="Bulk status"
+            triggerClassName="w-40 min-h-10 bg-white"
+          />
+          <CustomButton disabled={selectedIds.length === 0} onClick={applyBulkStatus} loading={bulkUpdateMutation.isPending}>Update Status</CustomButton>
+          <CustomButton onClick={() => { setEditing(null); setModalOpen(true); }}>Create Policy</CustomButton>
+        </div>
       </div>
 
       {isLoading ? (
@@ -142,5 +222,44 @@ export default function ManageZonePolicy() {
         }}
       />
     </div>
+  )
+}
+
+function InlineStatusSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { control, reset } = useForm<{ status: string }>({ defaultValues: { status: value } })
+  const [val, setVal] = React.useState<string>(value)
+  const timerRef = React.useRef<number | null>(null)
+
+  React.useEffect(() => {
+    reset({ status: value })
+    setVal(value)
+  }, [value, reset])
+
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current)
+    }
+  }, [])
+
+  const handleChange = (v: string) => {
+    setVal(v)
+    if (timerRef.current) window.clearTimeout(timerRef.current)
+    timerRef.current = window.setTimeout(() => {
+      onChange(v)
+      timerRef.current = null
+    }, 500)
+  }
+
+  return (
+    <CustomSelect
+      name={"status"}
+      control={control}
+      options={[{ label: "Active", value: "ACTIVE" }, { label: "Inactive", value: "INACTIVE" }]}
+      fieldToValue={(v: any) => v ?? ""}
+      valueToField={(v: string) => v}
+      onChangeCallback={handleChange}
+      placeholder="Status"
+      triggerClassName="w-32"
+    />
   )
 }

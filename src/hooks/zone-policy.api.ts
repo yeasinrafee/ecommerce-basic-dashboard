@@ -158,3 +158,23 @@ export const useDeleteZonePolicy = () => {
     }
   });
 };
+
+export const useBulkUpdateZonePolicies = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ ids, status }: { ids: string[]; status: string }) => {
+      const response = await apiClient.patch<ApiResponse<{ updated: number }>>(ZonePolicyRoutes.bulkUpdateStatus, { ids, status });
+      const data = ensurePayload(response.data, "Failed to update zone policies");
+      return { message: response.data.message, payload: data };
+    },
+    onSuccess: async (result: { message: string; payload: { updated: number } }) => {
+      toast.success(result.message || "Zone policies updated");
+      await queryClient.invalidateQueries({ queryKey: zonePolicyKeys.all });
+    },
+    onError: (err: any) => {
+      const message = err?.response?.data?.message || err?.message || "Failed to update zone policies";
+      toast.error(message);
+    }
+  });
+};

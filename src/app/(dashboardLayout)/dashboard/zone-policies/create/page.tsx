@@ -11,7 +11,7 @@ const Page = () => {
 
   const handleSubmit = async (values: any) => {
     await createMutation.mutateAsync(values)
-    router.push('/dashboard/zone-policies')
+    router.push('/dashboard/zone-policies/manage')
   }
 
   return (
