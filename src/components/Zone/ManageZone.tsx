@@ -6,6 +6,14 @@ import CustomButton from "@/components/Common/CustomButton"
 import CreateZone from "./CreateZone"
 import DeleteModal from "@/components/Common/DeleteModal"
 import SearchBar from "@/components/FormFields/SearchBar"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import { MoreHorizontal } from "lucide-react"
 import * as api from "@/hooks/zone.api"
 import type { Zone } from "@/hooks/zone.api"
 
@@ -92,10 +100,17 @@ export default function ManageZone() {
           totalItems={data?.meta.total ?? 0}
           onPageChange={setPage}
           renderRowActions={(zone) => (
-            <div className="flex gap-2">
-              <button onClick={() => handleEdit(zone)} className="text-sm text-slate-700">Edit</button>
-              <button onClick={() => handleDelete(zone)} className="text-sm text-red-600">Delete</button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleEdit(zone)}>Edit</DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={() => handleDelete(zone)}>Delete</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         />
       )}
