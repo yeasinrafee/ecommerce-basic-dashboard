@@ -88,11 +88,14 @@ export const uploadImageFromEditor = async (file: File) => {
     }
 };
 
-export const deleteUploadedImage = async (publicId: string) => {
-  if (!publicId) return null;
+export const deleteUploadedImage = async (publicIdOrUrl: string) => {
+  if (!publicIdOrUrl) return null;
 
   try {
-    const resp = await apiClient.post(UploadRoutes.delete, { publicId });
+    const isUrl = typeof publicIdOrUrl === 'string' && (publicIdOrUrl.startsWith('http') || publicIdOrUrl.includes('/'));
+    const payload = isUrl ? { url: publicIdOrUrl } : { publicId: publicIdOrUrl };
+
+    const resp = await apiClient.post(UploadRoutes.delete, payload);
     const body = resp.data;
     if (!body || !body.success) {
       throw new Error(body?.message || 'Delete failed');

@@ -178,16 +178,10 @@ const CustomFileUpload: React.FC<CustomFileUploadProps> = ({
   }, [queuedFiles]);
 
   React.useEffect(() => {
-    // keep a ref of the latest files so we can clean them up on unmount
     latestFilesRef.current = files;
     if (onFilesChange) {
       onFilesChange(files);
     }
-    // NOTE: intentionally only run when `files` change. callers frequently
-    // define `onFilesChange` inline which would otherwise trigger this effect
-    // on every render and can lead to an update loop (see "maximum update
-    // depth exceeded" errors).  Users should wrap their callback in
-    // `useCallback` if they need a stable reference.
   }, [files]);
 
   React.useEffect(

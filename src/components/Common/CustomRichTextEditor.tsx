@@ -71,16 +71,14 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
           }
         }
 
-        // detect removed images that were uploaded and delete their publicIds
+        // detect removed images and delete their cloud asset (publicId or URL)
         const prev = prevImageSrcsRef.current;
         for (const s of prev) {
           if (!currentSrcs.has(s)) {
             const pid = srcToPublicIdRef.current.get(s);
-            if (pid) {
-              // fire and forget
-              void deleteUploadedImage(pid).catch((err) => console.warn('Failed to cleanup removed editor image', err));
-              srcToPublicIdRef.current.delete(s);
-            }
+            // fire and forget: if we have a publicId use it, otherwise send the URL and let server derive the publicId
+            void deleteUploadedImage(pid ?? s).catch((err) => console.warn('Failed to cleanup removed editor image', err));
+            if (pid) srcToPublicIdRef.current.delete(s);
           }
         }
 
