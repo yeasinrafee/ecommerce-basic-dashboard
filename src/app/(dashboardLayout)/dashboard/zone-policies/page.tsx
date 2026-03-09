@@ -1,10 +1,10 @@
 import React from 'react'
-import CreateZonePolicy from '@/components/ZonePolicy/CreateZonePolicy'
+import ManageZonePolicy from '@/components/ZonePolicy/ManageZonePolicy'
 
 const Page = () => {
   return (
     <div className="p-4">
-      <CreateZonePolicy />
+      <ManageZonePolicy />
     </div>
   )
 }

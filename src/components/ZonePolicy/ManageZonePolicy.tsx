@@ -1,0 +1,146 @@
+"use client"
+
+import React from "react"
+import { useRouter } from 'next/navigation'
+import Table, { type Column } from "@/components/Common/Table"
+import CustomButton from "@/components/Common/CustomButton"
+import CreateZonePolicy from "./CreateZonePolicy"
+import DeleteModal from "@/components/Common/DeleteModal"
+import SearchBar from "@/components/FormFields/SearchBar"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import { MoreHorizontal } from "lucide-react"
+import * as api from "@/hooks/zone-policy.api"
+import type { ZonePolicy } from "@/hooks/zone-policy.api"
+
+export default function ManageZonePolicy() {
+  const [modalOpen, setModalOpen] = React.useState(false)
+  const [editing, setEditing] = React.useState<ZonePolicy | null>(null)
+  const [page, setPage] = React.useState(1)
+  const limit = 10
+
+  const [searchInput, setSearchInput] = React.useState("")
+  const [searchTerm, setSearchTerm] = React.useState<string | undefined>(undefined)
+
+  React.useEffect(() => {
+    const handle = setTimeout(() => {
+      setPage(1)
+      setSearchTerm(searchInput.trim() || undefined)
+    }, 500)
+    return () => clearTimeout(handle)
+  }, [searchInput])
+
+  const policiesQuery = api.usePaginatedZonePolicies(page, limit, searchTerm)
+  const { data, isLoading, error } = policiesQuery
+  const createMutation = api.useCreateZonePolicy()
+  const updateMutation = api.useUpdateZonePolicy()
+  const deleteMutation = api.useDeleteZonePolicy()
+  const router = useRouter()
+
+  const handleCreate = () => {
+    // navigate to dedicated create page
+    setEditing(null)
+    router.push('/dashboard/zone-policies/create')
+  }
+
+  const handleEdit = (policy: ZonePolicy) => {
+    setEditing(policy)
+    setModalOpen(true)
+  }
+
+  const [deleteTarget, setDeleteTarget] = React.useState<ZonePolicy | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
+
+  const handleDelete = (policy: ZonePolicy) => {
+    setDeleteTarget(policy)
+    setDeleteModalOpen(true)
+  }
+
+  const handleSavePolicy = async (payload: { policyName: string; deliveryTime: number; shippingCost: number; status?: string }) => {
+    if (editing) {
+      await updateMutation.mutateAsync({ id: editing.id, payload })
+    } else {
+      await createMutation.mutateAsync(payload)
+    }
+
+    setModalOpen(false)
+  }
+
+  const columns = React.useMemo<Column<ZonePolicy>[]>(
+    () => [
+      { header: "Policy Name", accessor: "policyName" },
+      { header: "Delivery Time", accessor: "deliveryTime", cell: (row) => row.deliveryTime },
+      { header: "Shipping Cost", accessor: "shippingCost", cell: (row) => row.shippingCost },
+      { header: "Status", accessor: "status" },
+      { header: "Created", accessor: "createdAt", cell: (row) => new Date(row.createdAt).toLocaleString() }
+    ],
+    []
+  )
+
+  return (
+    <div>
+      <h2 className="mb-4 text-lg font-medium">Manage Zone Policies</h2>
+
+      <div className="flex items-center justify-between mb-4">
+        <SearchBar searchInput={searchInput} setSearchInput={setSearchInput} clearSearch={() => setSearchInput("")} />
+        <CustomButton onClick={handleCreate}>Create Policy</CustomButton>
+      </div>
+
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <p className="text-red-500">Failed to load zone policies</p>
+      ) : (
+        <Table<ZonePolicy>
+          columns={columns}
+          data={data?.data ?? []}
+          rowKey="id"
+          pageSize={limit}
+          serverSide
+          currentPage={page}
+          totalItems={data?.meta.total ?? 0}
+          onPageChange={setPage}
+          renderRowActions={(policy) => (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleEdit(policy)}>Edit</DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={() => handleDelete(policy)}>Delete</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        />
+      )}
+
+      <CreateZonePolicy
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        defaultValues={editing ? { policyName: editing.policyName, deliveryTime: editing.deliveryTime, shippingCost: editing.shippingCost, status: editing.status } : undefined}
+        submitting={createMutation.isPending || updateMutation.isPending}
+        onSubmit={handleSavePolicy}
+      />
+
+      <DeleteModal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        title="Confirm deletion"
+        description={deleteTarget ? `Are you sure you want to delete policy "${deleteTarget.policyName}"? This action cannot be undone.` : undefined}
+        loading={deleteMutation.isPending}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteMutation.mutate(deleteTarget.id, { onSuccess: () => setDeleteModalOpen(false) })
+          }
+        }}
+      />
+    </div>
+  )
+}

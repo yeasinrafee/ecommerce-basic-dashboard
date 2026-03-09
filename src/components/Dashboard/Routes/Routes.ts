@@ -96,6 +96,10 @@ export const routes: RouteItem[] = [
     icon: LuTicketPercent,
     label: "Zone Policies",
     href: "/dashboard/zone-policies",
+    subItems: [
+      { label: "Create Zone Policy", href: "/dashboard/zone-policies/create" },
+      { label: "Manage Zone Policies", href: "/dashboard/zone-policies" },
+    ],
   },
   {
     icon: LuTicketPercent,
