@@ -88,6 +88,16 @@ export const routes: RouteItem[] = [
     href: "/dashboard/brands/manage",
   },
   {
+    icon: LuGlobe,
+    label: "Manage Zones",
+    href: "/dashboard/zones/manage",
+  },
+  {
+    icon: LuTicketPercent,
+    label: "Zone Policies",
+    href: "/dashboard/zone-policies",
+  },
+  {
     icon: LuTicketPercent,
     label: "Manage Tags",
     href: "/dashboard/tags",
