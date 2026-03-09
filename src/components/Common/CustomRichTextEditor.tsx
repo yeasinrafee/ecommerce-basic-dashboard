@@ -94,6 +94,23 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
     };
   }, [editor]);
 
+  // keep editor content in sync when `value` prop changes (e.g. after fetching blog for edit)
+  React.useEffect(() => {
+    if (!editor) return;
+    try {
+      const currentHtml = typeof editor.getHTML === 'function' ? editor.getHTML() : '';
+      const incoming = value ?? '';
+      if (incoming !== currentHtml) {
+        // update editor content without forcing an update if identical
+        editor.commands.setContent(incoming);
+        // notify parent of the change so state stays consistent
+        onChange(editor.getHTML());
+      }
+    } catch (err) {
+      console.warn('Failed to sync editor content from prop', err);
+    }
+  }, [value, editor]);
+
   const addImage = () => {
     const input = document.createElement("input");
     input.type = "file";
