@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form"
 import { useAllCategories } from "@/hooks/blog-category.api"
 import { useAllTags } from "@/hooks/blog-tag.api"
 import { useRouter } from "next/navigation"
+import { FaRegTrashCan } from "react-icons/fa6";
 
 interface BlogValues {
   id?: string
@@ -143,7 +144,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         onOpenChange?.(false);
       }
     } catch (err) {
-      // errors are shown by the hooks
+      
     }
   }
   const formInner = (
@@ -169,7 +170,15 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
             <div className="mt-3 relative">
               <img src={defaultValues.image} alt="preview" className="h-32 object-cover" />
               <div className="mt-2 flex justify-end">
-                <button type="button" className="text-sm text-red-600 hover:underline" onClick={() => setRemovedExistingImage(true)}>Remove image</button>
+                <button
+                  type="button"
+                  aria-label="Remove image"
+                  title="Remove image"
+                  className="p-1 text-red-600 hover:bg-gray-100 rounded absolute top-0 left-32"
+                  onClick={() => setRemovedExistingImage(true)}
+                >
+                  <FaRegTrashCan className="" />
+                </button>
               </div>
             </div>
           )}
