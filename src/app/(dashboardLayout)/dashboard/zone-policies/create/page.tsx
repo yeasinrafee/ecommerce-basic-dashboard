@@ -15,8 +15,10 @@ const Page = () => {
   }
 
   return (
-    <div className="p-4">
-      <CreateZonePolicy inline onSubmit={handleSubmit} submitting={createMutation.isPending} />
+    <div className="flex justify-center items-center h-[80dvh]">
+     <div className='bg-white w-full max-w-[800px] p-6 border border-slate-200 shadow-sm rounded-md'>
+         <CreateZonePolicy inline onSubmit={handleSubmit} submitting={createMutation.isPending} />
+     </div>
     </div>
   )
 }

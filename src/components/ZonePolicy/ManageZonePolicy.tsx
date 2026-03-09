@@ -124,7 +124,7 @@ export default function ManageZonePolicy() {
       <CreateZonePolicy
         open={modalOpen}
         onOpenChange={setModalOpen}
-        defaultValues={editing ? { policyName: editing.policyName, deliveryTime: editing.deliveryTime, shippingCost: editing.shippingCost, status: editing.status } : undefined}
+        defaultValues={editing ? { policyName: editing.policyName, deliveryTime: editing.deliveryTime, shippingCost: editing.shippingCost, status: editing.status, zoneIds: editing.zones ? editing.zones.map((r) => r.zone.id) : [] } : undefined}
         submitting={createMutation.isPending || updateMutation.isPending}
         onSubmit={handleSavePolicy}
       />

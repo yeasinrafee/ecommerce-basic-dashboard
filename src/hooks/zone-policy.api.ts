@@ -12,6 +12,7 @@ export interface ZonePolicy {
   status?: string;
   createdAt: string;
   updatedAt: string;
+  zones?: { zoneId: string; zone: { id: string; name: string } }[];
 }
 
 export interface ZonePolicyListMeta {
@@ -102,7 +103,7 @@ export const useCreateZonePolicy = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: { policyName: string; deliveryTime: number; shippingCost: number; status?: string }) => {
+    mutationFn: async (payload: { policyName: string; deliveryTime: number; shippingCost: number; status?: string; zoneIds?: string[] }) => {
       const response = await apiClient.post<ApiResponse<ZonePolicy>>(ZonePolicyRoutes.create, payload);
       const data = ensurePayload(response.data, "Failed to create zone policy");
       return { message: response.data.message, payload: data };
