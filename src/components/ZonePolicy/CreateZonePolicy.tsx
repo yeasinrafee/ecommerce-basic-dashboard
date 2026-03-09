@@ -5,18 +5,18 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import CustomInput from "@/components/FormFields/CustomInput"
+import CustomSelect from "@/components/FormFields/CustomSelect"
 import Modal from "@/components/Common/Modal"
 import CustomButton from "@/components/Common/CustomButton"
 import CustomCheckbox from "@/components/FormFields/CustomCheckbox"
-import { useAllZones } from '@/hooks/zone.api'
+import { useAvailableZones } from '@/hooks/zone.api'
 
 const schema = z.object({
   policyName: z.string().min(1, "Policy name is required"),
-  deliveryTime: z.number().min(0, "Delivery time is required"),
-  shippingCost: z.number().min(0, "Shipping cost is required"),
-  status: z.enum(["ACTIVE", "INACTIVE"]).optional()
-  ,
-  zoneIds: z.array(z.string()).optional()
+  deliveryTime: z.coerce.number().min(0, "Delivery time is required"),
+  shippingCost: z.coerce.number().min(0, "Shipping cost is required"),
+  status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
+  zoneIds: z.array(z.string()).optional(),
 })
 
 type FormSchema = z.infer<typeof schema>
@@ -33,8 +33,10 @@ interface Props {
 export default function CreateZonePolicy({ open = true, onOpenChange, defaultValues, onSubmit, submitting = false, inline = false }: Props) {
   const isEdit = Boolean(defaultValues && defaultValues.policyName)
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormSchema>({
-    resolver: zodResolver(schema),
+  const { register, control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormSchema>({
+    // zod.coerce can cause a resolver type mismatch with react-hook-form's strict typings;
+    // cast to any to satisfy the resolver type contract during build.
+    resolver: zodResolver(schema) as any,
     defaultValues: {
       policyName: defaultValues?.policyName ?? "",
       deliveryTime: defaultValues?.deliveryTime ?? 0,
@@ -59,7 +61,7 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
     setSelectedZones([])
   }
 
-  const { data: zones } = useAllZones()
+  const { data: zones } = useAvailableZones()
   const [selectedZones, setSelectedZones] = React.useState<string[]>(defaultValues?.zoneIds ?? [])
 
   React.useEffect(() => {
@@ -75,16 +77,20 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <div className="space-y-4">
           <CustomInput label="Policy Name" {...register("policyName" as any)} error={(errors as any).policyName?.message} requiredMark />
-          <CustomInput label="Delivery Time" {...register("deliveryTime" as any, { valueAsNumber: true })} error={(errors as any).deliveryTime?.message} requiredMark />
-          <CustomInput label="Shipping Cost" {...register("shippingCost" as any, { valueAsNumber: true })} error={(errors as any).shippingCost?.message} requiredMark />
+          <CustomInput label="Delivery Time (days)" helperText="Enter delivery time in days" type="float" {...register("deliveryTime" as any, { valueAsNumber: true })} error={(errors as any).deliveryTime?.message} requiredMark />
+          <CustomInput label="Shipping Cost" helperText="Enter shipping cost (decimal allowed)" type="float" {...register("shippingCost" as any, { valueAsNumber: true })} error={(errors as any).shippingCost?.message} requiredMark />
 
           <div>
-            <label className="block text-sm font-medium mb-1">Status</label>
-            <select {...register("status" as any)} className="w-full border rounded p-2">
-              <option value="">Select status</option>
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="INACTIVE">INACTIVE</option>
-            </select>
+            <CustomSelect
+              name={"status" as any}
+              control={control}
+              label="Status"
+              placeholder="Select status"
+              options={[
+                { label: "ACTIVE", value: "ACTIVE" },
+                { label: "INACTIVE", value: "INACTIVE" },
+              ]}
+            />
           </div>
         </div>
 
@@ -112,9 +118,9 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
         <h2 className="mb-4 text-lg font-medium">{isEdit ? "Update Zone Policy" : "Create Zone Policy"}</h2>
         <p className="text-sm text-muted-foreground mb-4">{isEdit ? "Edit zone policy" : "Create a new zone policy"}</p>
         {form}
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex justify-center gap-2">
           <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
-            {isEdit ? "Update" : "Create"}
+            {isEdit ? "Update zone policy" : "Create zone policy"}
           </CustomButton>
         </div>
       </div>
@@ -130,7 +136,7 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
       footer={
         <div className="flex gap-2">
           <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
-            {isEdit ? "Update" : "Create"}
+            {isEdit ? "Update" : "Create zone"}
           </CustomButton>
         </div>
       }

@@ -2,6 +2,7 @@ const zoneBase = '/zones';
 
 export const ZoneRoutes = {
   getAllPaginated: `${zoneBase}/get-all-paginated`,
+  getAvailable: `${zoneBase}/get-available`,
   getAll: `${zoneBase}/get-all`,
   getById: (id: string) => `${zoneBase}/get/${id}`,
   create: `${zoneBase}/create`,

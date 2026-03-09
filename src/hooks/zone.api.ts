@@ -73,7 +73,8 @@ export const zoneKeys = {
   all: ["zones"] as const,
   paginated: (page: number, limit: number, searchTerm?: string) =>
     [...zoneKeys.all, "paginated", page, limit, searchTerm] as const,
-  list: () => [...zoneKeys.all, "list"] as const
+  list: () => [...zoneKeys.all, "list"] as const,
+  available: () => [...zoneKeys.all, "available"] as const
 };
 
 export const usePaginatedZones = (
@@ -92,6 +93,18 @@ export const useAllZones = () => {
   return useQuery<Zone[]>({
     queryKey: zoneKeys.list(),
     queryFn: fetchAllZones
+  });
+};
+
+const fetchAvailableZones = async (): Promise<Zone[]> => {
+  const response = await apiClient.get<ApiResponse<Zone[]>>(ZoneRoutes.getAvailable);
+  return ensurePayload(response.data, "Failed to load available zones");
+};
+
+export const useAvailableZones = () => {
+  return useQuery<Zone[]>({
+    queryKey: zoneKeys.available(),
+    queryFn: fetchAvailableZones
   });
 };
 
