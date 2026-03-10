@@ -36,9 +36,9 @@ export default function ManageShipping() {
       tax: (shipping as any)?.tax ?? 0,
       defaultShippingCharge: (shipping as any)?.defaultShippingCharge ?? 0,
       maximumWeight: (shipping as any)?.maximumWeight ?? undefined,
-      length: undefined,
-      width: undefined,
-      height: undefined,
+      length: (shipping as any)?.length ?? undefined,
+      width: (shipping as any)?.width ?? undefined,
+      height: (shipping as any)?.height ?? undefined,
       chargePerWeight: (shipping as any)?.chargePerWeight ?? undefined,
       chargePerVolume: (shipping as any)?.chargePerVolume ?? undefined,
     }
@@ -50,9 +50,9 @@ export default function ManageShipping() {
       tax: (shipping as any)?.tax ?? 0,
       defaultShippingCharge: (shipping as any)?.defaultShippingCharge ?? 0,
       maximumWeight: (shipping as any)?.maximumWeight ?? undefined,
-      length: undefined,
-      width: undefined,
-      height: undefined,
+      length: (shipping as any)?.length ?? undefined,
+      width: (shipping as any)?.width ?? undefined,
+      height: (shipping as any)?.height ?? undefined,
       chargePerWeight: (shipping as any)?.chargePerWeight ?? undefined,
       chargePerVolume: (shipping as any)?.chargePerVolume ?? undefined,
     })
@@ -68,7 +68,7 @@ export default function ManageShipping() {
   }
 
   return (
-    <div className="p-4 max-w-3xl">
+    <div className="p-4 max-w-3xl bg-white border border-slate-200 rounded-md p-6">
       <h2 className="mb-2 text-lg font-medium">Shipping Settings</h2>
       <p className="text-sm text-muted-foreground mb-4">Create or update shipping configuration. Only one record is allowed.</p>
 
@@ -91,21 +91,24 @@ export default function ManageShipping() {
             />
 
             {/* Weight fields grouped side-by-side (grams) */}
-            <CustomInput label="Maximum weight (grams)" helperText="Optional maximum weight in grams" type="float" {...register("maximumWeight" as any, { valueAsNumber: true })} error={(errors as any).maximumWeight?.message} />
-            <CustomInput label="Charge per weight" helperText="Optional charge per unit weight" type="float" {...register("chargePerWeight" as any, { valueAsNumber: true })} error={(errors as any).chargePerWeight?.message} />
+            <CustomInput label="Maximum weight in grams" helperText="Optional maximum weight in grams" type="float" {...register("maximumWeight" as any, { valueAsNumber: true })} error={(errors as any).maximumWeight?.message} />
+            <CustomInput label="Extra Charge per 1000 grams" helperText="Optional charge per unit weight" type="float" {...register("chargePerWeight" as any, { valueAsNumber: true })} error={(errors as any).chargePerWeight?.message} />
 
             {/* Dimensions (cm): length, width, height - backend multiplies them to compute volume */}
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <CustomInput label="Length (cm)" helperText="Enter length in cm" type="float" {...register("length" as any, { valueAsNumber: true })} error={(errors as any).length?.message} />
-              <CustomInput label="Width (cm)" helperText="Enter width in cm" type="float" {...register("width" as any, { valueAsNumber: true })} error={(errors as any).width?.message} />
-              <CustomInput label="Height (cm)" helperText="Enter height in cm" type="float" {...register("height" as any, { valueAsNumber: true })} error={(errors as any).height?.message} />
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-2">Maximum dimensions (cm)</label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <CustomInput label="Length (cm)" helperText="Enter length in cm" type="float" {...register("length" as any, { valueAsNumber: true })} error={(errors as any).length?.message} />
+                <CustomInput label="Width (cm)" helperText="Enter width in cm" type="float" {...register("width" as any, { valueAsNumber: true })} error={(errors as any).width?.message} />
+                <CustomInput label="Height (cm)" helperText="Enter height in cm" type="float" {...register("height" as any, { valueAsNumber: true })} error={(errors as any).height?.message} />
+              </div>
             </div>
 
-            <CustomInput label="Charge per volume" helperText="Optional charge per unit volume (per cm³)" type="float" {...register("chargePerVolume" as any, { valueAsNumber: true })} error={(errors as any).chargePerVolume?.message} containerClassName="md:col-span-2" />
+            <CustomInput label="Extra Charge per cm³" helperText="Optional charge per unit volume (per cm³)" type="float" {...register("chargePerVolume" as any, { valueAsNumber: true })} error={(errors as any).chargePerVolume?.message} containerClassName="md:col-span-2" />
           </div>
 
-          <div className="mt-6 flex justify-end">
-            <CustomButton loading={isSubmitting || createMutation.isLoading || updateMutation.isLoading} type="button" onClick={handleSubmit(onSubmit)}>
+          <div className="mt-6 flex justify-center">
+            <CustomButton loading={isSubmitting || createMutation.isPending || updateMutation.isPending} type="button" onClick={handleSubmit(onSubmit)}>
               {shipping ? "Update shipping" : "Create shipping"}
             </CustomButton>
           </div>
