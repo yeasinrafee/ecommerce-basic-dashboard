@@ -16,6 +16,8 @@ export interface Shipping {
   height?: number | null;
   chargePerWeight?: number | null;
   chargePerVolume?: number | null;
+  weightUnit?: number | null;
+  volumeUnit?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -86,6 +88,26 @@ export const useUpdateShipping = () => {
     },
     onError: (err: any) => {
       const message = err?.response?.data?.message || err?.message || "Failed to update shipping";
+      toast.error(message);
+    }
+  });
+};
+
+export const useResetShipping = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.delete<ApiResponse<null>>(ShippingRoutes.reset);
+      if (!response.data.success) throw new Error(response.data.message || "Failed to reset shipping");
+      return response.data;
+    },
+    onSuccess: async (result: ApiResponse<null>) => {
+      toast.success(result.message || "Shipping reset");
+      await queryClient.invalidateQueries({ queryKey: shippingKeys.all });
+    },
+    onError: (err: any) => {
+      const message = err?.response?.data?.message || err?.message || "Failed to reset shipping";
       toast.error(message);
     }
   });

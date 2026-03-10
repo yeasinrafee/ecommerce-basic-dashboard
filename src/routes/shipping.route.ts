@@ -6,6 +6,7 @@ export const ShippingRoutes = {
   create: `${shippingBase}/create`,
   update: (id: string) => `${shippingBase}/update/${id}`,
   delete: (id: string) => `${shippingBase}/delete/${id}`,
+  reset: `${shippingBase}/reset`,
 };
 
 export default ShippingRoutes;
