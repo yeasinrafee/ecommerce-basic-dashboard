@@ -5,19 +5,59 @@ import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
+import { Table } from "@tiptap/extension-table";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
+import TableRow from "@tiptap/extension-table-row";
 import Underline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
 import Code from "@tiptap/extension-code";
 import CodeBlock from "@tiptap/extension-code-block";
 import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
-import { IconPhoto } from "@tabler/icons-react";
+import {
+  IconColumnInsertRight,
+  IconPhoto,
+  IconRowInsertBottom,
+  IconTable,
+  IconTableMinus,
+} from "@tabler/icons-react";
 import { toast } from 'react-hot-toast';
 import { uploadImageFromEditor, deleteUploadedImage } from '@/lib/uploadImage';
 
 interface EditorProps {
   value: string;
   onChange: (value: string) => void;
+}
+
+interface EditorControlButtonProps {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  active?: boolean;
+  children: React.ReactNode;
+}
+
+function EditorControlButton({
+  label,
+  onClick,
+  disabled = false,
+  active = false,
+  children,
+}: EditorControlButtonProps) {
+  return (
+    <RichTextEditor.Control
+      type="button"
+      aria-label={label}
+      title={label}
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={onClick}
+      disabled={disabled}
+      active={active}
+    >
+      {children}
+    </RichTextEditor.Control>
+  );
 }
 
 export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
@@ -37,6 +77,12 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
       Code,
       CodeBlock,
       TextStyle,
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Link.configure({
         openOnClick: false,
@@ -197,8 +243,15 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
     input.click();
   };
 
+  const isTableActive = editor?.isActive('table') ?? false;
+  const canInsertTable =
+    editor?.can().chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() ?? false;
+  const canAddRow = editor?.can().chain().focus().addRowAfter().run() ?? false;
+  const canAddColumn = editor?.can().chain().focus().addColumnAfter().run() ?? false;
+  const canDeleteTable = editor?.can().chain().focus().deleteTable().run() ?? false;
+
   return (
-    <div className="prose-container [&_.tiptap_ul]:list-disc [&_.tiptap_ul]:pl-6 [&_.tiptap_ol]:list-decimal [&_.tiptap_ol]:pl-6 [&_.tiptap_em]:italic [&_.tiptap_del]:line-through">
+    <div className="prose-container [&_.tiptap_ul]:list-disc [&_.tiptap_ul]:pl-6 [&_.tiptap_ol]:list-decimal [&_.tiptap_ol]:pl-6 [&_.tiptap_em]:italic [&_.tiptap_del]:line-through [&_.tiptap_table]:my-4 [&_.tiptap_table]:w-full [&_.tiptap_table]:border-collapse [&_.tiptap_table]:table-fixed [&_.tiptap_table_th]:border [&_.tiptap_table_th]:border-gray-300 [&_.tiptap_table_th]:bg-gray-100 [&_.tiptap_table_th]:p-2 [&_.tiptap_table_th]:text-left [&_.tiptap_table_td]:border [&_.tiptap_table_td]:border-gray-300 [&_.tiptap_table_td]:p-2">
       <RichTextEditor
         editor={editor}
         className="rounded-xl overflow-hidden border min-h-[300px]"
@@ -248,14 +301,56 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
           </RichTextEditor.ControlsGroup>
 
           <RichTextEditor.ControlsGroup>
-            <button
-              type="button"
+            <EditorControlButton
+              label="Insert image"
               onClick={addImage}
-              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-              title="Insert Image"
+              disabled={!editor}
             >
               <IconPhoto size={18} stroke={1.5} />
-            </button>
+            </EditorControlButton>
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <EditorControlButton
+              label="Insert table"
+              onClick={() => {
+                editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+              }}
+              disabled={!canInsertTable}
+              active={isTableActive}
+            >
+              <IconTable size={18} stroke={1.5} />
+            </EditorControlButton>
+            <EditorControlButton
+              label="Add table row"
+              onClick={() => {
+                editor?.chain().focus().addRowAfter().run();
+              }}
+              disabled={!canAddRow}
+              active={isTableActive}
+            >
+              <IconRowInsertBottom size={18} stroke={1.5} />
+            </EditorControlButton>
+            <EditorControlButton
+              label="Add table column"
+              onClick={() => {
+                editor?.chain().focus().addColumnAfter().run();
+              }}
+              disabled={!canAddColumn}
+              active={isTableActive}
+            >
+              <IconColumnInsertRight size={18} stroke={1.5} />
+            </EditorControlButton>
+            <EditorControlButton
+              label="Delete table"
+              onClick={() => {
+                editor?.chain().focus().deleteTable().run();
+              }}
+              disabled={!canDeleteTable}
+              active={isTableActive}
+            >
+              <IconTableMinus size={18} stroke={1.5} />
+            </EditorControlButton>
           </RichTextEditor.ControlsGroup>
         </RichTextEditor.Toolbar>
 
