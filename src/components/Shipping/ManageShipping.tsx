@@ -55,13 +55,46 @@ const schema = z.object({
 
 type FormSchema = z.infer<typeof schema>;
 
+const EMPTY_FORM_VALUES = {
+  minimumFreeShippingAmount: "",
+  tax: "",
+  defaultShippingCharge: "",
+  maximumWeight: "",
+  length: "",
+  width: "",
+  height: "",
+  chargePerWeight: "",
+  chargePerVolume: "",
+  weightUnit: "",
+  volumeUnit: "",
+};
+
+const getFormValues = (shipping: api.Shipping | null | undefined) => {
+  if (!shipping) {
+    return EMPTY_FORM_VALUES;
+  }
+
+  return {
+    minimumFreeShippingAmount: shipping.minimumFreeShippingAmount ?? "",
+    tax: shipping.tax ?? "",
+    defaultShippingCharge: shipping.defaultShippingCharge ?? "",
+    maximumWeight: shipping.maximumWeight ?? "",
+    length: shipping.length ?? "",
+    width: shipping.width ?? "",
+    height: shipping.height ?? "",
+    chargePerWeight: shipping.chargePerWeight ?? "",
+    chargePerVolume: shipping.chargePerVolume ?? "",
+    weightUnit: shipping.weightUnit ?? "",
+    volumeUnit: shipping.volumeUnit ?? "",
+  };
+};
+
 export default function ManageShipping() {
   const { data: shipping, isLoading } = api.useGetShipping();
   const createMutation = api.useCreateShipping();
   const updateMutation = api.useUpdateShipping();
   const resetMutation = api.useResetShipping();
   const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
-  const [clearedAfterReset, setClearedAfterReset] = React.useState(false);
 
   const {
     register,
@@ -70,48 +103,12 @@ export default function ManageShipping() {
     formState: { errors, isSubmitting },
   } = useForm<FormSchema>({
     resolver: zodResolver(schema) as any,
-    defaultValues: {
-      minimumFreeShippingAmount:
-        (shipping as any)?.minimumFreeShippingAmount ?? 0,
-      tax: (shipping as any)?.tax ?? 0,
-      defaultShippingCharge: (shipping as any)?.defaultShippingCharge ?? 0,
-      maximumWeight: (shipping as any)?.maximumWeight ?? undefined,
-      length: (shipping as any)?.length ?? undefined,
-      width: (shipping as any)?.width ?? undefined,
-      height: (shipping as any)?.height ?? undefined,
-      chargePerWeight: (shipping as any)?.chargePerWeight ?? undefined,
-      chargePerVolume: (shipping as any)?.chargePerVolume ?? undefined,
-      weightUnit: (shipping as any)?.weightUnit ?? undefined,
-      volumeUnit: (shipping as any)?.volumeUnit ?? undefined,
-    },
+    defaultValues: getFormValues(shipping) as any,
   });
 
   React.useEffect(() => {
-    // If we just cleared the form after a reset, don't overwrite with fetched (null) shipping values.
-    if (clearedAfterReset) {
-      // If shipping becomes available again (new record created), stop the cleared state and populate the form.
-      if (shipping) {
-        setClearedAfterReset(false);
-      } else {
-        return;
-      }
-    }
-
-    reset({
-      minimumFreeShippingAmount:
-        (shipping as any)?.minimumFreeShippingAmount ?? 0,
-      tax: (shipping as any)?.tax ?? 0,
-      defaultShippingCharge: (shipping as any)?.defaultShippingCharge ?? 0,
-      maximumWeight: (shipping as any)?.maximumWeight ?? undefined,
-      length: (shipping as any)?.length ?? undefined,
-      width: (shipping as any)?.width ?? undefined,
-      height: (shipping as any)?.height ?? undefined,
-      chargePerWeight: (shipping as any)?.chargePerWeight ?? undefined,
-      chargePerVolume: (shipping as any)?.chargePerVolume ?? undefined,
-      weightUnit: (shipping as any)?.weightUnit ?? undefined,
-      volumeUnit: (shipping as any)?.volumeUnit ?? undefined,
-    });
-  }, [shipping, reset, clearedAfterReset]);
+    reset(getFormValues(shipping) as any);
+  }, [shipping, reset]);
 
   const onSubmit = async (data: FormSchema) => {
     const payload = { ...data } as any;
@@ -168,7 +165,7 @@ export default function ManageShipping() {
             {/* Weight fields grouped side-by-side (grams) */}
             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
               <CustomInput
-                label="Maximum weight in grams"
+                label="Maximum weight (grams)"
                 helperText="Optional maximum weight in grams"
                 type="float"
                 {...register("maximumWeight" as any, { valueAsNumber: true })}
@@ -182,7 +179,7 @@ export default function ManageShipping() {
                 error={(errors as any).weightUnit?.message}
               />
               <CustomInput
-                label="Extra Charge per 1000 grams"
+                label="Extra Charge"
                 helperText="Optional charge per unit weight"
                 type="float"
                 {...register("chargePerWeight" as any, { valueAsNumber: true })}
@@ -229,7 +226,7 @@ export default function ManageShipping() {
                 error={(errors as any).volumeUnit?.message}
               />
               <CustomInput
-                label="Extra Charge per cm³"
+                label="Extra Charge"
                 helperText="Optional charge per unit volume (per cm³)"
                 type="float"
                 {...register("chargePerVolume" as any, { valueAsNumber: true })}
@@ -272,22 +269,7 @@ export default function ManageShipping() {
             onConfirm={async () => {
               try {
                 await resetMutation.mutateAsync();
-                // mark cleared so the effect doesn't repopulate the form from a null shipping
-                setClearedAfterReset(true);
-                // Clear visible fields
-                reset({
-                  minimumFreeShippingAmount: "",
-                  tax: "",
-                  defaultShippingCharge: "",
-                  maximumWeight: undefined,
-                  length: undefined,
-                  width: undefined,
-                  height: undefined,
-                  chargePerWeight: undefined,
-                  chargePerVolume: undefined,
-                  weightUnit: undefined,
-                  volumeUnit: undefined,
-                } as any);
+                reset(EMPTY_FORM_VALUES as any);
                 setOpenDeleteModal(false);
               } catch (e) {
                 // onError in hook shows toast; keep modal open for retry or user cancel

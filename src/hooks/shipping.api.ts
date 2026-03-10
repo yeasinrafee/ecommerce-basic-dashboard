@@ -104,6 +104,7 @@ export const useResetShipping = () => {
     },
     onSuccess: async (result: ApiResponse<null>) => {
       toast.success(result.message || "Shipping reset");
+      queryClient.setQueryData(shippingKeys.all, null);
       await queryClient.invalidateQueries({ queryKey: shippingKeys.all });
     },
     onError: (err: any) => {
