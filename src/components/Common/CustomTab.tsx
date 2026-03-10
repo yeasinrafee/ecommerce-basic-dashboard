@@ -40,7 +40,7 @@ const CustomTab = ({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className={cn("flex flex-wrap rounded-[8px]", tabListClassName)}>
+      <div className={cn("flex flex-wrap", tabListClassName)}>
         {tabs.map((tab) => {
           const isActive = tab.id === current.id;
           return (

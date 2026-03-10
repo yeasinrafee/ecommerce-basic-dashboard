@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form"
 import { useAllCategories } from "@/hooks/blog-category.api"
 import { useAllTags } from "@/hooks/blog-tag.api"
 import { useRouter } from "next/navigation"
-import { FaRegTrashCan } from "react-icons/fa6";
+// Using inline SVG for the image remove button to match upload preview
 
 interface BlogValues {
   id?: string
@@ -209,19 +209,20 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
           <label className="block text-sm font-medium mb-2">Feature Image</label>
           <CustomFileUpload maxFiles={1} onFilesChange={(f) => setImageFiles(f)} />
           {defaultValues?.image && imageFiles.length === 0 && !removedExistingImage && (
-            <div className="mt-3 relative">
-              <img src={defaultValues.image} alt="preview" className="h-32 object-cover" />
-              <div className="mt-2 flex justify-end">
-                <button
-                  type="button"
-                  aria-label="Remove image"
-                  title="Remove image"
-                  className="p-1 text-red-600 hover:bg-gray-100 rounded absolute top-0 left-32"
-                  onClick={() => setRemovedExistingImage(true)}
-                >
-                  <FaRegTrashCan className="" />
-                </button>
-              </div>
+            <div className="mt-3 relative inline-block">
+              <img src={defaultValues.image} alt="preview" className="h-32 w-full object-cover rounded" />
+              <button
+                type="button"
+                aria-label="Remove image"
+                title="Remove image"
+                className="absolute top-1 right-1 bg-white/80 hover:bg-white text-slate-500  p-1 rounded-full shadow"
+                onClick={() => setRemovedExistingImage(true)}
+              >
+                <span className="sr-only">Remove image</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           )}
         </div>
