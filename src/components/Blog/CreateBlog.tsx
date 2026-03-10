@@ -10,6 +10,8 @@ import CustomRichTextEditor from "@/components/Common/CustomRichTextEditor"
 import CustomCheckbox from "@/components/FormFields/CustomCheckbox"
 import CustomSelect from "@/components/FormFields/CustomSelect"
 import Seo from "@/components/Product/ProductForm/Seo"
+import CustomTab, { CustomTabItem } from "@/components/Common/CustomTab"
+import BlogDetails from "@/components/Blog/BlogDetails"
 import { useCreateBlog, useUpdateBlog } from '@/hooks/blog.api'
 import { useForm } from "react-hook-form"
 import { useAllCategories } from "@/hooks/blog-category.api"
@@ -60,8 +62,40 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const updateMutation = useUpdateBlog();
   const isSaving = (createMutation as any).isPending || (updateMutation as any).isPending || submitting;
   const [removedExistingImage, setRemovedExistingImage] = React.useState(false);
-  const [showSeo, setShowSeo] = React.useState(false);
   const [seoData, setSeoData] = React.useState({ metaTitle: '', metaDescription: '', seoKeywords: [] as string[] });
+
+  const tabItems: CustomTabItem[] = React.useMemo(() => {
+    const items: CustomTabItem[] = [
+      {
+        id: 'details',
+        label: 'Blog Details',
+        content: (
+          <BlogDetails
+            title={title}
+            setTitle={setTitle}
+            author={author}
+            setAuthor={setAuthor}
+            shortDescription={shortDescription}
+            setShortDescription={setShortDescription}
+            content={content}
+            setContent={setContent}
+          />
+        )
+      },
+
+      {
+        id: 'seo',
+        label: 'SEO',
+        content: (
+          <>
+            <Seo initialData={seoData} onChange={(data: any) => setSeoData(data)} />
+          </>
+        )
+      }
+    ];
+
+    return items;
+  }, [title, author, shortDescription, content, seoData]);
 
   React.useEffect(() => {
     setTitle(defaultValues?.title ?? "")
@@ -74,12 +108,10 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
     setImageFiles([])
     setRemovedExistingImage(false)
     if (defaultValues?.seo) {
-      setShowSeo(true);
       // map backend seo shape to Seo component shape if necessary
       const s = defaultValues.seo;
       setSeoData({ metaTitle: s.title ?? '', metaDescription: s.description ?? '', seoKeywords: Array.isArray(s.keyword) ? s.keyword : [] });
     } else {
-      setShowSeo(false);
       setSeoData({ metaTitle: '', metaDescription: '', seoKeywords: [] });
     }
   }, [defaultValues, open])
@@ -106,13 +138,11 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
           fd.append('categoryId', category ?? '');
           fd.append('tagIds', JSON.stringify(tags ?? []));
           fd.append('image', imageFiles[0].file, imageFiles[0].name);
-          if (showSeo) {
-            const seoPayload = { title: seoData.metaTitle ?? '', description: seoData.metaDescription ?? '', keyword: seoData.seoKeywords ?? [] };
-            fd.append('seo', JSON.stringify(seoPayload));
-          }
+          const seoPayload = { title: seoData.metaTitle ?? '', description: seoData.metaDescription ?? '', keyword: seoData.seoKeywords ?? [] };
+          fd.append('seo', JSON.stringify(seoPayload));
 
           const result = await updateMutation.mutateAsync({ id, payload: fd });
-          if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags });
+          if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags, seo: seoData });
         } else {
           const payload: any = {
             title: title ?? undefined,
@@ -123,16 +153,14 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
             tagIds: JSON.stringify(tags ?? [])
           };
 
-          if (showSeo) {
-            payload.seo = { title: seoData.metaTitle ?? '', description: seoData.metaDescription ?? '', keyword: seoData.seoKeywords ?? [] };
-          }
+          payload.seo = { title: seoData.metaTitle ?? '', description: seoData.metaDescription ?? '', keyword: seoData.seoKeywords ?? [] };
 
           if (removedExistingImage) {
             payload.image = null;
           }
 
           const result = await updateMutation.mutateAsync({ id, payload });
-          if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags });
+          if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags, seo: seoData });
         }
 
         if (asPage && !onSave) {
@@ -155,13 +183,11 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
       if (imageFiles.length && imageFiles[0].file) {
         fd.append('image', imageFiles[0].file, imageFiles[0].name);
       }
-      if (showSeo) {
-        const seoPayload = { title: seoData.metaTitle ?? '', description: seoData.metaDescription ?? '', keyword: seoData.seoKeywords ?? [] };
-        fd.append('seo', JSON.stringify(seoPayload));
-      }
+      const seoPayload = { title: seoData.metaTitle ?? '', description: seoData.metaDescription ?? '', keyword: seoData.seoKeywords ?? [] };
+      fd.append('seo', JSON.stringify(seoPayload));
 
       const result = await createMutation.mutateAsync(fd);
-      if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags });
+      if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags, seo: seoData });
 
       if (asPage && !onSave) {
         router.push('/dashboard/blog/manage');
@@ -174,18 +200,9 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   }
   const formInner = (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-      <div className="md:col-span-2 space-y-4">
-        <CustomInput label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-
-        <CustomInput label="Author" value={author} onChange={(e) => setAuthor(e.target.value)} />
-
-        <CustomTextArea label="Short Description" value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} className="min-h-24" />
-
-        <div>
-          <div className="text-sm font-semibold text-slate-700 mb-2">Content</div>
-          <CustomRichTextEditor value={content} onChange={setContent} />
+        <div className="md:col-span-2 space-y-4">
+          <CustomTab tabs={tabItems} className="space-y-4" tabListClassName="justify-start" />
         </div>
-      </div>
 
       <div className="md:col-span-1 space-y-4">
         <div>
@@ -229,18 +246,6 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
               <CustomCheckbox key={t.id} label={t.name} checked={tags.includes(t.id)} onCheckedChange={() => toggleTag(t.id)} />
             ))}
           </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm mt-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-slate-900">SEO (optional)</h3>
-            <CustomCheckbox label="Add SEO" checked={showSeo} onCheckedChange={(v) => setShowSeo(Boolean(v))} />
-          </div>
-          {showSeo && (
-            <div className="mt-4">
-              <Seo onChange={(data: any) => setSeoData(data)} />
-            </div>
-          )}
         </div>
       </div>
     </div>

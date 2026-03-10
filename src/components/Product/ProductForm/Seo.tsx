@@ -12,13 +12,25 @@ export interface SeoData {
 
 interface SeoProps {
   onChange?: (data: SeoData) => void;
+  initialData?: SeoData;
 }
 
-const Seo: React.FC<SeoProps> = ({ onChange }) => {
+const Seo: React.FC<SeoProps> = ({ onChange, initialData }) => {
   const [metaTitle, setMetaTitle] = React.useState("");
   const [metaDescription, setMetaDescription] = React.useState("");
   const [seoKeywords, setSeoKeywords] = React.useState<string[]>([]);
   const [keywordInput, setKeywordInput] = React.useState("");
+
+  // keep track of last data sent so we can avoid redundant updates
+  const prevDataRef = React.useRef<SeoData | null>(null);
+
+  React.useEffect(() => {
+    if (initialData) {
+      setMetaTitle(initialData.metaTitle ?? "");
+      setMetaDescription(initialData.metaDescription ?? "");
+      setSeoKeywords(initialData.seoKeywords ?? []);
+    }
+  }, [initialData]);
 
   const addKeyword = (value: string) => {
     const inputs = value
@@ -54,9 +66,24 @@ const Seo: React.FC<SeoProps> = ({ onChange }) => {
     }
   };
 
+  // only notify parent when actual SEO data changes to avoid endless update loops
   React.useEffect(() => {
-    if (onChange) {
-      onChange({ metaTitle, metaDescription, seoKeywords });
+    if (!onChange) return;
+
+    const newData: SeoData = { metaTitle, metaDescription, seoKeywords };
+
+    // compare with last sent values to avoid repeating identical updates
+    const prev = prevDataRef.current;
+    const changed =
+      !prev ||
+      prev.metaTitle !== newData.metaTitle ||
+      prev.metaDescription !== newData.metaDescription ||
+      prev.seoKeywords.length !== newData.seoKeywords.length ||
+      prev.seoKeywords.some((k, i) => k !== newData.seoKeywords[i]);
+
+    if (changed) {
+      prevDataRef.current = newData;
+      onChange(newData);
     }
   }, [metaTitle, metaDescription, seoKeywords, onChange]);
 
