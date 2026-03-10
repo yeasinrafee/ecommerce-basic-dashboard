@@ -6,6 +6,7 @@ import {
   LuLayers, 
   LuTicketPercent, 
   LuGlobe, 
+  LuTruck,
   LuImage, 
   LuSettings,
   LuList
@@ -91,6 +92,11 @@ export const routes: RouteItem[] = [
     icon: LuGlobe,
     label: "Manage Zones",
     href: "/dashboard/zones/manage",
+  },
+  {
+    icon: LuTruck,
+    label: "Shipping",
+    href: "/dashboard/shipping/manage",
   },
   {
     icon: LuTicketPercent,
