@@ -121,10 +121,24 @@ export default function ManageShipping() {
 
   return (
     <div className="p-4 max-w-3xl bg-white border border-slate-200 rounded-md p-6">
-      <h2 className="mb-2 text-lg font-medium">Shipping Settings</h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Create or update shipping configuration. Only one record is allowed.
-      </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="mb-2 text-lg font-medium">Shipping Settings</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Create or update shipping configuration. Only one record is allowed.
+          </p>
+        </div>
+        <CustomButton
+          variant="primary"
+          size="md"
+          className="bg-red-500 text-white"
+          loading={resetMutation.isPending}
+          type="button"
+          onClick={() => setOpenDeleteModal(true)}
+        >
+          Reset all
+        </CustomButton>
+      </div>
 
       {isLoading ? (
         <p>Loading...</p>
@@ -236,17 +250,6 @@ export default function ManageShipping() {
           </div>
 
           <div className="mt-6 flex justify-center gap-x-4">
-            <CustomButton
-              variant="primary"
-              size="md"
-              className="bg-red-500 text-white"
-              loading={resetMutation.isPending}
-              type="button"
-              onClick={() => setOpenDeleteModal(true)}
-            >
-              Reset all
-            </CustomButton>
-
             <CustomButton
               loading={
                 isSubmitting ||
