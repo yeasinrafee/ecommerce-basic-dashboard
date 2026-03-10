@@ -9,13 +9,15 @@ import CustomButton from "@/components/Common/CustomButton"
 import CustomRichTextEditor from "@/components/Common/CustomRichTextEditor"
 import CustomCheckbox from "@/components/FormFields/CustomCheckbox"
 import CustomSelect from "@/components/FormFields/CustomSelect"
-import { useCreateBlog } from '@/hooks/blog.api'
+import { useCreateBlog, useUpdateBlog } from '@/hooks/blog.api'
 import { useForm } from "react-hook-form"
 import { useAllCategories } from "@/hooks/blog-category.api"
 import { useAllTags } from "@/hooks/blog-tag.api"
 import { useRouter } from "next/navigation"
+import { FaRegTrashCan } from "react-icons/fa6";
 
 interface BlogValues {
+  id?: string
   title?: string
   shortDescription?: string
   content?: string
@@ -53,7 +55,9 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const tagList = React.useMemo(() => allTags.map((t) => ({ id: t.id, name: t.name })), [allTags]);
 
   const createMutation = useCreateBlog();
-  const isSaving = (createMutation as any).isPending || submitting;
+  const updateMutation = useUpdateBlog();
+  const isSaving = (createMutation as any).isPending || (updateMutation as any).isPending || submitting;
+  const [removedExistingImage, setRemovedExistingImage] = React.useState(false);
 
   React.useEffect(() => {
     setTitle(defaultValues?.title ?? "")
@@ -64,6 +68,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
     categoryForm.reset({ category: defaultValues?.category ?? "" })
     setTags(defaultValues?.tags ?? [])
     setImageFiles([])
+    setRemovedExistingImage(false)
   }, [defaultValues, open])
 
   const toggleTag = (t: string) => {
@@ -72,19 +77,64 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
 
   const handleSave = async () => {
     if (isSaving) return;
-    const fd = new FormData();
-    fd.append('title', title ?? '');
-    fd.append('authorName', author ?? '');
-    fd.append('shortDescription', shortDescription ?? '');
-    fd.append('content', content ?? '');
-    fd.append('categoryId', category ?? '');
-    fd.append('tagIds', JSON.stringify(tags ?? []));
 
-    if (imageFiles.length && imageFiles[0].file) {
-      fd.append('image', imageFiles[0].file, imageFiles[0].name);
-    }
+    const isEdit = !!defaultValues?.id;
 
     try {
+      if (isEdit) {
+        const id = defaultValues!.id as string;
+
+        if (imageFiles.length && imageFiles[0].file) {
+          const fd = new FormData();
+          fd.append('title', title ?? '');
+          fd.append('authorName', author ?? '');
+          fd.append('shortDescription', shortDescription ?? '');
+          fd.append('content', content ?? '');
+          fd.append('categoryId', category ?? '');
+          fd.append('tagIds', JSON.stringify(tags ?? []));
+          fd.append('image', imageFiles[0].file, imageFiles[0].name);
+
+          const result = await updateMutation.mutateAsync({ id, payload: fd });
+          if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags });
+        } else {
+          const payload: any = {
+            title: title ?? undefined,
+            authorName: author ?? undefined,
+            shortDescription: shortDescription ?? undefined,
+            content: content ?? undefined,
+            categoryId: category ?? undefined,
+            tagIds: JSON.stringify(tags ?? [])
+          };
+
+          if (removedExistingImage) {
+            payload.image = null;
+          }
+
+          const result = await updateMutation.mutateAsync({ id, payload });
+          if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags });
+        }
+
+        if (asPage && !onSave) {
+          router.push('/dashboard/blog/manage');
+        } else if (!asPage) {
+          onOpenChange?.(false);
+        }
+
+        return;
+      }
+
+      const fd = new FormData();
+      fd.append('title', title ?? '');
+      fd.append('authorName', author ?? '');
+      fd.append('shortDescription', shortDescription ?? '');
+      fd.append('content', content ?? '');
+      fd.append('categoryId', category ?? '');
+      fd.append('tagIds', JSON.stringify(tags ?? []));
+
+      if (imageFiles.length && imageFiles[0].file) {
+        fd.append('image', imageFiles[0].file, imageFiles[0].name);
+      }
+
       const result = await createMutation.mutateAsync(fd);
       if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags });
 
@@ -94,7 +144,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         onOpenChange?.(false);
       }
     } catch (err) {
-      // errors are shown by the hook; nothing else to do here
+      
     }
   }
   const formInner = (
@@ -116,9 +166,20 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         <div>
           <label className="block text-sm font-medium mb-2">Feature Image</label>
           <CustomFileUpload maxFiles={1} onFilesChange={(f) => setImageFiles(f)} />
-          {defaultValues?.image && imageFiles.length === 0 && (
-            <div className="mt-3">
-              <img src={defaultValues.image} alt="preview" className="w-full rounded-md object-cover h-36" />
+          {defaultValues?.image && imageFiles.length === 0 && !removedExistingImage && (
+            <div className="mt-3 relative">
+              <img src={defaultValues.image} alt="preview" className="h-32 object-cover" />
+              <div className="mt-2 flex justify-end">
+                <button
+                  type="button"
+                  aria-label="Remove image"
+                  title="Remove image"
+                  className="p-1 text-red-600 hover:bg-gray-100 rounded absolute top-0 left-32"
+                  onClick={() => setRemovedExistingImage(true)}
+                >
+                  <FaRegTrashCan className="" />
+                </button>
+              </div>
             </div>
           )}
         </div>
