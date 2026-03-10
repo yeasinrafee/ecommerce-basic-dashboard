@@ -9,6 +9,7 @@ import CustomButton from "@/components/Common/CustomButton"
 import CustomRichTextEditor from "@/components/Common/CustomRichTextEditor"
 import CustomCheckbox from "@/components/FormFields/CustomCheckbox"
 import CustomSelect from "@/components/FormFields/CustomSelect"
+import Seo from "@/components/Product/ProductForm/Seo"
 import { useCreateBlog, useUpdateBlog } from '@/hooks/blog.api'
 import { useForm } from "react-hook-form"
 import { useAllCategories } from "@/hooks/blog-category.api"
@@ -25,6 +26,7 @@ interface BlogValues {
   author?: string
   category?: string
   tags?: string[]
+  seo?: any
 }
 
 interface Props {
@@ -58,6 +60,8 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const updateMutation = useUpdateBlog();
   const isSaving = (createMutation as any).isPending || (updateMutation as any).isPending || submitting;
   const [removedExistingImage, setRemovedExistingImage] = React.useState(false);
+  const [showSeo, setShowSeo] = React.useState(false);
+  const [seoData, setSeoData] = React.useState({ metaTitle: '', metaDescription: '', seoKeywords: [] as string[] });
 
   React.useEffect(() => {
     setTitle(defaultValues?.title ?? "")
@@ -69,6 +73,15 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
     setTags(defaultValues?.tags ?? [])
     setImageFiles([])
     setRemovedExistingImage(false)
+    if (defaultValues?.seo) {
+      setShowSeo(true);
+      // map backend seo shape to Seo component shape if necessary
+      const s = defaultValues.seo;
+      setSeoData({ metaTitle: s.title ?? '', metaDescription: s.description ?? '', seoKeywords: Array.isArray(s.keyword) ? s.keyword : [] });
+    } else {
+      setShowSeo(false);
+      setSeoData({ metaTitle: '', metaDescription: '', seoKeywords: [] });
+    }
   }, [defaultValues, open])
 
   const toggleTag = (t: string) => {
@@ -93,6 +106,10 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
           fd.append('categoryId', category ?? '');
           fd.append('tagIds', JSON.stringify(tags ?? []));
           fd.append('image', imageFiles[0].file, imageFiles[0].name);
+          if (showSeo) {
+            const seoPayload = { title: seoData.metaTitle ?? '', description: seoData.metaDescription ?? '', keyword: seoData.seoKeywords ?? [] };
+            fd.append('seo', JSON.stringify(seoPayload));
+          }
 
           const result = await updateMutation.mutateAsync({ id, payload: fd });
           if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags });
@@ -105,6 +122,10 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
             categoryId: category ?? undefined,
             tagIds: JSON.stringify(tags ?? [])
           };
+
+          if (showSeo) {
+            payload.seo = { title: seoData.metaTitle ?? '', description: seoData.metaDescription ?? '', keyword: seoData.seoKeywords ?? [] };
+          }
 
           if (removedExistingImage) {
             payload.image = null;
@@ -133,6 +154,10 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
 
       if (imageFiles.length && imageFiles[0].file) {
         fd.append('image', imageFiles[0].file, imageFiles[0].name);
+      }
+      if (showSeo) {
+        const seoPayload = { title: seoData.metaTitle ?? '', description: seoData.metaDescription ?? '', keyword: seoData.seoKeywords ?? [] };
+        fd.append('seo', JSON.stringify(seoPayload));
       }
 
       const result = await createMutation.mutateAsync(fd);
@@ -204,6 +229,18 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
               <CustomCheckbox key={t.id} label={t.name} checked={tags.includes(t.id)} onCheckedChange={() => toggleTag(t.id)} />
             ))}
           </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm mt-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-slate-900">SEO (optional)</h3>
+            <CustomCheckbox label="Add SEO" checked={showSeo} onCheckedChange={(v) => setShowSeo(Boolean(v))} />
+          </div>
+          {showSeo && (
+            <div className="mt-4">
+              <Seo onChange={(data: any) => setSeoData(data)} />
+            </div>
+          )}
         </div>
       </div>
     </div>

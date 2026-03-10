@@ -20,6 +20,7 @@ export default function ClientCreateBlog() {
         category: blog.category?.id ?? blog.category,
         tags: blog.tags?.map((bt: any) => (bt?.tag ? bt.tag.id : bt.id)) ?? [],
         image: blog.image ?? undefined,
+        seo: blog.seos && blog.seos.length > 0 ? blog.seos[0] : undefined,
       }
     : undefined;
 

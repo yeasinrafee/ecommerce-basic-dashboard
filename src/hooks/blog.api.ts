@@ -18,6 +18,7 @@ export interface BlogDetail extends Blog {
   content?: string;
   category?: any;
   tags?: any[];
+  seos?: any[];
   user?: any;
 }
 
