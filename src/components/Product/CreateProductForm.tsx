@@ -176,7 +176,7 @@ export default function CreateProductForm() {
             control={control}
           />
 
-          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-background px-6 py-6 shadow-sm">
             <CustomTab
               tabs={tabItems}
               className="space-y-4"

@@ -215,7 +215,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
                 type="button"
                 aria-label="Remove image"
                 title="Remove image"
-                className="absolute top-1 right-1 bg-white/80 hover:bg-white text-slate-500  p-1 rounded-full shadow"
+                className="absolute top-1 right-1 bg-background/80 hover:bg-background text-slate-500  p-1 rounded-full shadow"
                 onClick={() => setRemovedExistingImage(true)}
               >
                 <span className="sr-only">Remove image</span>
@@ -228,19 +228,19 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         </div>
 
         <div>
-          <CustomSelect<{ category: string }>
+            <CustomSelect<{ category: string }>
             name="category"
             control={categoryForm.control}
             label="Category"
             placeholder="Select category"
             options={categoryOptions}
             onChangeCallback={(v: string) => setCategory(v)}
-            triggerClassName="w-full rounded-md border px-3 py-2 bg-white"
+              triggerClassName="w-full rounded-md border px-3 py-2 bg-background"
             disabled={categoriesQuery.isLoading}
           />
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-background px-4 py-4 shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900">Tags</h3>
           <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
             {tagList.map((t) => (

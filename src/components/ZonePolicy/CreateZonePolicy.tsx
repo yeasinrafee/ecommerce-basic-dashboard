@@ -107,7 +107,7 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
 
         <div>
           <label className="block text-sm font-medium mb-2">Zones</label>
-          <div className="rounded-lg border border-slate-200 bg-white p-3 max-h-64 overflow-y-auto">
+          <div className="rounded-lg border border-slate-200 bg-background p-3 max-h-64 overflow-y-auto">
             <div className="flex flex-col gap-2">
               {zones && zones.length > 0 ? (
                 zones.map((z) => (

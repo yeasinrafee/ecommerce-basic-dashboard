@@ -22,7 +22,7 @@ interface Props {
 export default function Modal({ open, onOpenChange, title, description, footer, children, className = "" }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`max-w-3xl dark:bg-[#1F1F1F] ${className}`}>
+      <DialogContent className={`max-w-3xl bg-card text-card-foreground ${className}`}>
         <DialogHeader>
           {title && <DialogTitle>{title}</DialogTitle>}
           {description && <DialogDescription>{description}</DialogDescription>}

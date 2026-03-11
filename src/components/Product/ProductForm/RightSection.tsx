@@ -76,7 +76,7 @@ const RightSection: React.FC<RightSectionProps> = ({
 
   return (
     <div className="flex w-full flex-col gap-6">
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-6 shadow-sm">
+      <div className="rounded-2xl border border-dashed border-slate-300 bg-background px-6 py-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">Images</h2>
@@ -116,7 +116,7 @@ const RightSection: React.FC<RightSectionProps> = ({
       </div>
 
       {/* categories and tags below images */}
-      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+      <div className="rounded-2xl border border-slate-200 bg-background px-4 py-4 shadow-sm">
         <h3 className="text-lg font-semibold text-slate-900">Categories</h3>
         <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
           {categoriesList.map((category) => (
@@ -130,7 +130,7 @@ const RightSection: React.FC<RightSectionProps> = ({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+      <div className="rounded-2xl border border-slate-200 bg-background px-4 py-4 shadow-sm">
         <h3 className="text-lg font-semibold text-slate-900">Product Tags</h3>
         <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
           {tagList.map((tag) => (

@@ -115,7 +115,7 @@ const Header = ({
   return (
     <header
       className={cn(
-        "flex h-16 items-center justify-between border-b bg-white dark:bg-black dark:text-white px-6",
+        "flex h-16 items-center justify-between border-b bg-background px-6",
         className
       )}
     >

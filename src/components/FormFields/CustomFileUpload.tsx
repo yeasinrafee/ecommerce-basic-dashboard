@@ -240,9 +240,8 @@ const CustomFileUpload: React.FC<CustomFileUploadProps> = ({
         className={`rounded-2xl border-2 border-dashed p-6 text-center transition focus:outline-none focus:ring ${disabled ? "cursor-not-allowed" : "cursor-pointer"} ${
           isDragging
             ? "border-indigo-400 bg-indigo-50"
-            : "border-slate-300 bg-white"
-        }`}
-      >
+            : "border-slate-300 bg-background"
+        }`}> 
         <CloudUpload className="mx-auto h-6 w-6 text-slate-400" />
         <p className="mt-3 text-sm font-semibold text-slate-700">{label}</p>
         <p className="text-xs text-slate-500">
@@ -286,11 +285,11 @@ const CustomFileUpload: React.FC<CustomFileUploadProps> = ({
         </div>
       )}
       {files.length > 0 && (
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {files.map((file) => (
             <div
               key={file.id}
-              className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                  className="relative overflow-hidden rounded-2xl border border-slate-200 bg-background"
             >
               <img
                 src={file.url}
@@ -305,7 +304,7 @@ const CustomFileUpload: React.FC<CustomFileUploadProps> = ({
               <button
                 type="button"
                 onClick={() => removeFile(file.id)}
-                className="absolute top-2 right-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-slate-500 transition hover:bg-white"
+                className="absolute top-2 right-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-background/80 text-slate-500 transition hover:bg-background"
                 aria-label={`Remove ${file.name}`}
               >
                 <X size={18} />

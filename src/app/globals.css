@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
+/* Single light theme (dark mode removed). All colors are centralized below in :root.
+  Change these variables to alter site-wide colors quickly. */
 
 @theme inline {
   /* --- CUSTOM BRAND COLORS --- */
@@ -109,40 +110,37 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  
-  /* In dark mode, primary stays your brand color but you can lighten it if needed */
-  --primary: var(--brand-primary);
-  --primary-foreground: oklch(0.205 0 0);
-  
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  
-  --destructive: var(--brand-destructive);
-  --destructive-foreground: oklch(0.985 0 0);
-  
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: var(--brand-primary);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* NOTE: dark mode intentionally removed. If dark mode is reintroduced later,
+   re-add a `.dark` block or use a CSS media query to override variables. */
+
+/* Extra, explicit semantic variables for UI components and form fields. */
+:root {
+  /* Form controls */
+  --input-bg: var(--input);
+  --input-text: var(--foreground);
+  --input-border: var(--border);
+  --input-placeholder: color-mix(in srgb, var(--foreground) 40%, transparent);
+  --input-radius: var(--radius-sm);
+
+  /* Card / surfaces */
+  --surface-bg: var(--card);
+  --surface-text: var(--card-foreground);
+
+  /* Sidebar explicit mapping */
+  --sidebar-bg: var(--sidebar);
+  --sidebar-text: var(--sidebar-foreground);
+  --sidebar-accent: var(--sidebar-accent);
+  --sidebar-border-color: var(--sidebar-border);
+
+  /* Primary / accent */
+  --primary-color: var(--primary);
+  --primary-on: var(--primary-foreground);
+  --secondary-color: var(--secondary);
+  --accent-color: var(--accent);
+
+  /* Utility */
+  --muted-color: var(--muted);
+  --muted-on: var(--muted-foreground);
 }
 
 @layer base {
