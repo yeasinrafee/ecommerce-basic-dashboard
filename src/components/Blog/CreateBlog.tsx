@@ -64,6 +64,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const isSaving = (createMutation as any).isPending || (updateMutation as any).isPending || submitting;
   const [removedExistingImage, setRemovedExistingImage] = React.useState(false);
   const [seoData, setSeoData] = React.useState({ metaTitle: '', metaDescription: '', seoKeywords: [] as string[] });
+  const initialSnapshotRef = React.useRef<any>(null);
 
   const hasImage = imageFiles.length > 0 || (!!defaultValues?.image && !removedExistingImage);
   const isFormValid = Boolean(
@@ -120,14 +121,50 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
     setTags(defaultValues?.tags ?? [])
     setImageFiles([])
     setRemovedExistingImage(false)
-    if (defaultValues?.seo) {
-      // map backend seo shape to Seo component shape if necessary
-      const s = defaultValues.seo;
-      setSeoData({ metaTitle: s.title ?? '', metaDescription: s.description ?? '', seoKeywords: Array.isArray(s.keyword) ? s.keyword : [] });
-    } else {
-      setSeoData({ metaTitle: '', metaDescription: '', seoKeywords: [] });
-    }
+    // map backend seo shape to Seo component shape if necessary
+    const initialSeo = defaultValues?.seo
+      ? (() => {
+          const s = defaultValues.seo as any;
+          return { metaTitle: s.title ?? '', metaDescription: s.description ?? '', seoKeywords: Array.isArray(s.keyword) ? s.keyword : [] };
+        })()
+      : { metaTitle: '', metaDescription: '', seoKeywords: [] as string[] };
+
+    setSeoData(initialSeo);
+
+    // capture initial snapshot for edit-mode dirty checking
+    initialSnapshotRef.current = {
+      title: defaultValues?.title ?? '',
+      shortDescription: defaultValues?.shortDescription ?? '',
+      content: defaultValues?.content ?? '',
+      author: defaultValues?.author ?? '',
+      category: defaultValues?.category ?? '',
+      tags: defaultValues?.tags ?? [],
+      hasImage: !!defaultValues?.image,
+      seo: initialSeo,
+    };
   }, [defaultValues, open])
+
+  const isDirty = React.useMemo(() => {
+    // only enforce dirty-check in edit mode
+    if (!defaultValues) return true;
+    const initial = initialSnapshotRef.current ?? {};
+    const current = {
+      title: title ?? '',
+      shortDescription: shortDescription ?? '',
+      content: content ?? '',
+      author: author ?? '',
+      category: category ?? '',
+      tags: tags ?? [],
+      hasImage: imageFiles.length > 0 || (!!defaultValues?.image && !removedExistingImage),
+      seo: seoData ?? {},
+    };
+
+    try {
+      return JSON.stringify(current) !== JSON.stringify(initial);
+    } catch (_e) {
+      return true;
+    }
+  }, [defaultValues, title, shortDescription, content, author, category, tags, imageFiles.length, removedExistingImage, seoData]);
 
   const toggleTag = (t: string) => {
     setTags((prev) => (prev.includes(t) ? prev.filter((p) => p !== t) : [...prev, t]))
@@ -285,7 +322,17 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         {formInner}
 
         <div className="flex gap-2 mt-6">
-          <CustomButton loading={isSaving} disabled={!isFormValid || isSaving || isEditorProcessing} onClick={handleSave}>Save Blog</CustomButton>
+          <CustomButton
+            loading={isSaving}
+            disabled={
+              defaultValues
+                ? (!isFormValid || !isDirty || isSaving || isEditorProcessing)
+                : (!isFormValid || isSaving || isEditorProcessing)
+            }
+            onClick={handleSave}
+          >
+            {defaultValues ? "Update Blog" : "Save Blog"}
+          </CustomButton>
         </div>
       </div>
     )
@@ -299,7 +346,17 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
       description={defaultValues ? "Edit the blog post details" : "Create a new blog post"}
       footer={
         <div className="flex gap-2">
-          <CustomButton loading={isSaving} disabled={!isFormValid || isSaving || isEditorProcessing} onClick={handleSave}>Save Blog</CustomButton>
+          <CustomButton
+            loading={isSaving}
+            disabled={
+              defaultValues
+                ? (!isFormValid || !isDirty || isSaving || isEditorProcessing)
+                : (!isFormValid || isSaving || isEditorProcessing)
+            }
+            onClick={handleSave}
+          >
+            {defaultValues ? "Update Blog" : "Save Blog"}
+          </CustomButton>
         </div>
       }
     >
