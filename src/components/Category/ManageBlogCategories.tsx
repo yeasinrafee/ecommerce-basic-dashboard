@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-import Image from "next/image"
 import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
 import CreateCategory from "./CreateCategory"
@@ -15,12 +14,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
-import * as productApi from "@/hooks/product-category.api"
 import * as blogApi from "@/hooks/blog-category.api"
-import type { Category } from "@/hooks/product-category.api"
-import { initialsPlaceholder } from "@/utils/image-placeholder";
+import type { Category } from "@/hooks/blog-category.api"
 
-export default function ManageCategories({ kind = 'product' }: { kind?: 'product' | 'blog' }) {
+export default function ManageBlogCategories() {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Category | null>(null)
   const [page, setPage] = React.useState(1)
@@ -39,7 +36,7 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
     return () => clearTimeout(handle)
   }, [searchInput])
 
-  const api = kind === 'blog' ? blogApi : productApi
+  const api = blogApi
 
   const categoriesQuery = api.usePaginatedCategories(page, limit, searchTerm)
   const { data, isLoading, error } = categoriesQuery
@@ -70,61 +67,42 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
       if (payload instanceof FormData) {
         await updateMutation.mutateAsync({ id: editing.id, payload })
       } else {
-        await updateMutation.mutateAsync({ id: editing.id, payload: payload.name })
+        await updateMutation.mutateAsync({ id: editing.id, payload: payload as any })
         setEditing((prev) => (prev ? { ...prev, name: payload.name } : prev))
       }
     } else {
       if (payload instanceof FormData) {
         await createMutation.mutateAsync(payload)
       } else {
-        await createMutation.mutateAsync(payload.name)
+        await createMutation.mutateAsync(payload as any)
       }
     }
 
     setModalOpen(false)
   }
 
-  const columns = React.useMemo<Column<Category>[]>(
-    () => [
+  const columns = React.useMemo<Column<Category>[]>(() => {
+    const base: Column<Category>[] = [
       {
         header: "Category",
         cell: (row) => {
-          // Some category types (blog/product) include an `image` field
-          const image = (row as any).image ?? null;
-          const { initials, backgroundColor } = initialsPlaceholder(row.name ?? "");
-
-          return (
-            <div className="flex items-center gap-3">
-              {image ? (
-                <Image src={image} alt={row.name} width={32} height={32} className="h-8 w-8 rounded-sm object-cover" />
-              ) : (
-                <div
-                  className="h-8 w-8 rounded-sm flex items-center justify-center text-sm font-medium text-black"
-                  style={{ backgroundColor }}
-                >
-                  {initials}
-                </div>
-              )}
-
-              <div className="flex flex-col">
-                <span className="font-medium">{row.name}</span>
-              </div>
-            </div>
-          )
+          return <div className="flex flex-col"><span className="font-medium">{row.name}</span></div>
         },
       },
-      {
-        header: "Products",
-        cell: () => "-",
-        align: "center",
-      },
-    ],
-    [],
-  )
+    ];
+
+    base.push({
+      header: "Posts",
+      cell: () => "-",
+      align: "center",
+    });
+
+    return base;
+  }, [])
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-medium">{kind === 'blog' ? 'Manage Blog Categories' : 'Manage Product Categories'}</h2>
+      <h2 className="mb-4 text-lg font-medium">Manage Blog Categories</h2>
 
       <div className="flex items-center justify-between mb-4">
         <SearchBar
@@ -174,10 +152,13 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
 
       <CreateCategory
         open={modalOpen}
-        onOpenChange={setModalOpen}
+        onOpenChange={(v) => {
+          setModalOpen(v);
+        }}
         defaultValues={editing ? { name: editing.name } : undefined}
         submitting={createMutation.isPending || updateMutation.isPending}
         onSubmit={handleSaveCategory}
+        kind="blog"
       />
 
       <DeleteModal

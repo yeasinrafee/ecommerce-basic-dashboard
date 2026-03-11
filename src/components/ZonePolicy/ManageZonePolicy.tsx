@@ -191,7 +191,7 @@ export default function ManageZonePolicy() {
             fieldToValue={(v) => v}
             onChangeCallback={(v: string) => setBulkStatus(v as "ACTIVE" | "INACTIVE")}
             placeholder="Bulk status"
-            triggerClassName="w-40 min-h-10 bg-white"
+            triggerClassName="w-40 min-h-10 bg-background"
           />
           <CustomButton disabled={selectedIds.length === 0} onClick={applyBulkStatus} loading={bulkUpdateMutation.isPending}>Update Status</CustomButton>
         </div>

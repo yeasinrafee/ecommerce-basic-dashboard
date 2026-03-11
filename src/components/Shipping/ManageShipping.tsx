@@ -120,7 +120,7 @@ export default function ManageShipping() {
   };
 
   return (
-    <div className="p-4 max-w-3xl bg-white border border-slate-200 rounded-md p-6">
+    <div className="p-4 max-w-3xl bg-background border border-slate-200 rounded-md p-6">
       <div className="flex justify-between items-start">
         <div>
           <h2 className="mb-2 text-lg font-medium">Shipping Settings</h2>

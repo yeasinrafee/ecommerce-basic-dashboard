@@ -50,6 +50,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const [category, setCategory] = React.useState(defaultValues?.category ?? "")
   const [tags, setTags] = React.useState<string[]>(defaultValues?.tags ?? [])
   const [imageFiles, setImageFiles] = React.useState<any[]>([])
+  const [isEditorProcessing, setIsEditorProcessing] = React.useState(false)
   const categoryForm = useForm<{ category: string }>({ defaultValues: { category: defaultValues?.category ?? "" } });
   const categoriesQuery = useAllCategories();
   const categories = categoriesQuery.data ?? [];
@@ -63,6 +64,18 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const isSaving = (createMutation as any).isPending || (updateMutation as any).isPending || submitting;
   const [removedExistingImage, setRemovedExistingImage] = React.useState(false);
   const [seoData, setSeoData] = React.useState({ metaTitle: '', metaDescription: '', seoKeywords: [] as string[] });
+  const initialSnapshotRef = React.useRef<any>(null);
+
+  const hasImage = imageFiles.length > 0 || (!!defaultValues?.image && !removedExistingImage);
+  const isFormValid = Boolean(
+    (title ?? '').toString().trim() &&
+      (author ?? '').toString().trim() &&
+      (shortDescription ?? '').toString().trim() &&
+      (content ?? '').toString().trim() &&
+      (category ?? '') &&
+      Array.isArray(tags) && tags.length > 0 &&
+      hasImage
+  );
 
   const tabItems: CustomTabItem[] = React.useMemo(() => {
     const items: CustomTabItem[] = [
@@ -79,6 +92,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
             setShortDescription={setShortDescription}
             content={content}
             setContent={setContent}
+            onEditorProcessingChange={setIsEditorProcessing}
           />
         )
       },
@@ -107,21 +121,57 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
     setTags(defaultValues?.tags ?? [])
     setImageFiles([])
     setRemovedExistingImage(false)
-    if (defaultValues?.seo) {
-      // map backend seo shape to Seo component shape if necessary
-      const s = defaultValues.seo;
-      setSeoData({ metaTitle: s.title ?? '', metaDescription: s.description ?? '', seoKeywords: Array.isArray(s.keyword) ? s.keyword : [] });
-    } else {
-      setSeoData({ metaTitle: '', metaDescription: '', seoKeywords: [] });
-    }
+    // map backend seo shape to Seo component shape if necessary
+    const initialSeo = defaultValues?.seo
+      ? (() => {
+          const s = defaultValues.seo as any;
+          return { metaTitle: s.title ?? '', metaDescription: s.description ?? '', seoKeywords: Array.isArray(s.keyword) ? s.keyword : [] };
+        })()
+      : { metaTitle: '', metaDescription: '', seoKeywords: [] as string[] };
+
+    setSeoData(initialSeo);
+
+    // capture initial snapshot for edit-mode dirty checking
+    initialSnapshotRef.current = {
+      title: defaultValues?.title ?? '',
+      shortDescription: defaultValues?.shortDescription ?? '',
+      content: defaultValues?.content ?? '',
+      author: defaultValues?.author ?? '',
+      category: defaultValues?.category ?? '',
+      tags: defaultValues?.tags ?? [],
+      hasImage: !!defaultValues?.image,
+      seo: initialSeo,
+    };
   }, [defaultValues, open])
+
+  const isDirty = React.useMemo(() => {
+    // only enforce dirty-check in edit mode
+    if (!defaultValues) return true;
+    const initial = initialSnapshotRef.current ?? {};
+    const current = {
+      title: title ?? '',
+      shortDescription: shortDescription ?? '',
+      content: content ?? '',
+      author: author ?? '',
+      category: category ?? '',
+      tags: tags ?? [],
+      hasImage: imageFiles.length > 0 || (!!defaultValues?.image && !removedExistingImage),
+      seo: seoData ?? {},
+    };
+
+    try {
+      return JSON.stringify(current) !== JSON.stringify(initial);
+    } catch (_e) {
+      return true;
+    }
+  }, [defaultValues, title, shortDescription, content, author, category, tags, imageFiles.length, removedExistingImage, seoData]);
 
   const toggleTag = (t: string) => {
     setTags((prev) => (prev.includes(t) ? prev.filter((p) => p !== t) : [...prev, t]))
   }
 
   const handleSave = async () => {
-    if (isSaving) return;
+    if (isSaving || isEditorProcessing) return;
 
     const isEdit = !!defaultValues?.id;
 
@@ -206,7 +256,10 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
 
       <div className="md:col-span-1 space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">Feature Image</label>
+          <label className="block text-sm font-medium mb-2">
+            Feature Image
+            <span className="ml-1 text-destructive" aria-hidden="true">*</span>
+          </label>
           <CustomFileUpload maxFiles={1} onFilesChange={(f) => setImageFiles(f)} />
           {defaultValues?.image && imageFiles.length === 0 && !removedExistingImage && (
             <div className="mt-3 relative inline-block">
@@ -215,7 +268,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
                 type="button"
                 aria-label="Remove image"
                 title="Remove image"
-                className="absolute top-1 right-1 bg-white/80 hover:bg-white text-slate-500  p-1 rounded-full shadow"
+                className="absolute top-1 right-1 bg-background/80 hover:bg-background text-slate-500  p-1 rounded-full shadow"
                 onClick={() => setRemovedExistingImage(true)}
               >
                 <span className="sr-only">Remove image</span>
@@ -228,20 +281,26 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         </div>
 
         <div>
+          <label className="block text-sm font-medium mb-2">
+            Category
+            <span className="ml-1 text-destructive" aria-hidden="true">*</span>
+          </label>
           <CustomSelect<{ category: string }>
             name="category"
             control={categoryForm.control}
-            label="Category"
             placeholder="Select category"
             options={categoryOptions}
             onChangeCallback={(v: string) => setCategory(v)}
-            triggerClassName="w-full rounded-md border px-3 py-2 bg-white"
+            triggerClassName="w-full rounded-md border px-3 py-2 bg-background"
             disabled={categoriesQuery.isLoading}
           />
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-900">Tags</h3>
+        <div className="rounded-2xl border border-slate-200 bg-background px-4 py-4 shadow-sm">
+          <h3 className="text-lg font-semibold text-slate-900">
+            Tags
+            <span className="ml-1 text-destructive" aria-hidden="true">*</span>
+          </h3>
           <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
             {tagList.map((t) => (
               <CustomCheckbox key={t.id} label={t.name} checked={tags.includes(t.id)} onCheckedChange={() => toggleTag(t.id)} />
@@ -263,7 +322,17 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         {formInner}
 
         <div className="flex gap-2 mt-6">
-          <CustomButton loading={isSaving} disabled={isSaving} onClick={handleSave}>Save Blog</CustomButton>
+          <CustomButton
+            loading={isSaving}
+            disabled={
+              defaultValues
+                ? (!isFormValid || !isDirty || isSaving || isEditorProcessing)
+                : (!isFormValid || isSaving || isEditorProcessing)
+            }
+            onClick={handleSave}
+          >
+            {defaultValues ? "Update Blog" : "Save Blog"}
+          </CustomButton>
         </div>
       </div>
     )
@@ -277,7 +346,17 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
       description={defaultValues ? "Edit the blog post details" : "Create a new blog post"}
       footer={
         <div className="flex gap-2">
-          <CustomButton loading={isSaving} disabled={isSaving} onClick={handleSave}>Save Blog</CustomButton>
+          <CustomButton
+            loading={isSaving}
+            disabled={
+              defaultValues
+                ? (!isFormValid || !isDirty || isSaving || isEditorProcessing)
+                : (!isFormValid || isSaving || isEditorProcessing)
+            }
+            onClick={handleSave}
+          >
+            {defaultValues ? "Update Blog" : "Save Blog"}
+          </CustomButton>
         </div>
       }
     >

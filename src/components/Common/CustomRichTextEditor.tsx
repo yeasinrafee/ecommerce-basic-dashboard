@@ -28,6 +28,7 @@ import { uploadImageFromEditor, deleteUploadedImage } from "@/lib/uploadImage";
 interface EditorProps {
   value: string;
   onChange: (value: string) => void;
+  onProcessingChange?: (processing: boolean) => void;
 }
 
 interface EditorControlButtonProps {
@@ -60,7 +61,7 @@ function EditorControlButton({
   );
 }
 
-export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
+export default function CustomRichTextEditor({ value, onChange, onProcessingChange }: EditorProps) {
   const prevImageSrcsRef = React.useRef<Set<string>>(new Set());
   const srcToPublicIdRef = React.useRef<Map<string, string>>(new Map());
   const pendingUploadsRef = React.useRef<
@@ -72,6 +73,15 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
       }
     >
   >({});
+  const processingStateRef = React.useRef(false);
+  const reportProcessingState = React.useCallback(() => {
+    const hasPending = Object.keys(pendingUploadsRef.current).length > 0;
+    if (processingStateRef.current === hasPending) {
+      return;
+    }
+    processingStateRef.current = hasPending;
+    onProcessingChange?.(hasPending);
+  }, [onProcessingChange]);
 
   const editor = useEditor({
     extensions: [
@@ -103,6 +113,7 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
       onChange(editor.getHTML());
     },
     immediatelyRender: false,
+    shouldRerenderOnTransaction: true,
   });
 
   React.useEffect(() => {
@@ -128,6 +139,14 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
         const prev = prevImageSrcsRef.current;
         for (const s of prev) {
           if (!currentSrcs.has(s)) {
+            // skip local preview URLs created via URL.createObjectURL / data URIs
+            if (typeof s === "string" && (s.startsWith("blob:") || s.startsWith("data:"))) {
+              if (srcToPublicIdRef.current.has(s)) {
+                srcToPublicIdRef.current.delete(s);
+              }
+              continue;
+            }
+
             const pid = srcToPublicIdRef.current.get(s);
             // fire and forget: if we have a publicId use it, otherwise send the URL and let server derive the publicId
             void deleteUploadedImage(pid ?? s).catch((err) =>
@@ -167,6 +186,15 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
     }
   }, [value, editor]);
 
+  React.useEffect(() => {
+    return () => {
+      if (processingStateRef.current) {
+        processingStateRef.current = false;
+        onProcessingChange?.(false);
+      }
+    };
+  }, [onProcessingChange]);
+
   const addImage = () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -185,6 +213,7 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
         promise: uploadPromise,
         cancelled: false,
       };
+      reportProcessingState();
 
       uploadPromise
         .then((result) => {
@@ -194,6 +223,7 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
 
             const pending = pendingUploadsRef.current[tempUrl];
             delete pendingUploadsRef.current[tempUrl];
+            reportProcessingState();
 
             if (pending && pending.cancelled) {
               // user removed the temp image before upload finished; delete the uploaded asset
@@ -241,6 +271,8 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
           }
         })
         .catch((err: any) => {
+          delete pendingUploadsRef.current[tempUrl];
+          reportProcessingState();
           // remove temp preview nodes inserted earlier
           if (editor) {
             const { state, view } = editor as any;

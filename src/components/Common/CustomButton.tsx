@@ -52,6 +52,9 @@ const CustomButton = React.forwardRef<HTMLButtonElement, CustomButtonProps>(
     ref,
   ) => {
     const isDisabled = disabled || loading
+    const disabledVariantClasses =
+      "bg-slate-300 text-slate-500 hover:bg-slate-300 focus:ring-slate-300 cursor-not-allowed"
+    const computedVariantClasses = isDisabled ? disabledVariantClasses : variantClasses[variant]
 
     return (
       <button
@@ -59,9 +62,9 @@ const CustomButton = React.forwardRef<HTMLButtonElement, CustomButtonProps>(
         disabled={isDisabled}
         className={cn(
           baseStyles,
-          variantClasses[variant],
+          computedVariantClasses,
           sizeClasses[size],
-          isDisabled && "opacity-50 cursor-not-allowed",
+          isDisabled && "opacity-70",
           className,
         )}
         {...props}

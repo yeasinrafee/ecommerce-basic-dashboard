@@ -10,31 +10,8 @@ import Attributes, { AttributesData, AdditionalInfo as AdditionalInfoType } from
 import AdditionalInfo from "./ProductForm/AdditionalInfo";
 import Seo, { SeoData } from "./ProductForm/Seo";
 import RightSection, { RightSectionData } from "./ProductForm/RightSection";
-
-const categoriesList = [
-  "Electronics",
-  "Clothing",
-  "Home",
-  "Beauty",
-  "Sports",
-  "Books",
-  "Accessories",
-  "Outdoor",
-  "Wellness",
-];
-
-const tagList = [
-  "New Arrival",
-  "Best Seller",
-  "Limited Edition",
-  "Eco Friendly",
-  "Gift Item",
-  "Personalized",
-  "Trending",
-  "Studio Pick",
-  "Preorder",
-  "Clearance",
-];
+import { useAllCategories } from "@/hooks/product-category.api";
+import { useAllTags } from "@/hooks/product-tag.api";
 
 const brandOptions = [
   { label: "Arwa Signature", value: "arwa-signature" },
@@ -85,6 +62,13 @@ export default function CreateProductForm() {
 
   const selectedDiscountType = watch("discountType");
 
+  // fetch categories and tags from backend
+  const { data: productCategories } = useAllCategories();
+  const { data: productTags } = useAllTags();
+
+  const categoriesList = React.useMemo(() => productCategories ?? [], [productCategories]);
+  const tagList = React.useMemo(() => productTags?.map((t) => t.name) ?? [], [productTags]);
+
   const [productName, setProductName] = React.useState("");
   const [shortDescription, setShortDescription] = React.useState("");
   const [description, setDescription] = React.useState("");
@@ -95,6 +79,10 @@ export default function CreateProductForm() {
   const [discountEnd, setDiscountEnd] = React.useState<Date | null>(null);
   const [stockQuantity, setStockQuantity] = React.useState<number | null>(null);
   const [sku, setSku] = React.useState("");
+  const [weight, setWeight] = React.useState<number | null>(null);
+  const [lengthCm, setLengthCm] = React.useState<number | null>(null);
+  const [widthCm, setWidthCm] = React.useState<number | null>(null);
+  const [heightCm, setHeightCm] = React.useState<number | null>(null);
 
   const [rightData, setRightData] = React.useState<RightSectionData>({
     mainImage: null,
@@ -131,6 +119,14 @@ export default function CreateProductForm() {
           setStockQuantity={setStockQuantity}
           sku={sku}
           setSku={setSku}
+          weight={weight}
+          setWeight={setWeight}
+          lengthCm={lengthCm}
+          setLengthCm={setLengthCm}
+          widthCm={widthCm}
+          setWidthCm={setWidthCm}
+          heightCm={heightCm}
+          setHeightCm={setHeightCm}
           control={control}
           discountOptions={discountOptions}
           stockStatusOptions={stockStatusOptions}
@@ -190,7 +186,7 @@ export default function CreateProductForm() {
             control={control}
           />
 
-          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-background px-6 py-6 shadow-sm">
             <CustomTab
               tabs={tabItems}
               className="space-y-4"
@@ -199,7 +195,6 @@ export default function CreateProductForm() {
           </div>
         </div>
 
-        {/* right column: moved into dedicated component */}
         <div className="col-span-5">
           <RightSection
             categoriesList={categoriesList}

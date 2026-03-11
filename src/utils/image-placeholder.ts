@@ -7,7 +7,7 @@ export function initialsPlaceholder(nameOrEmail?: string | null): InitialsPlaceh
 	const source = (nameOrEmail ?? '').trim();
 
 	if (!source) {
-		return { initials: '', backgroundColor: '#e5e7eb' };
+		return { initials: '', backgroundColor: 'var(--muted)' };
 	}
 
 	const parts = source.split(/\s+/).filter(Boolean);
@@ -21,7 +21,7 @@ export function initialsPlaceholder(nameOrEmail?: string | null): InitialsPlaceh
 		initials = (first + last).toUpperCase();
 	}
 
-	const color = '#e5e7eb';
+	const color = 'var(--muted)';
 
 	return { initials, backgroundColor: color };
 }

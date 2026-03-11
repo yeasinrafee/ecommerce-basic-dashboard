@@ -8,9 +8,12 @@ import CustomInput from "@/components/FormFields/CustomInput"
 import Modal from "@/components/Common/Modal"
 import CustomButton from "@/components/Common/CustomButton"
 import CustomFileUpload, { type CustomFileUploadFile } from "@/components/FormFields/CustomFileUpload"
+import CustomSelect from "@/components/FormFields/CustomSelect"
+import * as productApi from "@/hooks/product-category.api"
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
+  parentId: z.string().min(1, "Parent category is required"),
 })
 
 type FormSchema = z.infer<typeof schema>
@@ -18,40 +21,35 @@ type FormSchema = z.infer<typeof schema>
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
-  defaultValues?: Partial<FormSchema>
   onSubmit?: (data: FormSchema | FormData) => Promise<void> | void
   submitting?: boolean
-  kind?: 'product' | 'blog'
-  initialParentId?: string | null
+  defaultValues?: Partial<{ name: string; parentId?: string; image?: string }>
 }
 
-export default function CreateCategory({
-  open,
-  onOpenChange,
-  defaultValues,
-  onSubmit,
-  submitting = false,
-  kind = 'product',
-  initialParentId,
-}: Props) {
-  const isEdit = Boolean(defaultValues && defaultValues.name)
-
+export default function CreateSubcategory({ open, onOpenChange, onSubmit, submitting = false, defaultValues }: Props) {
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormSchema>({
     resolver: zodResolver(schema),
-    defaultValues: { name: defaultValues?.name ?? "" },
+    defaultValues: { name: defaultValues?.name ?? "", parentId: defaultValues?.parentId ?? "" },
   })
 
   React.useEffect(() => {
-    reset({ name: defaultValues?.name ?? "" })
-  }, [defaultValues, reset])
+    reset({ name: defaultValues?.name ?? "", parentId: defaultValues?.parentId ?? "" })
+  }, [open, reset, defaultValues])
 
   const [uploadedFiles, setUploadedFiles] = React.useState<CustomFileUploadFile[]>([])
-  const existingImage = (defaultValues as any)?.image as string | undefined
+
+  const categoriesQuery = productApi.useAllCategories()
+  const parents = (categoriesQuery.data ?? []).filter((c) => !c.parentId)
+
+  const options = parents.map((p) => ({ label: p.name, value: p.id }))
+
+  const existingImage = defaultValues?.image as string | undefined
   const showExistingImage = Boolean(defaultValues && existingImage && uploadedFiles.length === 0)
 
   const submit = async (data: FormSchema) => {
@@ -59,31 +57,27 @@ export default function CreateCategory({
       if (uploadedFiles && uploadedFiles.length > 0) {
         const formData = new FormData()
         formData.append("name", data.name)
+        formData.append("parentId", data.parentId)
         formData.append("image", uploadedFiles[0].file)
-        const parentId = initialParentId ?? (defaultValues as any)?.parentId;
-        if (parentId) formData.append("parentId", parentId)
         await onSubmit(formData as any)
       } else {
-        const parentId = initialParentId ?? (defaultValues as any)?.parentId;
-        const payload = parentId ? { ...data, parentId } : data;
-        await onSubmit(payload as any)
+        await onSubmit({ name: data.name, parentId: data.parentId })
       }
     }
-    reset({ name: "" });
+
+    reset({ name: defaultValues?.name ?? "", parentId: defaultValues?.parentId ?? "" })
   }
 
   return (
     <Modal
       open={open}
-      onOpenChange={(v) => {
-        onOpenChange(v)
-      }}
-      title={isEdit ? "Update Category" : "Create Category"}
-      description={isEdit ? "Edit category details" : "Create a new category"}
+      onOpenChange={onOpenChange}
+      title="Create Subcategory"
+      description="Create a new subcategory and assign it to a parent category"
       footer={
         <div className="flex gap-2">
           <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
-            {isEdit ? "Update" : "Create"}
+            Create
           </CustomButton>
         </div>
       }
@@ -96,7 +90,15 @@ export default function CreateCategory({
             error={errors.name?.message}
             requiredMark
           />
-          {/* Parent selection removed — use "Create Subcategory" action in list to create subcategories */}
+
+          <CustomSelect
+            name={"parentId"}
+            control={control}
+            label="Parent Category"
+            options={options}
+            placeholder="Select parent category"
+          />
+
           <div>
             <label className="block mb-2 text-sm font-medium">Image</label>
             {showExistingImage ? (

@@ -201,7 +201,7 @@ export default function ManageAdmin() {
             fieldToValue={(v) => v}
             onChangeCallback={(v: string) => setBulkStatus(v)}
             placeholder="Bulk status"
-            triggerClassName="w-40 min-h-10 bg-white"
+            triggerClassName="w-40 min-h-10 bg-background"
           />
           <CustomButton disabled={selectedIds.length === 0} onClick={applyBulkStatus} loading={bulkUpdateMutation.isPending}>Update Status</CustomButton>
           <CustomButton onClick={() => { setEditing(null); setModalOpen(true); }}>Create Admin</CustomButton>

@@ -100,7 +100,7 @@ export default function Table<T = Record<string, unknown>>({
   };
 
   return (
-    <div className={`bg-white p-3 ${className || ""}`}>
+    <div className={`bg-background p-3 ${className || ""}`}>
       <div className="flex flex-col md:flex-row justify-between gap-2 mb-2">
         <div className="w-full max-w-sm">{toolbar}</div>
       </div>

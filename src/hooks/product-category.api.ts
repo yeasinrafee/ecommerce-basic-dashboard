@@ -10,6 +10,9 @@ export interface Category {
   slug: string;
   createdAt: string;
   updatedAt: string;
+  parentId?: string | null;
+  image?: string | null;
+  subCategories?: Category[];
 }
 
 export interface CategoryListMeta {
@@ -100,12 +103,13 @@ export const useCreateCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: string | FormData) => {
+    mutationFn: async (payload: string | FormData | { name: string; parentId?: string | null }) => {
       let response;
       if (typeof FormData !== 'undefined' && payload instanceof FormData) {
         response = await apiClient.post<ApiResponse<Category>>(ProductCategoryRoutes.create, payload);
       } else {
-        response = await apiClient.post<ApiResponse<Category>>(ProductCategoryRoutes.create, { name: payload });
+        const body = typeof payload === 'string' ? { name: payload } : payload;
+        response = await apiClient.post<ApiResponse<Category>>(ProductCategoryRoutes.create, body);
       }
       const data = ensurePayload(response.data, "Failed to create category");
       return { message: response.data.message, payload: data };
@@ -125,12 +129,13 @@ export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, payload }: { id: string; payload: string | FormData }) => {
+    mutationFn: async ({ id, payload }: { id: string; payload: string | FormData | { name?: string; parentId?: string | null } }) => {
       let response;
       if (typeof FormData !== 'undefined' && payload instanceof FormData) {
         response = await apiClient.patch<ApiResponse<Category>>(ProductCategoryRoutes.update(id), payload as FormData);
       } else {
-        response = await apiClient.patch<ApiResponse<Category>>(ProductCategoryRoutes.update(id), { name: payload });
+        const body = typeof payload === 'string' ? { name: payload } : payload;
+        response = await apiClient.patch<ApiResponse<Category>>(ProductCategoryRoutes.update(id), body);
       }
       const data = ensurePayload(response.data, "Failed to update category");
       return { message: response.data.message, payload: data };

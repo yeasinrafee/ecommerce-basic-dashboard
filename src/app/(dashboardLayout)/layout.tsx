@@ -13,7 +13,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const toggleMobileSidebar = () => setMobileOpen(!mobileOpen);
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-black dark:text-white">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <Sidebar
         routes={routes}
