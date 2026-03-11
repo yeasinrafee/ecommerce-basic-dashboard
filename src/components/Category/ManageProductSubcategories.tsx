@@ -4,7 +4,7 @@ import React from "react"
 import Image from "next/image"
 import Table, { type Column } from "@/components/Common/Table"
 import CustomButton from "@/components/Common/CustomButton"
-import CreateCategory from "./CreateCategory"
+import CreateSubcategory from "./CreateSubcategory"
 import DeleteModal from "@/components/Common/DeleteModal"
 import SearchBar from "@/components/FormFields/SearchBar"
 import {
@@ -19,45 +19,47 @@ import * as productApi from "@/hooks/product-category.api"
 import type { Category } from "@/hooks/product-category.api"
 import { initialsPlaceholder } from "@/utils/image-placeholder";
 
-export default function ManageProductCategories() {
+export default function ManageProductSubcategories() {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Category | null>(null)
   const [page, setPage] = React.useState(1)
   const limit = 10
 
-  // search state
   const [searchInput, setSearchInput] = React.useState("")
   const [searchTerm, setSearchTerm] = React.useState<string | undefined>(undefined)
 
-  // debounce search input by 500ms
   React.useEffect(() => {
     const handle = setTimeout(() => {
-      setPage(1) // reset to first page when searching
+      setPage(1)
       setSearchTerm(searchInput.trim() || undefined)
     }, 500)
     return () => clearTimeout(handle)
   }, [searchInput])
 
-  const api = productApi
+  const allQuery = productApi.useAllCategories()
+  const all = allQuery.data ?? []
 
-  const categoriesQuery = api.usePaginatedCategories(page, limit, searchTerm)
-  const { data, isLoading, error } = categoriesQuery
-  const createMutation = api.useCreateCategory()
-  const updateMutation = api.useUpdateCategory()
-  const deleteMutation = api.useDeleteCategory()
+  // filter subcategories (those that have a parentId)
+  const filtered = React.useMemo(() => {
+    const rows = all.filter((c) => c.parentId)
+    if (!searchTerm) return rows
+    const term = searchTerm.toLowerCase()
+    return rows.filter((r) => {
+      const parent = all.find((p) => p.id === r.parentId)
+      const parentName = parent?.name ?? ""
+      return r.name.toLowerCase().includes(term) || parentName.toLowerCase().includes(term)
+    })
+  }, [all, searchTerm])
+
+  const total = filtered.length
+  const pageItems = React.useMemo(() => filtered.slice((page - 1) * limit, page * limit), [filtered, page])
+
+  const createMutation = productApi.useCreateCategory()
+  const updateMutation = productApi.useUpdateCategory()
+  const deleteMutation = productApi.useDeleteCategory()
 
   const handleCreate = () => {
     setEditing(null)
-    setNewSubParentId(undefined)
-    setModalOpen(true)
-  }
-
-
-  const [newSubParentId, setNewSubParentId] = React.useState<string | undefined>(undefined)
-
-  const handleCreateSubcategory = (parent: Category) => {
-    setEditing(null)
-    setNewSubParentId(parent.id)
     setModalOpen(true)
   }
 
@@ -74,13 +76,12 @@ export default function ManageProductCategories() {
     setDeleteModalOpen(true)
   }
 
-  const handleSaveCategory = async (payload: FormData | { name: string; parentId?: string }) => {
+  const handleSave = async (payload: FormData | { name: string; parentId?: string }) => {
     if (editing) {
       if (payload instanceof FormData) {
         await updateMutation.mutateAsync({ id: editing.id, payload })
       } else {
         await updateMutation.mutateAsync({ id: editing.id, payload: payload as any })
-        setEditing((prev) => (prev ? { ...prev, name: payload.name, parentId: payload.parentId ?? null } : prev))
       }
     } else {
       if (payload instanceof FormData) {
@@ -91,15 +92,14 @@ export default function ManageProductCategories() {
     }
 
     setModalOpen(false)
+    setEditing(null)
   }
 
-
   const columns = React.useMemo<Column<Category>[]>(() => {
-    const base: Column<Category>[] = [
+    return [
       {
-        header: "Category",
+        header: "Subcategory",
         cell: (row) => {
-          // product categories include an `image` field
           const image = (row as any).image ?? null;
           const { initials, backgroundColor } = initialsPlaceholder(row.name ?? "");
 
@@ -121,35 +121,26 @@ export default function ManageProductCategories() {
               </div>
             </div>
           )
-        },
-      },
-      {
-        header: "Subcategories",
-        cell: (row) => {
-          const subs = (row as any).subCategories as Category[] | undefined;
-          if (!subs || subs.length === 0) return "-";
-          return subs.map((s) => s.name).join(" - ");
         }
       },
       {
-        header: "Subcategory Count",
-        cell: (row) => (row as any).subCategories?.length ?? 0,
-        align: "center",
+        header: "Parent",
+        cell: (row) => {
+          const parent = all.find((p) => p.id === row.parentId)
+          return parent ? parent.name : '-'
+        }
+      },
+      {
+        header: "Products",
+        cell: () => '-',
+        align: 'center'
       }
-    ];
-
-    base.push({
-      header: "Products",
-      cell: () => "-",
-      align: "center",
-    });
-
-    return base;
-  }, [])
+    ]
+  }, [all])
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-medium">Manage Product Categories</h2>
+      <h2 className="mb-4 text-lg font-medium">Manage Product Subcategories</h2>
 
       <div className="flex items-center justify-between mb-4">
         <SearchBar
@@ -157,24 +148,26 @@ export default function ManageProductCategories() {
           setSearchInput={setSearchInput}
           clearSearch={() => setSearchInput("")}
         />
-        <div>
-          <CustomButton onClick={handleCreate}>Create Category</CustomButton>
-        </div>
+        <CustomButton onClick={handleCreate}>Create Sub-Category</CustomButton>
       </div>
 
-      {isLoading ? (
+      {!allQuery.isLoading && all.length === 0 ? (
+        <p>No categories available. Create a parent category first.</p>
+      ) : null}
+
+      {allQuery.isLoading ? (
         <p>Loading...</p>
-      ) : error ? (
+      ) : allQuery.isError ? (
         <p className="text-red-500">Failed to load categories</p>
       ) : (
         <Table<Category>
           columns={columns}
-          data={data?.data ?? []}
+          data={pageItems}
           rowKey="id"
           pageSize={limit}
-          serverSide
+          serverSide={false}
           currentPage={page}
-          totalItems={data?.meta.total ?? 0}
+          totalItems={total}
           onPageChange={setPage}
           renderRowActions={(cat) => (
             <DropdownMenu>
@@ -184,9 +177,6 @@ export default function ManageProductCategories() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleCreateSubcategory(cat)}>
-                  Create Subcategory
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleEdit(cat)}>
                   Edit
                 </DropdownMenuItem>
@@ -202,26 +192,22 @@ export default function ManageProductCategories() {
         />
       )}
 
-      <CreateCategory
+      <CreateSubcategory
         open={modalOpen}
         onOpenChange={(v) => {
-          setModalOpen(v);
-          if (!v) setNewSubParentId(undefined);
+          setModalOpen(v)
+          if (!v) setEditing(null)
         }}
-        defaultValues={editing ? { name: editing.name } : undefined}
-        initialParentId={editing ? (editing as any).parentId ?? undefined : newSubParentId}
+        defaultValues={editing ? { name: editing.name, parentId: editing.parentId ?? undefined, image: (editing as any).image } : undefined}
         submitting={createMutation.isPending || updateMutation.isPending}
-        onSubmit={handleSaveCategory}
-        kind="product"
+        onSubmit={handleSave}
       />
-
-      
 
       <DeleteModal
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
         title="Confirm deletion"
-        description={deleteTarget ? `Are you sure you want to delete category "${deleteTarget.name}"? This action cannot be undone.` : undefined}
+        description={deleteTarget ? `Are you sure you want to delete subcategory "${deleteTarget.name}"? This action cannot be undone.` : undefined}
         loading={deleteMutation.isPending}
         onConfirm={() => {
           if (deleteTarget) {

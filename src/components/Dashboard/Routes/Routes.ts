@@ -77,6 +77,10 @@ export const routes: RouteItem[] = [
         label: "Product Categories",
         href: "/dashboard/categories/product-categories/manage",
       },
+        {
+          label: "Product Sub-Categories",
+          href: "/dashboard/categories/product-subcategories/manage",
+        },
       {
         label: "Blog Categories",
         href: "/dashboard/categories/blog-categories/manage",
