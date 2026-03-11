@@ -92,7 +92,7 @@ export const deleteUploadedImage = async (publicIdOrUrl: string) => {
   if (!publicIdOrUrl) return null;
 
   try {
-    const isUrl = typeof publicIdOrUrl === 'string' && (publicIdOrUrl.startsWith('http') || publicIdOrUrl.includes('/'));
+    const isUrl = typeof publicIdOrUrl === 'string' && publicIdOrUrl.startsWith('http');
     const payload = isUrl ? { url: publicIdOrUrl } : { publicId: publicIdOrUrl };
 
     const resp = await apiClient.post(UploadRoutes.delete, payload);

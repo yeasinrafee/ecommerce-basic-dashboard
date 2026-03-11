@@ -128,6 +128,14 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
         const prev = prevImageSrcsRef.current;
         for (const s of prev) {
           if (!currentSrcs.has(s)) {
+            // skip local preview URLs created via URL.createObjectURL / data URIs
+            if (typeof s === "string" && (s.startsWith("blob:") || s.startsWith("data:"))) {
+              if (srcToPublicIdRef.current.has(s)) {
+                srcToPublicIdRef.current.delete(s);
+              }
+              continue;
+            }
+
             const pid = srcToPublicIdRef.current.get(s);
             // fire and forget: if we have a publicId use it, otherwise send the URL and let server derive the publicId
             void deleteUploadedImage(pid ?? s).catch((err) =>
