@@ -54,18 +54,8 @@ export const routes: RouteItem[] = [
   // --- Orders ---
   {
     icon: LuShoppingCart,
-    label: "Orders",
+    label: "Manage Orders",
     href: "/admin/orders",
-    subItems: [
-      { 
-        label: "Create Order", 
-        href: "/admin/orders/create", 
-      },
-      { 
-        label: "Manage Orders", 
-        href: "/admin/orders", 
-      },
-    ],
   },
   // --- Categories ---
   {
