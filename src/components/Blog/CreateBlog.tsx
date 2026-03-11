@@ -9,12 +9,15 @@ import CustomButton from "@/components/Common/CustomButton"
 import CustomRichTextEditor from "@/components/Common/CustomRichTextEditor"
 import CustomCheckbox from "@/components/FormFields/CustomCheckbox"
 import CustomSelect from "@/components/FormFields/CustomSelect"
+import Seo from "@/components/Product/ProductForm/Seo"
+import CustomTab, { CustomTabItem } from "@/components/Common/CustomTab"
+import BlogDetails from "@/components/Blog/BlogDetails"
 import { useCreateBlog, useUpdateBlog } from '@/hooks/blog.api'
 import { useForm } from "react-hook-form"
 import { useAllCategories } from "@/hooks/blog-category.api"
 import { useAllTags } from "@/hooks/blog-tag.api"
 import { useRouter } from "next/navigation"
-import { FaRegTrashCan } from "react-icons/fa6";
+// Using inline SVG for the image remove button to match upload preview
 
 interface BlogValues {
   id?: string
@@ -25,6 +28,7 @@ interface BlogValues {
   author?: string
   category?: string
   tags?: string[]
+  seo?: any
 }
 
 interface Props {
@@ -58,6 +62,40 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const updateMutation = useUpdateBlog();
   const isSaving = (createMutation as any).isPending || (updateMutation as any).isPending || submitting;
   const [removedExistingImage, setRemovedExistingImage] = React.useState(false);
+  const [seoData, setSeoData] = React.useState({ metaTitle: '', metaDescription: '', seoKeywords: [] as string[] });
+
+  const tabItems: CustomTabItem[] = React.useMemo(() => {
+    const items: CustomTabItem[] = [
+      {
+        id: 'details',
+        label: 'Blog Details',
+        content: (
+          <BlogDetails
+            title={title}
+            setTitle={setTitle}
+            author={author}
+            setAuthor={setAuthor}
+            shortDescription={shortDescription}
+            setShortDescription={setShortDescription}
+            content={content}
+            setContent={setContent}
+          />
+        )
+      },
+
+      {
+        id: 'seo',
+        label: 'SEO',
+        content: (
+          <>
+            <Seo initialData={seoData} onChange={(data: any) => setSeoData(data)} />
+          </>
+        )
+      }
+    ];
+
+    return items;
+  }, [title, author, shortDescription, content, seoData]);
 
   React.useEffect(() => {
     setTitle(defaultValues?.title ?? "")
@@ -69,6 +107,13 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
     setTags(defaultValues?.tags ?? [])
     setImageFiles([])
     setRemovedExistingImage(false)
+    if (defaultValues?.seo) {
+      // map backend seo shape to Seo component shape if necessary
+      const s = defaultValues.seo;
+      setSeoData({ metaTitle: s.title ?? '', metaDescription: s.description ?? '', seoKeywords: Array.isArray(s.keyword) ? s.keyword : [] });
+    } else {
+      setSeoData({ metaTitle: '', metaDescription: '', seoKeywords: [] });
+    }
   }, [defaultValues, open])
 
   const toggleTag = (t: string) => {
@@ -93,9 +138,11 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
           fd.append('categoryId', category ?? '');
           fd.append('tagIds', JSON.stringify(tags ?? []));
           fd.append('image', imageFiles[0].file, imageFiles[0].name);
+          const seoPayload = { title: seoData.metaTitle ?? '', description: seoData.metaDescription ?? '', keyword: seoData.seoKeywords ?? [] };
+          fd.append('seo', JSON.stringify(seoPayload));
 
           const result = await updateMutation.mutateAsync({ id, payload: fd });
-          if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags });
+          if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags, seo: seoData });
         } else {
           const payload: any = {
             title: title ?? undefined,
@@ -106,12 +153,14 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
             tagIds: JSON.stringify(tags ?? [])
           };
 
+          payload.seo = { title: seoData.metaTitle ?? '', description: seoData.metaDescription ?? '', keyword: seoData.seoKeywords ?? [] };
+
           if (removedExistingImage) {
             payload.image = null;
           }
 
           const result = await updateMutation.mutateAsync({ id, payload });
-          if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags });
+          if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags, seo: seoData });
         }
 
         if (asPage && !onSave) {
@@ -134,9 +183,11 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
       if (imageFiles.length && imageFiles[0].file) {
         fd.append('image', imageFiles[0].file, imageFiles[0].name);
       }
+      const seoPayload = { title: seoData.metaTitle ?? '', description: seoData.metaDescription ?? '', keyword: seoData.seoKeywords ?? [] };
+      fd.append('seo', JSON.stringify(seoPayload));
 
       const result = await createMutation.mutateAsync(fd);
-      if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags });
+      if (onSave) onSave({ title, shortDescription, content, image: result.payload?.image ?? undefined, author, category, tags, seo: seoData });
 
       if (asPage && !onSave) {
         router.push('/dashboard/blog/manage');
@@ -149,37 +200,29 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   }
   const formInner = (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-      <div className="md:col-span-2 space-y-4">
-        <CustomInput label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-
-        <CustomInput label="Author" value={author} onChange={(e) => setAuthor(e.target.value)} />
-
-        <CustomTextArea label="Short Description" value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} className="min-h-24" />
-
-        <div>
-          <div className="text-sm font-semibold text-slate-700 mb-2">Content</div>
-          <CustomRichTextEditor value={content} onChange={setContent} />
+        <div className="md:col-span-2 space-y-4">
+          <CustomTab tabs={tabItems} className="space-y-4" tabListClassName="justify-start" />
         </div>
-      </div>
 
       <div className="md:col-span-1 space-y-4">
         <div>
           <label className="block text-sm font-medium mb-2">Feature Image</label>
           <CustomFileUpload maxFiles={1} onFilesChange={(f) => setImageFiles(f)} />
           {defaultValues?.image && imageFiles.length === 0 && !removedExistingImage && (
-            <div className="mt-3 relative">
-              <img src={defaultValues.image} alt="preview" className="h-32 object-cover" />
-              <div className="mt-2 flex justify-end">
-                <button
-                  type="button"
-                  aria-label="Remove image"
-                  title="Remove image"
-                  className="p-1 text-red-600 hover:bg-gray-100 rounded absolute top-0 left-32"
-                  onClick={() => setRemovedExistingImage(true)}
-                >
-                  <FaRegTrashCan className="" />
-                </button>
-              </div>
+            <div className="mt-3 relative inline-block">
+              <img src={defaultValues.image} alt="preview" className="h-32 w-full object-cover rounded" />
+              <button
+                type="button"
+                aria-label="Remove image"
+                title="Remove image"
+                className="absolute top-1 right-1 bg-white/80 hover:bg-white text-slate-500  p-1 rounded-full shadow"
+                onClick={() => setRemovedExistingImage(true)}
+              >
+                <span className="sr-only">Remove image</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           )}
         </div>

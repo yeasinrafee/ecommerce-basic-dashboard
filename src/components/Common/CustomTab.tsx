@@ -40,7 +40,7 @@ const CustomTab = ({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className={cn("flex flex-wrap gap-2", tabListClassName)}>
+      <div className={cn("flex flex-wrap", tabListClassName)}>
         {tabs.map((tab) => {
           const isActive = tab.id === current.id;
           return (
@@ -49,9 +49,9 @@ const CustomTab = ({
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
+                "px-4 py-2 text-sm font-semibold transition-colors",
                 isActive
-                  ? "bg-slate-900 text-white"
+                  ? "bg-brand-primary text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200",
                 tabButtonClassName,
               )}
