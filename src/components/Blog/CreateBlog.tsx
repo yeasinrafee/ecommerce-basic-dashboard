@@ -50,6 +50,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const [category, setCategory] = React.useState(defaultValues?.category ?? "")
   const [tags, setTags] = React.useState<string[]>(defaultValues?.tags ?? [])
   const [imageFiles, setImageFiles] = React.useState<any[]>([])
+  const [isEditorProcessing, setIsEditorProcessing] = React.useState(false)
   const categoryForm = useForm<{ category: string }>({ defaultValues: { category: defaultValues?.category ?? "" } });
   const categoriesQuery = useAllCategories();
   const categories = categoriesQuery.data ?? [];
@@ -79,6 +80,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
             setShortDescription={setShortDescription}
             content={content}
             setContent={setContent}
+            onEditorProcessingChange={setIsEditorProcessing}
           />
         )
       },
@@ -121,7 +123,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   }
 
   const handleSave = async () => {
-    if (isSaving) return;
+    if (isSaving || isEditorProcessing) return;
 
     const isEdit = !!defaultValues?.id;
 
@@ -263,7 +265,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         {formInner}
 
         <div className="flex gap-2 mt-6">
-          <CustomButton loading={isSaving} disabled={isSaving} onClick={handleSave}>Save Blog</CustomButton>
+          <CustomButton loading={isSaving} disabled={isSaving || isEditorProcessing} onClick={handleSave}>Save Blog</CustomButton>
         </div>
       </div>
     )
@@ -277,7 +279,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
       description={defaultValues ? "Edit the blog post details" : "Create a new blog post"}
       footer={
         <div className="flex gap-2">
-          <CustomButton loading={isSaving} disabled={isSaving} onClick={handleSave}>Save Blog</CustomButton>
+          <CustomButton loading={isSaving} disabled={isSaving || isEditorProcessing} onClick={handleSave}>Save Blog</CustomButton>
         </div>
       }
     >

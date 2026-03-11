@@ -12,6 +12,7 @@ export interface BlogDetailsProps {
   setShortDescription: (value: string) => void
   content: string
   setContent: (value: string) => void
+  onEditorProcessingChange?: (processing: boolean) => void
 }
 
 const Blogdetails: React.FC<BlogDetailsProps> = ({
@@ -23,6 +24,7 @@ const Blogdetails: React.FC<BlogDetailsProps> = ({
   setShortDescription,
   content,
   setContent,
+  onEditorProcessingChange,
 }) => {
   return (
     <>
@@ -40,7 +42,7 @@ const Blogdetails: React.FC<BlogDetailsProps> = ({
 
       <div>
         <div className="text-sm font-semibold text-slate-700 mb-2">Content</div>
-        <CustomRichTextEditor value={content} onChange={setContent} />
+        <CustomRichTextEditor value={content} onChange={setContent} onProcessingChange={onEditorProcessingChange} />
       </div>
      </div>
     </>
