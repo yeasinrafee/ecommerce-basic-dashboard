@@ -13,8 +13,6 @@ import RightSection, { RightSectionData } from "./ProductForm/RightSection";
 import { useAllCategories } from "@/hooks/product-category.api";
 import { useAllTags } from "@/hooks/product-tag.api";
 
-// categories and tags will be loaded from backend via hooks
-
 const brandOptions = [
   { label: "Arwa Signature", value: "arwa-signature" },
   { label: "Aurora Studio", value: "aurora-studio" },
