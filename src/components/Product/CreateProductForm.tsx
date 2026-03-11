@@ -10,31 +10,10 @@ import Attributes, { AttributesData, AdditionalInfo as AdditionalInfoType } from
 import AdditionalInfo from "./ProductForm/AdditionalInfo";
 import Seo, { SeoData } from "./ProductForm/Seo";
 import RightSection, { RightSectionData } from "./ProductForm/RightSection";
+import { useAllCategories } from "@/hooks/product-category.api";
+import { useAllTags } from "@/hooks/product-tag.api";
 
-const categoriesList = [
-  "Electronics",
-  "Clothing",
-  "Home",
-  "Beauty",
-  "Sports",
-  "Books",
-  "Accessories",
-  "Outdoor",
-  "Wellness",
-];
-
-const tagList = [
-  "New Arrival",
-  "Best Seller",
-  "Limited Edition",
-  "Eco Friendly",
-  "Gift Item",
-  "Personalized",
-  "Trending",
-  "Studio Pick",
-  "Preorder",
-  "Clearance",
-];
+// categories and tags will be loaded from backend via hooks
 
 const brandOptions = [
   { label: "Arwa Signature", value: "arwa-signature" },
@@ -84,6 +63,13 @@ export default function CreateProductForm() {
   });
 
   const selectedDiscountType = watch("discountType");
+
+  // fetch categories and tags from backend
+  const { data: productCategories } = useAllCategories();
+  const { data: productTags } = useAllTags();
+
+  const categoriesList = React.useMemo(() => productCategories?.map((c) => c.name) ?? [], [productCategories]);
+  const tagList = React.useMemo(() => productTags?.map((t) => t.name) ?? [], [productTags]);
 
   const [productName, setProductName] = React.useState("");
   const [shortDescription, setShortDescription] = React.useState("");
