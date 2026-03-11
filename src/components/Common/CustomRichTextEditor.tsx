@@ -103,6 +103,7 @@ export default function CustomRichTextEditor({ value, onChange }: EditorProps) {
       onChange(editor.getHTML());
     },
     immediatelyRender: false,
+    shouldRerenderOnTransaction: true,
   });
 
   React.useEffect(() => {
