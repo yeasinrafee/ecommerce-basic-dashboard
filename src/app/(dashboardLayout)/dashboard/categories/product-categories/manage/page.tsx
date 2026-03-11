@@ -1,10 +1,10 @@
 import React from 'react'
-import ManageCategories from '@/components/Category/ManageCategories'
+import ManageProductCategories from '@/components/Category/ManageProductCategories'
 
 const Page = () => {
   return (
     <div className="p-4">
-      <ManageCategories kind="product" />
+      <ManageProductCategories />
     </div>
   )
 }

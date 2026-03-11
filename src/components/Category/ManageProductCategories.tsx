@@ -16,11 +16,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import * as productApi from "@/hooks/product-category.api"
-import * as blogApi from "@/hooks/blog-category.api"
 import type { Category } from "@/hooks/product-category.api"
 import { initialsPlaceholder } from "@/utils/image-placeholder";
 
-export default function ManageCategories({ kind = 'product' }: { kind?: 'product' | 'blog' }) {
+export default function ManageProductCategories() {
   const [modalOpen, setModalOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Category | null>(null)
   const [page, setPage] = React.useState(1)
@@ -39,7 +38,7 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
     return () => clearTimeout(handle)
   }, [searchInput])
 
-  const api = kind === 'blog' ? blogApi : productApi
+  const api = productApi
 
   const categoriesQuery = api.usePaginatedCategories(page, limit, searchTerm)
   const { data, isLoading, error } = categoriesQuery
@@ -98,7 +97,7 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
       {
         header: "Category",
         cell: (row) => {
-          // Some category types (blog/product) include an `image` field
+          // product categories include an `image` field
           const image = (row as any).image ?? null;
           const { initials, backgroundColor } = initialsPlaceholder(row.name ?? "");
 
@@ -122,25 +121,20 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
           )
         },
       },
-    ];
-
-    if (kind === 'product') {
-      base.push(
-        {
-          header: "Subcategories",
-          cell: (row) => {
-            const subs = (row as any).subCategories as Category[] | undefined;
-            if (!subs || subs.length === 0) return "-";
-            return subs.map((s) => s.name).join(" - ");
-          }
-        },
-        {
-          header: "Subcategory Count",
-          cell: (row) => (row as any).subCategories?.length ?? 0,
-          align: "center",
+      {
+        header: "Subcategories",
+        cell: (row) => {
+          const subs = (row as any).subCategories as Category[] | undefined;
+          if (!subs || subs.length === 0) return "-";
+          return subs.map((s) => s.name).join(" - ");
         }
-      );
-    }
+      },
+      {
+        header: "Subcategory Count",
+        cell: (row) => (row as any).subCategories?.length ?? 0,
+        align: "center",
+      }
+    ];
 
     base.push({
       header: "Products",
@@ -149,11 +143,11 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
     });
 
     return base;
-  }, [kind])
+  }, [])
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-medium">{kind === 'blog' ? 'Manage Blog Categories' : 'Manage Product Categories'}</h2>
+      <h2 className="mb-4 text-lg font-medium">Manage Product Categories</h2>
 
       <div className="flex items-center justify-between mb-4">
         <SearchBar
@@ -214,7 +208,7 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
         initialParentId={editing ? (editing as any).parentId ?? undefined : newSubParentId}
         submitting={createMutation.isPending || updateMutation.isPending}
         onSubmit={handleSaveCategory}
-        kind={kind}
+        kind="product"
       />
 
       <DeleteModal
