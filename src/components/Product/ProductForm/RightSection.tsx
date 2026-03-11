@@ -6,6 +6,7 @@ import CustomCheckbox from "../../FormFields/CustomCheckbox";
 import CustomFileUpload, {
   CustomFileUploadFile,
 } from "../../FormFields/CustomFileUpload";
+import type { Category } from "@/hooks/product-category.api";
 
 export type UploadedImage = {
   id: string;
@@ -21,7 +22,7 @@ export type RightSectionData = {
 };
 
 interface RightSectionProps {
-  categoriesList: string[];
+  categoriesList: Category[];
   tagList: string[];
   onChange?: (data: RightSectionData) => void;
 }
@@ -36,11 +37,11 @@ const RightSection: React.FC<RightSectionProps> = ({
   const [categories, setCategories] = React.useState<string[]>([]);
   const [tags, setTags] = React.useState<string[]>([]);
 
-  const toggleCategory = (category: string) => {
+  const toggleCategory = (categoryId: string) => {
     setCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((item) => item !== category)
-        : [...prev, category],
+      prev.includes(categoryId)
+        ? prev.filter((item) => item !== categoryId)
+        : [...prev, categoryId],
     );
   };
 
@@ -119,14 +120,30 @@ const RightSection: React.FC<RightSectionProps> = ({
       <div className="rounded-2xl border border-slate-200 bg-background px-4 py-4 shadow-sm">
         <h3 className="text-lg font-semibold text-slate-900">Categories</h3>
         <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
-          {categoriesList.map((category) => (
-            <CustomCheckbox
-              key={category}
-              label={category}
-              checked={categories.includes(category)}
-              onCheckedChange={() => toggleCategory(category)}
-            />
-          ))}
+          {categoriesList
+            .filter((c) => !c.parentId)
+            .map((parent) => (
+              <div key={parent.id}>
+                <CustomCheckbox
+                  key={parent.id}
+                  label={parent.name}
+                  checked={categories.includes(parent.id)}
+                  onCheckedChange={() => toggleCategory(parent.id)}
+                />
+                <div className="ml-4 mt-2 space-y-2">
+                  {categoriesList
+                    .filter((c) => c.parentId === parent.id)
+                    .map((child) => (
+                      <CustomCheckbox
+                        key={child.id}
+                        label={child.name}
+                        checked={categories.includes(child.id)}
+                        onCheckedChange={() => toggleCategory(child.id)}
+                      />
+                    ))}
+                </div>
+              </div>
+            ))}
         </div>
       </div>
 

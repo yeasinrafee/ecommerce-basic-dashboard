@@ -49,6 +49,15 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
 
   const handleCreate = () => {
     setEditing(null)
+    setNewSubParentId(undefined)
+    setModalOpen(true)
+  }
+
+  const [newSubParentId, setNewSubParentId] = React.useState<string | undefined>(undefined)
+
+  const handleCreateSubcategory = (parent: Category) => {
+    setEditing(null)
+    setNewSubParentId(parent.id)
     setModalOpen(true)
   }
 
@@ -65,27 +74,27 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
     setDeleteModalOpen(true)
   }
 
-  const handleSaveCategory = async (payload: FormData | { name: string }) => {
+  const handleSaveCategory = async (payload: FormData | { name: string; parentId?: string }) => {
     if (editing) {
       if (payload instanceof FormData) {
         await updateMutation.mutateAsync({ id: editing.id, payload })
       } else {
-        await updateMutation.mutateAsync({ id: editing.id, payload: payload.name })
-        setEditing((prev) => (prev ? { ...prev, name: payload.name } : prev))
+        await updateMutation.mutateAsync({ id: editing.id, payload: payload as any })
+        setEditing((prev) => (prev ? { ...prev, name: payload.name, parentId: payload.parentId ?? null } : prev))
       }
     } else {
       if (payload instanceof FormData) {
         await createMutation.mutateAsync(payload)
       } else {
-        await createMutation.mutateAsync(payload.name)
+        await createMutation.mutateAsync(payload as any)
       }
     }
 
     setModalOpen(false)
   }
 
-  const columns = React.useMemo<Column<Category>[]>(
-    () => [
+  const columns = React.useMemo<Column<Category>[]>(() => {
+    const base: Column<Category>[] = [
       {
         header: "Category",
         cell: (row) => {
@@ -113,14 +122,34 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
           )
         },
       },
-      {
-        header: "Products",
-        cell: () => "-",
-        align: "center",
-      },
-    ],
-    [],
-  )
+    ];
+
+    if (kind === 'product') {
+      base.push(
+        {
+          header: "Subcategories",
+          cell: (row) => {
+            const subs = (row as any).subCategories as Category[] | undefined;
+            if (!subs || subs.length === 0) return "-";
+            return subs.map((s) => s.name).join(" - ");
+          }
+        },
+        {
+          header: "Subcategory Count",
+          cell: (row) => (row as any).subCategories?.length ?? 0,
+          align: "center",
+        }
+      );
+    }
+
+    base.push({
+      header: "Products",
+      cell: () => "-",
+      align: "center",
+    });
+
+    return base;
+  }, [kind])
 
   return (
     <div>
@@ -157,6 +186,9 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleCreateSubcategory(cat)}>
+                  Create Subcategory
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleEdit(cat)}>
                   Edit
                 </DropdownMenuItem>
@@ -174,10 +206,15 @@ export default function ManageCategories({ kind = 'product' }: { kind?: 'product
 
       <CreateCategory
         open={modalOpen}
-        onOpenChange={setModalOpen}
+        onOpenChange={(v) => {
+          setModalOpen(v);
+          if (!v) setNewSubParentId(undefined);
+        }}
         defaultValues={editing ? { name: editing.name } : undefined}
+        initialParentId={editing ? (editing as any).parentId ?? undefined : newSubParentId}
         submitting={createMutation.isPending || updateMutation.isPending}
         onSubmit={handleSaveCategory}
+        kind={kind}
       />
 
       <DeleteModal

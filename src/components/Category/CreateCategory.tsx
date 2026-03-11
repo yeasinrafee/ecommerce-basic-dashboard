@@ -21,6 +21,8 @@ interface Props {
   defaultValues?: Partial<FormSchema>
   onSubmit?: (data: FormSchema | FormData) => Promise<void> | void
   submitting?: boolean
+  kind?: 'product' | 'blog'
+  initialParentId?: string | null
 }
 
 export default function CreateCategory({
@@ -29,6 +31,8 @@ export default function CreateCategory({
   defaultValues,
   onSubmit,
   submitting = false,
+  kind = 'product',
+  initialParentId,
 }: Props) {
   const isEdit = Boolean(defaultValues && defaultValues.name)
 
@@ -56,9 +60,13 @@ export default function CreateCategory({
         const formData = new FormData()
         formData.append("name", data.name)
         formData.append("image", uploadedFiles[0].file)
+        const parentId = initialParentId ?? (defaultValues as any)?.parentId;
+        if (parentId) formData.append("parentId", parentId)
         await onSubmit(formData as any)
       } else {
-        await onSubmit(data)
+        const parentId = initialParentId ?? (defaultValues as any)?.parentId;
+        const payload = parentId ? { ...data, parentId } : data;
+        await onSubmit(payload as any)
       }
     }
     reset({ name: "" });
@@ -88,6 +96,7 @@ export default function CreateCategory({
             error={errors.name?.message}
             requiredMark
           />
+          {/* Parent selection removed — use "Create Subcategory" action in list to create subcategories */}
           <div>
             <label className="block mb-2 text-sm font-medium">Image</label>
             {showExistingImage ? (

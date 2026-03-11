@@ -68,7 +68,7 @@ export default function CreateProductForm() {
   const { data: productCategories } = useAllCategories();
   const { data: productTags } = useAllTags();
 
-  const categoriesList = React.useMemo(() => productCategories?.map((c) => c.name) ?? [], [productCategories]);
+  const categoriesList = React.useMemo(() => productCategories ?? [], [productCategories]);
   const tagList = React.useMemo(() => productTags?.map((t) => t.name) ?? [], [productTags]);
 
   const [productName, setProductName] = React.useState("");
