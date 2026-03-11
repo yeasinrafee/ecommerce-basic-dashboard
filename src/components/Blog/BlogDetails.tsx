@@ -29,19 +29,23 @@ const Blogdetails: React.FC<BlogDetailsProps> = ({
   return (
     <>
      <div className="space-y-4">
-         <CustomInput label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <CustomInput label="Title" requiredMark value={title} onChange={(e) => setTitle(e.target.value)} />
 
-      <CustomInput label="Author" value={author} onChange={(e) => setAuthor(e.target.value)} />
+      <CustomInput label="Author" requiredMark value={author} onChange={(e) => setAuthor(e.target.value)} />
 
       <CustomTextArea
         label="Short Description"
+        requiredMark
         value={shortDescription}
         onChange={(e) => setShortDescription(e.target.value)}
         className="min-h-24"
       />
 
       <div>
-        <div className="text-sm font-semibold text-slate-700 mb-2">Content</div>
+        <div className="text-sm font-semibold text-slate-700 mb-2">
+          Content
+          <span className="ml-1 text-destructive" aria-hidden="true">*</span>
+        </div>
         <CustomRichTextEditor value={content} onChange={setContent} onProcessingChange={onEditorProcessingChange} />
       </div>
      </div>

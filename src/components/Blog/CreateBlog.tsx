@@ -65,6 +65,17 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const [removedExistingImage, setRemovedExistingImage] = React.useState(false);
   const [seoData, setSeoData] = React.useState({ metaTitle: '', metaDescription: '', seoKeywords: [] as string[] });
 
+  const hasImage = imageFiles.length > 0 || (!!defaultValues?.image && !removedExistingImage);
+  const isFormValid = Boolean(
+    (title ?? '').toString().trim() &&
+      (author ?? '').toString().trim() &&
+      (shortDescription ?? '').toString().trim() &&
+      (content ?? '').toString().trim() &&
+      (category ?? '') &&
+      Array.isArray(tags) && tags.length > 0 &&
+      hasImage
+  );
+
   const tabItems: CustomTabItem[] = React.useMemo(() => {
     const items: CustomTabItem[] = [
       {
@@ -208,7 +219,10 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
 
       <div className="md:col-span-1 space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">Feature Image</label>
+          <label className="block text-sm font-medium mb-2">
+            Feature Image
+            <span className="ml-1 text-destructive" aria-hidden="true">*</span>
+          </label>
           <CustomFileUpload maxFiles={1} onFilesChange={(f) => setImageFiles(f)} />
           {defaultValues?.image && imageFiles.length === 0 && !removedExistingImage && (
             <div className="mt-3 relative inline-block">
@@ -230,20 +244,26 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         </div>
 
         <div>
-            <CustomSelect<{ category: string }>
+          <label className="block text-sm font-medium mb-2">
+            Category
+            <span className="ml-1 text-destructive" aria-hidden="true">*</span>
+          </label>
+          <CustomSelect<{ category: string }>
             name="category"
             control={categoryForm.control}
-            label="Category"
             placeholder="Select category"
             options={categoryOptions}
             onChangeCallback={(v: string) => setCategory(v)}
-              triggerClassName="w-full rounded-md border px-3 py-2 bg-background"
+            triggerClassName="w-full rounded-md border px-3 py-2 bg-background"
             disabled={categoriesQuery.isLoading}
           />
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-background px-4 py-4 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-900">Tags</h3>
+          <h3 className="text-lg font-semibold text-slate-900">
+            Tags
+            <span className="ml-1 text-destructive" aria-hidden="true">*</span>
+          </h3>
           <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
             {tagList.map((t) => (
               <CustomCheckbox key={t.id} label={t.name} checked={tags.includes(t.id)} onCheckedChange={() => toggleTag(t.id)} />
@@ -265,7 +285,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         {formInner}
 
         <div className="flex gap-2 mt-6">
-          <CustomButton loading={isSaving} disabled={isSaving || isEditorProcessing} onClick={handleSave}>Save Blog</CustomButton>
+          <CustomButton loading={isSaving} disabled={!isFormValid || isSaving || isEditorProcessing} onClick={handleSave}>Save Blog</CustomButton>
         </div>
       </div>
     )
@@ -279,7 +299,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
       description={defaultValues ? "Edit the blog post details" : "Create a new blog post"}
       footer={
         <div className="flex gap-2">
-          <CustomButton loading={isSaving} disabled={isSaving || isEditorProcessing} onClick={handleSave}>Save Blog</CustomButton>
+          <CustomButton loading={isSaving} disabled={!isFormValid || isSaving || isEditorProcessing} onClick={handleSave}>Save Blog</CustomButton>
         </div>
       }
     >

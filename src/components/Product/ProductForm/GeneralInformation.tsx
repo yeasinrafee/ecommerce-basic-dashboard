@@ -24,6 +24,14 @@ interface GeneralInformationProps {
   setStockQuantity: (value: number | null) => void;
   sku: string;
   setSku: (value: string) => void;
+  weight: number | null;
+  setWeight: (value: number | null) => void;
+  lengthCm: number | null;
+  setLengthCm: (value: number | null) => void;
+  widthCm: number | null;
+  setWidthCm: (value: number | null) => void;
+  heightCm: number | null;
+  setHeightCm: (value: number | null) => void;
   control: Control<any>;
   discountOptions: Option[];
   stockStatusOptions: Option[];
@@ -44,6 +52,14 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
   setStockQuantity,
   sku,
   setSku,
+  weight,
+  setWeight,
+  lengthCm,
+  setLengthCm,
+  widthCm,
+  setWidthCm,
+  heightCm,
+  setHeightCm,
   control,
   discountOptions,
   stockStatusOptions,
@@ -131,6 +147,49 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           value={sku}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSku(event.target.value)}
         />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <CustomInput
+          label="Weight (grams)"
+          type="number"
+          value={weight === null ? "" : weight}
+          onValueChange={(value) => setWeight(value as number | null)}
+          placeholder="0"
+          min={0}
+        />
+
+        <div>
+          {/* <label className="block text-sm font-medium text-slate-700">
+            Dimensions (cm)
+          </label> */}
+          <div className="mt-1 grid grid-cols-3 gap-2">
+            <CustomInput
+              label="Length"
+              type="number"
+              value={lengthCm === null ? "" : lengthCm}
+              onValueChange={(value) => setLengthCm(value as number | null)}
+              placeholder="0"
+              min={0}
+            />
+            <CustomInput
+              label="Width"
+              type="number"
+              value={widthCm === null ? "" : widthCm}
+              onValueChange={(value) => setWidthCm(value as number | null)}
+              placeholder="0"
+              min={0}
+            />
+            <CustomInput
+              label="Height"
+              type="number"
+              value={heightCm === null ? "" : heightCm}
+              onValueChange={(value) => setHeightCm(value as number | null)}
+              placeholder="0"
+              min={0}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

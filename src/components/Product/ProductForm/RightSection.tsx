@@ -38,11 +38,24 @@ const RightSection: React.FC<RightSectionProps> = ({
   const [tags, setTags] = React.useState<string[]>([]);
 
   const toggleCategory = (categoryId: string) => {
-    setCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((item) => item !== categoryId)
-        : [...prev, categoryId],
-    );
+    setCategories((prev) => {
+      const isSelected = prev.includes(categoryId);
+      const category = categoriesList.find((c) => c.id === categoryId);
+      if (!category) {
+        return isSelected ? prev.filter((item) => item !== categoryId) : [...prev, categoryId];
+      }
+
+      if (isSelected) {
+        // Only remove the clicked category — do not affect parent/children
+        return prev.filter((item) => item !== categoryId);
+      }
+
+      if (category.parentId) {
+        return prev.includes(category.parentId) ? [...prev, categoryId] : [...prev, category.parentId, categoryId];
+      }
+
+      return [...prev, categoryId];
+    });
   };
 
   const toggleTag = (tag: string) => {
@@ -116,7 +129,6 @@ const RightSection: React.FC<RightSectionProps> = ({
         </div>
       </div>
 
-      {/* categories and tags below images */}
       <div className="rounded-2xl border border-slate-200 bg-background px-4 py-4 shadow-sm">
         <h3 className="text-lg font-semibold text-slate-900">Categories</h3>
         <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">

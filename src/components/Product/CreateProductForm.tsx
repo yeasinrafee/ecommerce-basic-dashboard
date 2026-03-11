@@ -79,6 +79,10 @@ export default function CreateProductForm() {
   const [discountEnd, setDiscountEnd] = React.useState<Date | null>(null);
   const [stockQuantity, setStockQuantity] = React.useState<number | null>(null);
   const [sku, setSku] = React.useState("");
+  const [weight, setWeight] = React.useState<number | null>(null);
+  const [lengthCm, setLengthCm] = React.useState<number | null>(null);
+  const [widthCm, setWidthCm] = React.useState<number | null>(null);
+  const [heightCm, setHeightCm] = React.useState<number | null>(null);
 
   const [rightData, setRightData] = React.useState<RightSectionData>({
     mainImage: null,
@@ -115,6 +119,14 @@ export default function CreateProductForm() {
           setStockQuantity={setStockQuantity}
           sku={sku}
           setSku={setSku}
+          weight={weight}
+          setWeight={setWeight}
+          lengthCm={lengthCm}
+          setLengthCm={setLengthCm}
+          widthCm={widthCm}
+          setWidthCm={setWidthCm}
+          heightCm={heightCm}
+          setHeightCm={setHeightCm}
           control={control}
           discountOptions={discountOptions}
           stockStatusOptions={stockStatusOptions}
@@ -183,7 +195,6 @@ export default function CreateProductForm() {
           </div>
         </div>
 
-        {/* right column: moved into dedicated component */}
         <div className="col-span-5">
           <RightSection
             categoriesList={categoriesList}
