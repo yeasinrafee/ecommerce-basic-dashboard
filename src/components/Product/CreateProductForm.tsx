@@ -283,6 +283,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
   const [additionalResetKey, setAdditionalResetKey] = React.useState(0);
   const [seoResetKey, setSeoResetKey] = React.useState(0);
   const [seoData, setSeoData] = React.useState<SeoData>(initialSeoState);
+  const [isEditorProcessing, setIsEditorProcessing] = React.useState(false);
 
   const selectedDiscountType = watch("discountType");
   const brandValue = watch("brand");
@@ -597,7 +598,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
   // In edit mode, existing main image counts as having a main image
   const hasMainImage = !!rightData.mainImage || !!rightData.mainImageExistingUrl;
   const submitDisabled =
-    !isValid || !hasMainImage || mutationPending || isSubmitting;
+    !isValid || !hasMainImage || mutationPending || isSubmitting || isEditorProcessing;
 
   const normalizeAttributesForSubmit = () =>
     attributesData.attributes.map((attribute) => ({
@@ -836,6 +837,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
             brandOptions={brandOptions}
             control={control}
             isEditMode={isEditMode}
+            onEditorProcessingChange={setIsEditorProcessing}
           />
 
           <div className="rounded-2xl border border-slate-200 bg-background px-6 py-6 shadow-sm">

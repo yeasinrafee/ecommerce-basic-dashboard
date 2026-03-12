@@ -62,7 +62,7 @@ export default function ManageBlogs() {
 
   const columns = React.useMemo<Column<any>[]>(
     () => [
-      { header: "Image", cell: (row) => row.image ? <Image src={row.image} alt="" width={60} height={40} className="object-cover" /> : null },
+      { header: "Image", cell: (row) => row.image ? <Image src={row.image} alt="" width={60} height={40} className="object-cover size-[60px]" /> : null },
       { header: "Title", accessor: "title" },
       { header: "Author", accessor: "authorName" },
       { header: "Category", cell: (row) => (row.category?.name || "-") },

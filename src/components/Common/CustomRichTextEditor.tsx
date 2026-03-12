@@ -73,9 +73,12 @@ export default function CustomRichTextEditor({ value, onChange, onProcessingChan
       }
     >
   >({});
+  const pendingDeletionsRef = React.useRef<Record<string, Promise<any>>>({});
   const processingStateRef = React.useRef(false);
   const reportProcessingState = React.useCallback(() => {
-    const hasPending = Object.keys(pendingUploadsRef.current).length > 0;
+    const hasPending =
+      Object.keys(pendingUploadsRef.current).length > 0 ||
+      Object.keys(pendingDeletionsRef.current).length > 0;
     if (processingStateRef.current === hasPending) {
       return;
     }
@@ -148,10 +151,21 @@ export default function CustomRichTextEditor({ value, onChange, onProcessingChan
             }
 
             const pid = srcToPublicIdRef.current.get(s);
-            // fire and forget: if we have a publicId use it, otherwise send the URL and let server derive the publicId
-            void deleteUploadedImage(pid ?? s).catch((err) =>
-              console.warn("Failed to cleanup removed editor image", err),
-            );
+            // track deletion so callers can know editor is processing
+            try {
+              const deleteKey = `del:${pid ?? s}`;
+              const delPromise = deleteUploadedImage(pid ?? s)
+                .catch((err) => console.warn("Failed to cleanup removed editor image", err))
+                .finally(() => {
+                  delete pendingDeletionsRef.current[deleteKey];
+                  reportProcessingState();
+                });
+              pendingDeletionsRef.current[deleteKey] = delPromise;
+              reportProcessingState();
+            } catch (err) {
+              console.warn("Failed to initiate deletion for removed editor image", err);
+            }
+
             if (pid) srcToPublicIdRef.current.delete(s);
           }
         }
@@ -228,9 +242,19 @@ export default function CustomRichTextEditor({ value, onChange, onProcessingChan
             if (pending && pending.cancelled) {
               // user removed the temp image before upload finished; delete the uploaded asset
               if (publicId) {
-                void deleteUploadedImage(publicId).catch((err) =>
-                  console.warn("Failed to cleanup orphaned upload", err),
-                );
+                try {
+                  const deleteKey = `del:${publicId}`;
+                  const delPromise = deleteUploadedImage(publicId)
+                    .catch((err) => console.warn("Failed to cleanup orphaned upload", err))
+                    .finally(() => {
+                      delete pendingDeletionsRef.current[deleteKey];
+                      reportProcessingState();
+                    });
+                  pendingDeletionsRef.current[deleteKey] = delPromise;
+                  reportProcessingState();
+                } catch (err) {
+                  console.warn("Failed to schedule deletion for orphaned upload", err);
+                }
               }
               try {
                 URL.revokeObjectURL(tempUrl);

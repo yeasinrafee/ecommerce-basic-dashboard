@@ -21,6 +21,7 @@ interface MainInformationProps {
   brandOptions: BrandOption[];
   control: Control<any>;
   isEditMode?: boolean;
+  onEditorProcessingChange?: (processing: boolean) => void;
 }
 
 const MainInformation: React.FC<MainInformationProps> = ({
@@ -33,6 +34,7 @@ const MainInformation: React.FC<MainInformationProps> = ({
   brandOptions,
   control,
   isEditMode = false,
+  onEditorProcessingChange,
 }) => {
   return (
     <div className="rounded-2xl border border-slate-200 bg-background px-6 py-6 shadow-sm">
@@ -72,7 +74,7 @@ const MainInformation: React.FC<MainInformationProps> = ({
             Description
             <span className="ml-1 text-destructive">*</span>
           </div>
-          <CustomRichTextEditor value={description} onChange={setDescription} />
+          <CustomRichTextEditor value={description} onChange={setDescription} onProcessingChange={onEditorProcessingChange} />
         </div>
       </div>
     </div>
