@@ -12,7 +12,7 @@ import Seo, { SeoData } from "./ProductForm/Seo";
 import RightSection, { RightSectionData } from "./ProductForm/RightSection";
 import { useAllCategories } from "@/hooks/product-category.api";
 import { useAllTags } from "@/hooks/product-tag.api";
-import { useAllBrands, useCreateBrand, Brand } from "@/hooks/brand.api";
+import { useAllBrands, Brand } from "@/hooks/brand.api";
 
 const discountOptions = [
   { label: "None", value: "NONE" },
@@ -59,7 +59,6 @@ export default function CreateProductForm() {
   const { data: productCategories } = useAllCategories();
   const { data: productTags } = useAllTags();
   const { data: allBrands } = useAllBrands();
-  const createBrandMutation = useCreateBrand();
 
   const brandOptions = React.useMemo(() => {
     return (allBrands ?? []).map((b: Brand) => ({ label: b.name, value: b.id }));
@@ -241,16 +240,6 @@ export default function CreateProductForm() {
             description={description}
             setDescription={setDescription}
             brandOptions={brandOptions}
-            onCreateBrand={(name: string) =>
-              createBrandMutation.mutate(name, {
-                onSuccess: (res) => {
-                  try {
-                    // set newly created brand as selected
-                    setValue("brand", res.payload.id);
-                  } catch (e) {}
-                },
-              })
-            }
             control={control}
           />
 
