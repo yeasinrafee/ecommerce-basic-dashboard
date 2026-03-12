@@ -67,12 +67,28 @@ const ManageProduct: React.FC = () => {
       { header: "Brand", cell: (row) => row.brand?.name || "-" },
       { header: "Categories", cell: (row) => {
           if (!row.categories || !row.categories.length) return "-";
-          return row.categories.map((c: any) => c.category?.name || "").filter((n: string) => !!n).join(" - ");
+          return (
+            <div className="truncate w-32">
+              {row.categories.map((c: any) => c.category?.name || "").filter((n: string) => !!n).join(" - ")}
+            </div>
+          );
         }
       },
       { header: "Tags", cell: (row) => {
           if (!row.tags || !row.tags.length) return "-";
-          return row.tags.map((t: any) => t.tag?.name || "").filter((n: string) => !!n).join(" - ");
+          return (
+            <div className="truncate w-32">
+              {row.tags.map((t: any) => t.tag?.name || "").filter((n: string) => !!n).join(" - ")}
+            </div>
+          );
+        }
+      },
+      { header: "Discount", cell: (row) => {
+          if (row.discountType && row.discountType !== 'NONE') {
+            const val = row.discountValue != null ? (row.discountType === 'PERCENTAGE_DISCOUNT' ? `${row.discountValue}%` : `${row.discountValue}`) : '';
+            return `${row.discountType.replace(/_/g,' ')} ${val}`.trim();
+          }
+          return '-';
         }
       },
       { header: "Price", cell: (row) => row.finalPrice != null ? `$${row.finalPrice}` : "-" },
