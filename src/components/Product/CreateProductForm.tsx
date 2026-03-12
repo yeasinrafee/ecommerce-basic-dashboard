@@ -2,17 +2,28 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+
 import CustomButton from "../Common/CustomButton";
 import CustomTab, { CustomTabItem } from "../Common/CustomTab";
 import MainInformation from "./ProductForm/MainInformation";
 import GeneralInformation from "./ProductForm/GeneralInformation";
-import Attributes, { AttributesData, AdditionalInfo as AdditionalInfoType } from "./ProductForm/Attributes";
+import Attributes, {
+  AttributesData,
+  AdditionalInfo as AdditionalInfoType,
+} from "./ProductForm/Attributes";
 import AdditionalInfo from "./ProductForm/AdditionalInfo";
 import Seo, { SeoData } from "./ProductForm/Seo";
-import RightSection, { RightSectionData } from "./ProductForm/RightSection";
+import RightSection, {
+  RightSectionData,
+} from "./ProductForm/RightSection";
 import { useAllCategories } from "@/hooks/product-category.api";
 import { useAllTags } from "@/hooks/product-tag.api";
 import { useAllBrands, Brand } from "@/hooks/brand.api";
+import { useCreateProduct } from "@/hooks/product.api";
 
 const discountOptions = [
   { label: "None", value: "NONE" },
@@ -30,57 +41,220 @@ const productStatusOptions = [
   { label: "Active", value: "ACTIVE" },
   { label: "Inactive", value: "INACTIVE" },
 ];
-type FormValues = {
-  discountType: string;
-  brand: string;
-  stockStatus: string;
-  productStatus: string;
+
+const toNumber = (value: unknown) => {
+  if (value === "" || value === null || value === undefined) {
+    return value;
+  }
+  return Number(value);
 };
 
-type UploadedImage = {
-  id: string;
-  name: string;
-  url: string;
+const nullableNumberSchema = z.preprocess(
+  (value) => {
+    if (value === "" || value === null || value === undefined) {
+      return null;
+    }
+    return Number(value);
+  },
+  z.number().nullable(),
+);
+
+const nullablePositiveNumberSchema = z.preprocess(
+  (value) => {
+    if (value === "" || value === null || value === undefined) {
+      return null;
+    }
+    return Number(value);
+  },
+  z.number().positive().nullable(),
+);
+
+const nullableStringSchema = z.preprocess(
+  (value) => {
+    if (value === "" || value === null || value === undefined) {
+      return null;
+    }
+    return String(value).trim();
+  },
+  z.string().nullable(),
+);
+
+const nullableDateStringSchema = z.preprocess(
+  (value) => {
+    if (value === "" || value === null || value === undefined) {
+      return null;
+    }
+    return String(value);
+  },
+  z.string().nullable(),
+);
+
+const createProductSchema = z
+  .object({
+    name: z.string().trim().min(1, "Product name is required"),
+    shortDescription: nullableStringSchema,
+    description: z.string().trim().min(1, "Description is required"),
+    basePrice: z.preprocess(toNumber, z.number().nonnegative()),
+    discountType: z.enum(["NONE", "FLAT_DISCOUNT", "PERCENTAGE_DISCOUNT"]),
+    discountValue: nullableNumberSchema,
+    discountStartDate: nullableDateStringSchema,
+    discountEndDate: nullableDateStringSchema,
+    stock: z.preprocess(toNumber, z.number().int().nonnegative()),
+    sku: nullableStringSchema,
+    weight: nullablePositiveNumberSchema,
+    length: nullablePositiveNumberSchema,
+    width: nullablePositiveNumberSchema,
+    height: nullablePositiveNumberSchema,
+    brand: z.string().trim().min(1, "Brand is required"),
+    status: z.enum(["ACTIVE", "INACTIVE"]),
+    stockStatus: z.enum(["IN_STOCK", "LOW_STOCK", "OUT_OF_STOCK"]),
+    categories: z.array(z.string().trim().min(1)).min(1, "At least one category is required"),
+    tags: z.array(z.string().trim().min(1)).min(1, "At least one tag is required"),
+    galleryImagesMeta: z.array(
+      z.object({
+        id: z.string().trim().min(1),
+        name: z.string().trim().min(1),
+      }),
+    ),
+    attributes: z.array(
+      z.object({
+        name: z.string().trim().min(1),
+        pairs: z
+          .array(
+            z.object({
+              value: z.string().trim().min(1),
+              price: z.string().optional(),
+            }),
+          )
+          .min(1),
+        imageId: z.string().trim().optional().nullable(),
+      }),
+    ),
+    additionalInfo: z.array(
+      z.object({
+        name: z.string().trim().min(1),
+        value: z.string().trim().min(1),
+      }),
+    ),
+    seo: z
+      .object({
+        metaTitle: z.string(),
+        metaDescription: z.string(),
+        seoKeywords: z.array(z.string().trim().min(1)),
+      })
+      .nullable(),
+  })
+  .superRefine((data, ctx) => {
+    const hasWeight = data.weight != null;
+    const hasDimensions = data.length != null && data.width != null && data.height != null;
+
+    if (!hasWeight && !hasDimensions) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["weight"],
+        message: "Provide weight or all three dimensions",
+      });
+    }
+
+    const needsDiscountValue = data.discountType !== "NONE";
+    if (needsDiscountValue && (data.discountValue == null || Number.isNaN(data.discountValue))) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["discountValue"],
+        message: "Discount value is required when a discount type is selected",
+      });
+    }
+
+    if (data.discountStartDate && data.discountEndDate) {
+      const start = new Date(data.discountStartDate);
+      const end = new Date(data.discountEndDate);
+      if (end < start) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["discountEndDate"],
+          message: "Discount end date must be after the start date",
+        });
+      }
+    }
+
+    const seoProvided = Boolean(
+      data.seo && (data.seo.metaTitle || data.seo.metaDescription || data.seo.seoKeywords.length > 0),
+    );
+
+    if (seoProvided && !data.seo?.metaTitle) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["seo", "metaTitle"],
+        message: "SEO meta title is required when SEO data is provided",
+      });
+    }
+  });
+
+const defaultFormValues: z.infer<typeof createProductSchema> = {
+  name: "",
+  shortDescription: null,
+  description: "",
+  basePrice: 0,
+  discountType: discountOptions[0].value,
+  discountValue: null,
+  discountStartDate: null,
+  discountEndDate: null,
+  stock: 0,
+  sku: null,
+  weight: null,
+  length: null,
+  width: null,
+  height: null,
+  brand: "",
+  status: productStatusOptions[0].value,
+  stockStatus: stockStatusOptions[0].value,
+  categories: [],
+  tags: [],
+  galleryImagesMeta: [],
+  attributes: [],
+  additionalInfo: [],
+  seo: null,
+};
+
+const initialRightSectionState: RightSectionData = {
+  mainImage: null,
+  galleryImages: [],
+  categories: [],
+  tags: [],
+};
+
+const initialAttributesState: AttributesData = {
+  attributes: [],
+  additionalInfo: [],
+};
+
+const initialSeoState: SeoData = {
+  metaTitle: "",
+  metaDescription: "",
+  seoKeywords: [],
 };
 
 export default function CreateProductForm() {
-  const { control, watch, setValue } = useForm<FormValues>({
-    defaultValues: {
-      discountType: discountOptions[0].value,
-      brand: "",
-      stockStatus: stockStatusOptions[0].value,
-      productStatus: productStatusOptions[0].value,
-    },
+  const router = useRouter();
+  const { mutate: createProduct, isLoading } = useCreateProduct();
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { isValid, isSubmitting },
+  } = useForm<z.infer<typeof createProductSchema>>({
+    resolver: zodResolver(createProductSchema),
+    mode: "onChange",
+    defaultValues: defaultFormValues,
   });
-
-  const selectedDiscountType = watch("discountType");
-
-  // fetch categories and tags from backend
-  const { data: productCategories } = useAllCategories();
-  const { data: productTags } = useAllTags();
-  const { data: allBrands } = useAllBrands();
-
-  const brandOptions = React.useMemo(() => {
-    return (allBrands ?? []).map((b: Brand) => ({ label: b.name, value: b.id }));
-  }, [allBrands]);
-
-  // set default brand when brands load
-  const currentBrand = watch("brand");
-  React.useEffect(() => {
-    if (!currentBrand && brandOptions.length > 0) {
-      setValue("brand", brandOptions[0].value);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [brandOptions]);
-
-  const categoriesList = React.useMemo(() => productCategories ?? [], [productCategories]);
-  const tagList = React.useMemo(() => productTags?.map((t) => t.name) ?? [], [productTags]);
 
   const [productName, setProductName] = React.useState("");
   const [shortDescription, setShortDescription] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [basePrice, setBasePrice] = React.useState<number | null>(null);
-
   const [discountValue, setDiscountValue] = React.useState<number | null>(null);
   const [discountStart, setDiscountStart] = React.useState<Date | null>(null);
   const [discountEnd, setDiscountEnd] = React.useState<Date | null>(null);
@@ -91,71 +265,322 @@ export default function CreateProductForm() {
   const [widthCm, setWidthCm] = React.useState<number | null>(null);
   const [heightCm, setHeightCm] = React.useState<number | null>(null);
 
-  const [rightData, setRightData] = React.useState<RightSectionData>({
-    mainImage: null,
-    galleryImages: [],
-    categories: [],
-    tags: [],
-  });
-  const [attributesData, setAttributesData] = React.useState<AttributesData>({
-    attributes: [],
-    additionalInfo: [],
-  });
-  const [seoData, setSeoData] = React.useState<SeoData>({
-    metaTitle: "",
-    metaDescription: "",
-    seoKeywords: [],
-  });
+  const [rightData, setRightData] = React.useState(initialRightSectionState);
+  const [rightResetKey, setRightResetKey] = React.useState(0);
+  const [attributesData, setAttributesData] = React.useState(initialAttributesState);
+  const [attributesResetKey, setAttributesResetKey] = React.useState(0);
+  const [additionalResetKey, setAdditionalResetKey] = React.useState(0);
+  const [seoResetKey, setSeoResetKey] = React.useState(0);
+  const [seoData, setSeoData] = React.useState<SeoData>(initialSeoState);
 
+  const selectedDiscountType = watch("discountType");
   const brandValue = watch("brand");
   const stockStatusValue = watch("stockStatus");
-  const productStatusValue = watch("productStatus");
+  const productStatusValue = watch("status");
 
-  const isFormValid = React.useMemo(() => {
-    const hasProductName = productName.trim() !== "";
-    const hasDescription = description.trim() !== "";
-    const hasBasePrice = basePrice !== null && !Number.isNaN(Number(basePrice));
-    const hasStockQuantity = stockQuantity !== null && !Number.isNaN(Number(stockQuantity));
-    const hasWeight = weight !== null && !Number.isNaN(Number(weight));
-    const hasLength = lengthCm !== null && !Number.isNaN(Number(lengthCm));
-    const hasWidth = widthCm !== null && !Number.isNaN(Number(widthCm));
-    const hasHeight = heightCm !== null && !Number.isNaN(Number(heightCm));
-    const hasDimensions = hasLength && hasWidth && hasHeight;
-    const hasWeightOrDimensions = hasWeight || hasDimensions;
-    const hasBrand = Boolean(brandValue);
-    const hasStockStatus = Boolean(stockStatusValue);
-    const hasProductStatus = Boolean(productStatusValue);
-    const hasMainImage = rightData.mainImage !== null;
-    const hasCategories = rightData.categories && rightData.categories.length > 0;
-    const hasTags = rightData.tags && rightData.tags.length > 0;
+  const { data: productCategories } = useAllCategories();
+  const { data: productTags } = useAllTags();
+  const { data: allBrands } = useAllBrands();
 
-    return (
-      hasProductName &&
-      hasDescription &&
-      hasBasePrice &&
-      hasStockQuantity &&
-      hasWeightOrDimensions &&
-      hasBrand &&
-      hasStockStatus &&
-      hasProductStatus &&
-      hasMainImage &&
-      hasCategories &&
-      hasTags
+  const brandOptions = React.useMemo(
+    () => (allBrands ?? []).map((brand: Brand) => ({ label: brand.name, value: brand.id })),
+    [allBrands],
+  );
+
+  React.useEffect(() => {
+    if (!brandValue && brandOptions.length > 0) {
+      setValue("brand", brandOptions[0].value, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  }, [brandOptions, brandValue, setValue]);
+
+  const categoriesList = React.useMemo(() => productCategories ?? [], [productCategories]);
+  const tagList = React.useMemo(() => productTags?.map((tag) => tag.name) ?? [], [productTags]);
+
+  const updateMainInformation = (value: string) => {
+    setProductName(value);
+    setValue("name", value, { shouldValidate: true, shouldDirty: true });
+  };
+
+  const updateShortDescription = (value: string) => {
+    setShortDescription(value);
+    setValue("shortDescription", value.trim() === "" ? null : value, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const updateDescription = (value: string) => {
+    setDescription(value);
+    setValue("description", value, { shouldValidate: true, shouldDirty: true });
+  };
+
+  const updateBasePrice = (value: number | null) => {
+    setBasePrice(value);
+    setValue("basePrice", value ?? 0, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const updateDiscountValue = (value: number | null) => {
+    setDiscountValue(value);
+    setValue("discountValue", value, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const updateDiscountStart = (value: Date | null) => {
+    setDiscountStart(value);
+    setValue("discountStartDate", value ? value.toISOString() : null, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const updateDiscountEnd = (value: Date | null) => {
+    setDiscountEnd(value);
+    setValue("discountEndDate", value ? value.toISOString() : null, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const updateStockQuantity = (value: number | null) => {
+    setStockQuantity(value);
+    setValue("stock", value ?? 0, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const updateSku = (value: string) => {
+    setSku(value);
+    setValue("sku", value.trim() === "" ? null : value, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const updateWeight = (value: number | null) => {
+    setWeight(value);
+    setValue("weight", value, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const updateLength = (value: number | null) => {
+    setLengthCm(value);
+    setValue("length", value, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const updateWidth = (value: number | null) => {
+    setWidthCm(value);
+    setValue("width", value, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const updateHeight = (value: number | null) => {
+    setHeightCm(value);
+    setValue("height", value, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const handleRightSectionChange = React.useCallback(
+    (data: RightSectionData) => {
+      setRightData(data);
+      const galleryMeta = data.galleryImages.map((image) => ({ id: image.id, name: image.name }));
+      setValue("categories", data.categories, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      setValue("tags", data.tags, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      setValue("galleryImagesMeta", galleryMeta, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    },
+    [setValue],
+  );
+
+  React.useEffect(() => {
+    setValue("attributes", attributesData.attributes, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }, [attributesData.attributes, setValue]);
+
+  React.useEffect(() => {
+    setValue("additionalInfo", attributesData.additionalInfo, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }, [attributesData.additionalInfo, setValue]);
+
+  React.useEffect(() => {
+    const hasSeoData = Boolean(
+      seoData.metaTitle || seoData.metaDescription || seoData.seoKeywords.length > 0,
     );
-  }, [
-    productName,
-    description,
-    basePrice,
-    stockQuantity,
-    weight,
-    lengthCm,
-    widthCm,
-    heightCm,
-    brandValue,
-    stockStatusValue,
-    productStatusValue,
-    rightData,
-  ]);
+    setValue("seo", hasSeoData ? seoData : null, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }, [seoData, setValue]);
+
+  const handleAttributesChange = React.useCallback(
+    (data: AttributesData) => {
+      setAttributesData((prev) => ({ ...prev, attributes: data.attributes }));
+    },
+    [],
+  );
+
+  const handleAdditionalInfoChange = React.useCallback(
+    (info: AdditionalInfoType[]) => {
+      setAttributesData((prev) => ({ ...prev, additionalInfo: info }));
+    },
+    [],
+  );
+
+  const rightGalleryPreview = React.useMemo(
+    () =>
+      rightData.galleryImages.map((image) => ({
+        id: image.id,
+        name: image.name,
+        url: image.url,
+      })),
+    [rightData.galleryImages],
+  );
+
+  const submitDisabled =
+    !isValid ||
+    !rightData.mainImage ||
+    isLoading ||
+    isSubmitting;
+
+  const normalizeAttributesForSubmit = () =>
+    attributesData.attributes.map((attribute) => ({
+      name: attribute.name.trim(),
+      pairs: attribute.pairs.map((pair) => {
+        const trimmedPrice = pair.price?.trim() ?? "";
+        return {
+          value: pair.value.trim(),
+          price: trimmedPrice === "" ? null : Number(trimmedPrice),
+        };
+      }),
+      imageId: attribute.imageId ?? null,
+    }));
+
+  const normalizeAdditionalInfoForSubmit = () =>
+    attributesData.additionalInfo.map((info) => ({
+      name: info.name.trim(),
+      value: info.value.trim(),
+    }));
+
+  function buildFormData(values: z.infer<typeof createProductSchema>) {
+    const payload = new FormData();
+    payload.append("name", values.name);
+    payload.append("shortDescription", values.shortDescription ?? "");
+    payload.append("description", values.description);
+    payload.append("basePrice", String(values.basePrice));
+    payload.append("discountType", values.discountType);
+    payload.append("discountValue", values.discountValue == null ? "" : String(values.discountValue));
+    payload.append("discountStartDate", values.discountStartDate ?? "");
+    payload.append("discountEndDate", values.discountEndDate ?? "");
+    payload.append("stock", String(values.stock));
+    payload.append("sku", values.sku ?? "");
+    payload.append("weight", values.weight == null ? "" : String(values.weight));
+    payload.append("length", values.length == null ? "" : String(values.length));
+    payload.append("width", values.width == null ? "" : String(values.width));
+    payload.append("height", values.height == null ? "" : String(values.height));
+    payload.append("brandId", values.brand);
+    payload.append("status", values.status);
+    payload.append("stockStatus", values.stockStatus);
+    payload.append("categories", JSON.stringify(values.categories));
+    payload.append("tags", JSON.stringify(values.tags));
+
+    const galleryMeta = rightData.galleryImages.map((image) => ({
+      id: image.id,
+      name: image.name,
+    }));
+    payload.append("galleryImagesMeta", JSON.stringify(galleryMeta));
+    payload.append("attributes", JSON.stringify(normalizeAttributesForSubmit()));
+    payload.append("additionalInfo", JSON.stringify(normalizeAdditionalInfoForSubmit()));
+
+    const hasSeoData = Boolean(
+      seoData.metaTitle || seoData.metaDescription || seoData.seoKeywords.length > 0,
+    );
+    payload.append("seo", JSON.stringify(hasSeoData ? seoData : null));
+
+    payload.append("mainImage", rightData.mainImage!.file);
+    rightData.galleryImages.forEach((image) => payload.append("galleryImages", image.file));
+
+    return payload;
+  }
+
+  const handleSuccess = () => {
+    reset(defaultFormValues);
+    setProductName("");
+    setShortDescription("");
+    setDescription("");
+    setBasePrice(null);
+    setDiscountValue(null);
+    setDiscountStart(null);
+    setDiscountEnd(null);
+    setStockQuantity(null);
+    setSku("");
+    setWeight(null);
+    setLengthCm(null);
+    setWidthCm(null);
+    setHeightCm(null);
+    setRightData(initialRightSectionState);
+    setRightResetKey((prev) => prev + 1);
+    setAttributesData(initialAttributesState);
+    setAttributesResetKey((prev) => prev + 1);
+    setAdditionalResetKey((prev) => prev + 1);
+    setSeoData(initialSeoState);
+    setSeoResetKey((prev) => prev + 1);
+    setValue("categories", [], {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setValue("tags", [], {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setValue("galleryImagesMeta", [], {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    router.push("/dashboard/product/manage");
+  };
+
+  const onSubmit = (values: z.infer<typeof createProductSchema>) => {
+    if (!rightData.mainImage) {
+      toast.error("Main image is required");
+      return;
+    }
+
+    const payload = buildFormData(values);
+    createProduct(payload, {
+      onSuccess: () => {
+        handleSuccess();
+      },
+    });
+  };
 
   const tabItems: CustomTabItem[] = [
     {
@@ -164,26 +589,26 @@ export default function CreateProductForm() {
       content: (
         <GeneralInformation
           basePrice={basePrice}
-          setBasePrice={setBasePrice}
+          setBasePrice={updateBasePrice}
           selectedDiscountType={selectedDiscountType}
           discountValue={discountValue}
-          setDiscountValue={setDiscountValue}
+          setDiscountValue={updateDiscountValue}
           discountStart={discountStart}
-          setDiscountStart={setDiscountStart}
+          setDiscountStart={updateDiscountStart}
           discountEnd={discountEnd}
-          setDiscountEnd={setDiscountEnd}
+          setDiscountEnd={updateDiscountEnd}
           stockQuantity={stockQuantity}
-          setStockQuantity={setStockQuantity}
+          setStockQuantity={updateStockQuantity}
           sku={sku}
-          setSku={setSku}
+          setSku={updateSku}
           weight={weight}
-          setWeight={setWeight}
+          setWeight={updateWeight}
           lengthCm={lengthCm}
-          setLengthCm={setLengthCm}
+          setLengthCm={updateLength}
           widthCm={widthCm}
-          setWidthCm={setWidthCm}
+          setWidthCm={updateWidth}
           heightCm={heightCm}
-          setHeightCm={setHeightCm}
+          setHeightCm={updateHeight}
           control={control}
           discountOptions={discountOptions}
           stockStatusOptions={stockStatusOptions}
@@ -196,15 +621,9 @@ export default function CreateProductForm() {
       label: "Attributes",
       content: (
         <Attributes
-          galleryImages={rightData.galleryImages}
-          onChange={React.useCallback(
-            (data: AttributesData) =>
-              setAttributesData((prev) => ({
-                ...prev,
-                attributes: data.attributes,
-              })),
-            [],
-          )}
+          key={attributesResetKey}
+          galleryImages={rightGalleryPreview}
+          onChange={handleAttributesChange}
         />
       ),
     },
@@ -213,18 +632,17 @@ export default function CreateProductForm() {
       label: "Additional Info",
       content: (
         <AdditionalInfo
-          onChange={React.useCallback(
-            (info: AdditionalInfoType[]) =>
-              setAttributesData((prev) => ({ ...prev, additionalInfo: info })),
-            [],
-          )}
+          key={additionalResetKey}
+          onChange={handleAdditionalInfoChange}
         />
       ),
     },
     {
       id: "seo",
       label: "SEO",
-      content: <Seo onChange={setSeoData} />,
+      content: (
+        <Seo key={seoResetKey} onChange={setSeoData} />
+      ),
     },
   ];
 
@@ -234,11 +652,11 @@ export default function CreateProductForm() {
         <div className="left-section space-y-6 col-span-7">
           <MainInformation
             productName={productName}
-            setProductName={setProductName}
+            setProductName={updateMainInformation}
             shortDescription={shortDescription}
-            setShortDescription={setShortDescription}
+            setShortDescription={updateShortDescription}
             description={description}
-            setDescription={setDescription}
+            setDescription={updateDescription}
             brandOptions={brandOptions}
             control={control}
           />
@@ -254,17 +672,19 @@ export default function CreateProductForm() {
 
         <div className="col-span-5">
           <RightSection
+            key={rightResetKey}
             categoriesList={categoriesList}
             tagList={tagList}
-            onChange={setRightData}
+            onChange={handleRightSectionChange}
           />
         </div>
       </div>
       <div className="w-full flex justify-center py-10">
         <CustomButton
+          type="button"
           className="px-4"
-          onClick={() => console.log("Submit", { productName })}
-          disabled={!isFormValid}
+          onClick={handleSubmit(onSubmit)}
+          disabled={submitDisabled}
         >
           Save Product
         </CustomButton>

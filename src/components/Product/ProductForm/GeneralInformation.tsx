@@ -69,9 +69,9 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
     if (basePrice == null) return "";
     const disc = discountValue ?? 0;
     switch (selectedDiscountType) {
-      case "flat":
+      case "FLAT_DISCOUNT":
         return Math.max(0, basePrice - disc);
-      case "percent":
+      case "PERCENTAGE_DISCOUNT":
         return Math.max(0, basePrice - basePrice * (disc / 100));
       default:
         return basePrice;
@@ -108,15 +108,15 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           label="Discount Type"
           options={discountOptions}
         />
-        <CustomInput
-          label="Discount Value"
-          type="number"
-          value={discountValue === null ? "" : discountValue}
-          onValueChange={(value) => setDiscountValue(value as number | null)}
-          placeholder="0"
-          min={0}
-          disabled={selectedDiscountType === "none"}
-        />
+          <CustomInput
+            label="Discount Value"
+            type="number"
+            value={discountValue === null ? "" : discountValue}
+            onValueChange={(value) => setDiscountValue(value as number | null)}
+            placeholder="0"
+            min={0}
+            disabled={selectedDiscountType === "NONE"}
+          />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -124,13 +124,13 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           label="Discount Start Date"
           value={discountStart}
           onChange={setDiscountStart}
-          disabled={selectedDiscountType === "none"}
+          disabled={selectedDiscountType === "NONE"}
         />
         <CustomDatePicker
           label="Discount End Date"
           value={discountEnd}
           onChange={setDiscountEnd}
-          disabled={selectedDiscountType === "none"}
+          disabled={selectedDiscountType === "NONE"}
         />
       </div>
 

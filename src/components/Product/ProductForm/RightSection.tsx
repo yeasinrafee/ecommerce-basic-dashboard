@@ -8,11 +8,7 @@ import CustomFileUpload, {
 } from "../../FormFields/CustomFileUpload";
 import type { Category } from "@/hooks/product-category.api";
 
-export type UploadedImage = {
-  id: string;
-  name: string;
-  url: string;
-};
+export type UploadedImage = CustomFileUploadFile;
 
 export type RightSectionData = {
   mainImage: UploadedImage | null;
@@ -65,12 +61,12 @@ const RightSection: React.FC<RightSectionProps> = ({
   };
 
   const mapUploads = (items: CustomFileUploadFile[]) =>
-    items.map((file) => ({ id: file.id, name: file.name, url: file.url }));
+    items.map((file) => ({ ...file }));
 
   const handleMainFilesChange = React.useCallback(
     (uploaded: CustomFileUploadFile[]) => {
       const [first] = uploaded;
-      setMainImage(first ? { id: first.id, name: first.name, url: first.url } : null);
+      setMainImage(first ? { ...first } : null);
     },
     [],
   );
