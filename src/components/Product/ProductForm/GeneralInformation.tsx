@@ -147,51 +147,54 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
         <CustomInput
           label="SKU"
           value={sku}
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSku(event.target.value)}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            setSku(event.target.value)
+          }
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <CustomInput
-          label="Weight (grams)"
-          type="number"
-          value={weight === null ? "" : weight}
-          onValueChange={(value) => setWeight(value as number | null)}
-          placeholder="0"
-          min={0}
-        />
+      <div className="">
+        <p className="my-2 text-xs text-slate-500">
+          Either provide weight or all three dimensions (Length, Width, Height).
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <CustomInput
+            label="Weight (grams)"
+            type="number"
+            value={weight === null ? "" : weight}
+            onValueChange={(value) => setWeight(value as number | null)}
+            placeholder="0"
+            min={0}
+          />
 
-        <div>
-          {/* <label className="block text-sm font-medium text-slate-700">
-            Dimensions (cm)
-          </label> */}
-          <div className="mt-1 grid grid-cols-3 gap-2">
-            <CustomInput
-              label="Length"
-              type="number"
-              value={lengthCm === null ? "" : lengthCm}
-              onValueChange={(value) => setLengthCm(value as number | null)}
-              placeholder="0"
-              min={0}
-            />
-            <CustomInput
-              label="Width"
-              type="number"
-              value={widthCm === null ? "" : widthCm}
-              onValueChange={(value) => setWidthCm(value as number | null)}
-              placeholder="0"
-              min={0}
-            />
-            <CustomInput
-              label="Height"
-              type="number"
-              value={heightCm === null ? "" : heightCm}
-              onValueChange={(value) => setHeightCm(value as number | null)}
-              placeholder="0"
-              min={0}
-            />
+          <div>
+            <div className="mt-1 grid grid-cols-3 gap-2">
+              <CustomInput
+                label="Length"
+                type="number"
+                value={lengthCm === null ? "" : lengthCm}
+                onValueChange={(value) => setLengthCm(value as number | null)}
+                placeholder="0"
+                min={0}
+              />
+              <CustomInput
+                label="Width"
+                type="number"
+                value={widthCm === null ? "" : widthCm}
+                onValueChange={(value) => setWidthCm(value as number | null)}
+                placeholder="0"
+                min={0}
+              />
+              <CustomInput
+                label="Height"
+                type="number"
+                value={heightCm === null ? "" : heightCm}
+                onValueChange={(value) => setHeightCm(value as number | null)}
+                placeholder="0"
+                min={0}
+              />
+            </div>
           </div>
-          <p className="mt-2 text-xs text-slate-500">Either provide weight or all three dimensions (Length, Width, Height).</p>
         </div>
       </div>
 
