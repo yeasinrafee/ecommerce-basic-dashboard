@@ -6,7 +6,6 @@ import Table, { type Column } from "@/components/Common/Table";
 import CustomButton from "@/components/Common/CustomButton";
 import DeleteModal from "@/components/Common/DeleteModal";
 import SearchBar from "@/components/FormFields/SearchBar";
-// Modal (view) removed — no longer needed
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
@@ -14,6 +13,17 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { usePaginatedProducts, useDeleteProduct, useUpdateProduct } from "@/hooks/product.api";
 import CustomSelect from "@/components/FormFields/CustomSelect";
+
+const productStatusOptions = [
+  { label: "Active", value: "ACTIVE" },
+  { label: "Inactive", value: "INACTIVE" },
+];
+
+const stockStatusOptions = [
+  { label: "In Stock", value: "IN_STOCK" },
+  { label: "Low Stock", value: "LOW_STOCK" },
+  { label: "Out of Stock", value: "OUT_OF_STOCK" },
+];
 
 const ManageProduct: React.FC = () => {
   const router = useRouter();
@@ -78,42 +88,36 @@ const ManageProduct: React.FC = () => {
 
   const columns = React.useMemo<Column<any>[]>(
     () => [
-      { header: "Image", cell: (row) => row.image ? <Image src={row.image} alt="" width={60} height={60} className="object-cover size-15" /> : null },
+      {
+        header: "Image",
+        cell: (row) =>
+          row.image ? (
+            <Image src={row.image} alt="" width={60} height={60} className="object-cover size-15" />
+          ) : null,
+      },
       { header: "Name", accessor: "name" },
       { header: "Brand", cell: (row) => row.brand?.name || "-" },
-      { header: "Categories", cell: (row) => {
+      {
+        header: "Categories",
+        cell: (row) => {
           if (!row.categories || !row.categories.length) return "-";
           return (
             <div className="truncate w-32">
-              {row.categories.map((c: any) => c.category?.name || "").filter((n: string) => !!n).join(" - ")}
+              {row.categories
+                .map((c: any) => c.category?.name || "")
+                .filter((n: string) => !!n)
+                .join(" - ")}
             </div>
           );
-        }
+        },
       },
-      { header: "Tags", cell: (row) => {
-          if (!row.tags || !row.tags.length) return "-";
-          return (
-            <div className="truncate w-32">
-              {row.tags.map((t: any) => t.tag?.name || "").filter((n: string) => !!n).join(" - ")}
-            </div>
-          );
-        }
-      },
-      { header: "Discount", cell: (row) => {
-          if (row.discountType && row.discountType !== 'NONE') {
-            const val = row.discountValue != null ? (row.discountType === 'PERCENTAGE_DISCOUNT' ? `${row.discountValue}%` : `${row.discountValue}`) : '';
-            return `${row.discountType.replace(/_/g,' ')} ${val}`.trim();
-          }
-          return '-';
-        }
-      },
-      { header: "Price", cell: (row) => row.finalPrice != null ? `$${row.finalPrice}` : "-" },
-      { header: "Stock", accessor: "stock" },
       {
         header: "Status",
         cell: (row) => (
-          <InlineStatusSelect
+          <InlineSelect
             value={row.status || ""}
+            options={productStatusOptions}
+            placeholder="Status"
             onChange={(v) => handleInlineStatusChange(row.id, v)}
           />
         ),
@@ -121,12 +125,16 @@ const ManageProduct: React.FC = () => {
       {
         header: "Stock Status",
         cell: (row) => (
-          <InlineStatusSelect
+          <InlineSelect
             value={row.stockStatus || ""}
+            options={stockStatusOptions}
+            placeholder="Stock Status"
             onChange={(v) => handleInlineStockStatusChange(row.id, v)}
           />
         ),
       },
+      { header: "Price", cell: (row) => (row.finalPrice != null ? `$${row.finalPrice}` : "-") },
+      { header: "Stock", accessor: "stock" },
       // { header: "Created", accessor: "createdAt", cell: (row) => new Date(row.createdAt).toLocaleString() }
     ],
     []
@@ -172,23 +180,32 @@ const ManageProduct: React.FC = () => {
         onConfirm={confirmDelete}
       />
 
-      {/* inline status select component */}
-      
     </div>
   );
 };
 
 export default ManageProduct;
 
-// reusable inline select with built-in debounce for status updates
-function InlineStatusSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const { control, reset } = useForm<{ status: string }>({ defaultValues: { status: value } });
-  const [val, setVal] = React.useState<string>(value);
+interface InlineSelectProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: { label: string; value: string }[];
+  placeholder?: string;
+  triggerClassName?: string;
+}
+
+function InlineSelect({
+  value,
+  onChange,
+  options,
+  placeholder = "Select",
+  triggerClassName,
+}: InlineSelectProps) {
+  const { control, reset } = useForm<{ value: string }>({ defaultValues: { value } });
   const timerRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
-    reset({ status: value });
-    setVal(value);
+    reset({ value });
   }, [value, reset]);
 
   React.useEffect(() => {
@@ -198,7 +215,6 @@ function InlineStatusSelect({ value, onChange }: { value: string; onChange: (v: 
   }, []);
 
   const handleChange = (v: string) => {
-    setVal(v);
     if (timerRef.current) window.clearTimeout(timerRef.current);
     timerRef.current = window.setTimeout(() => {
       onChange(v);
@@ -208,14 +224,14 @@ function InlineStatusSelect({ value, onChange }: { value: string; onChange: (v: 
 
   return (
     <CustomSelect
-      name={"status"}
+      name="value"
       control={control}
-      options={[{ label: "Active", value: "ACTIVE" }, { label: "Inactive", value: "INACTIVE" }]}
-      fieldToValue={(v: any) => v ?? ""}
-      valueToField={(v: string) => v}
+      options={options}
+      fieldToValue={(val: any) => val ?? ""}
+      valueToField={(val: string) => val}
       onChangeCallback={handleChange}
-      placeholder="Status"
-      triggerClassName="w-40"
+      placeholder={placeholder}
+      triggerClassName={triggerClassName ?? "w-40"}
     />
   );
 }
