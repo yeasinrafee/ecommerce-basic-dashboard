@@ -79,10 +79,6 @@ const ManageProduct: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const deleteMutation = useDeleteProduct();
 
-  const handleCreate = () => {
-    router.push("/dashboard/product/create");
-  };
-
   const handleEdit = (item: any) => {
     router.push(`/dashboard/product/create?id=${item.id}`);
   };
@@ -201,7 +197,7 @@ const ManageProduct: React.FC = () => {
             valueToField={(v) => v}
             fieldToValue={(v) => v}
             onChangeCallback={(v: string) => setBulkStatus(v)}
-            placeholder="Bulk Status"
+            placeholder="Status"
             triggerClassName="w-40 min-h-10 bg-background"
           />
           <CustomSelect
@@ -211,7 +207,7 @@ const ManageProduct: React.FC = () => {
             valueToField={(v) => v}
             fieldToValue={(v) => v}
             onChangeCallback={(v: string) => setBulkStockStatus(v)}
-            placeholder="Bulk Stock Status"
+            placeholder="Stock Status"
             triggerClassName="w-44 min-h-10 bg-background"
           />
           <CustomButton
@@ -221,7 +217,6 @@ const ManageProduct: React.FC = () => {
           >
             Update
           </CustomButton>
-          <CustomButton onClick={handleCreate}>Create Product</CustomButton>
         </div>
       </div>
 
