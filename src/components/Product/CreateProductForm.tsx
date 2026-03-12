@@ -114,10 +114,10 @@ const createProductSchema = z
             z.object({
               value: z.string().trim().min(1),
               price: z.string().optional(),
+              imageId: z.string().trim().optional().nullable(),
             }),
           )
           .min(1),
-        imageId: z.string().trim().optional().nullable(),
       }),
     ),
     additionalInfo: z.array(
@@ -492,9 +492,9 @@ export default function CreateProductForm() {
         return {
           value: pair.value.trim(),
           price: trimmedPrice === "" ? null : Number(trimmedPrice),
+          imageId: pair.imageId ?? null,
         };
       }),
-      imageId: attribute.imageId ?? null,
     }));
 
   const normalizeAdditionalInfoForSubmit = () =>

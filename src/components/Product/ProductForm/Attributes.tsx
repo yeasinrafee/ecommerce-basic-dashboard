@@ -9,8 +9,7 @@ import CustomSelect from "../../FormFields/CustomSelect";
 
 export type AttributeRecord = {
   name: string;
-  pairs: { value: string; price: string }[];
-  imageId?: string;
+  pairs: { value: string; price: string; imageId?: string | null }[];
 };
 
 export type AdditionalInfo = { name: string; value: string };
@@ -47,7 +46,13 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [] })
       if (exists) {
         return prev.map((attr) =>
           attr.name === name
-            ? { ...attr, pairs: [...attr.pairs, { value, price }] }
+            ? {
+                ...attr,
+                pairs: [
+                  ...attr.pairs,
+                  { value, price, imageId: selectedGalleryImageId ?? null },
+                ],
+              }
             : attr,
         );
       }
@@ -55,8 +60,7 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [] })
         ...prev,
         {
           name,
-          pairs: [{ value, price }],
-          imageId: selectedGalleryImageId ?? undefined,
+          pairs: [{ value, price, imageId: selectedGalleryImageId ?? null }],
         },
       ];
     });
@@ -129,6 +133,14 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [] })
               );
             })}
           </div>
+          {selectedGalleryImage && (
+            <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+              <span>Image for next value:</span>
+              <span className="truncate font-semibold text-slate-700">
+                {selectedGalleryImage.name}
+              </span>
+            </div>
+          )}
         </div>
       )}
 
@@ -176,53 +188,49 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [] })
       </div>
 
       <div className="space-y-3">
-        {attributes.map((attr) => {
-          const assignedImage = galleryImages.find((img) => img.id === attr.imageId);
-          return (
-            <div
-              key={attr.name}
-              className="rounded-2xl border border-slate-200 p-4 shadow-sm"
-            >
-              <div className="flex flex-col gap-4 md:flex-row">
-                {assignedImage && (
-                  <div className="flex-shrink-0 rounded border border-slate-200 shadow-sm">
-                    <img
-                      src={assignedImage.url}
-                      alt={assignedImage.name}
-                      className="h-20 w-20 rounded object-cover"
-                    />
-                  </div>
-                )}
-                <div className="flex-1 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-slate-700">
-                      {attr.name}
-                    </h3>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {attr.pairs.map((pair, index) => (
-                      <div
-                        key={`${attr.name}-${index}`}
-                        className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm"
+        {attributes.map((attr) => (
+          <div
+            key={attr.name}
+            className="rounded-2xl border border-slate-200 p-4 shadow-sm"
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-700">
+                  {attr.name}
+                </h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {attr.pairs.map((pair, index) => {
+                  const pairImage = galleryImages.find((img) => img.id === pair.imageId);
+                  return (
+                    <div
+                      key={`${attr.name}-${index}`}
+                      className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm"
+                    >
+                      {pairImage && (
+                        <img
+                          src={pairImage.url}
+                          alt={pairImage.name}
+                          className="h-6 w-6 rounded-full object-cover"
+                        />
+                      )}
+                      <span>
+                        {pair.value}
+                        {pair.price ? ` · ${pair.price}` : ""}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeAttributePair(attr.name, index)}
                       >
-                        <span>
-                          {pair.value}
-                          {pair.price ? ` · ${pair.price}` : ""}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeAttributePair(attr.name, index)}
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                        <X size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );
