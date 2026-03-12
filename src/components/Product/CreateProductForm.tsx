@@ -21,21 +21,20 @@ const brandOptions = [
 ];
 
 const discountOptions = [
-  { label: "None", value: "none" },
-  { label: "Flat Discount", value: "flat" },
-  { label: "Percentage", value: "percent" },
+  { label: "None", value: "NONE" },
+  { label: "Flat Discount", value: "FLAT_DISCOUNT" },
+  { label: "Percentage Discount", value: "PERCENTAGE_DISCOUNT" },
 ];
 
 const stockStatusOptions = [
-  { label: "In Stock", value: "in-stock" },
-  { label: "Backordered", value: "backorder" },
-  { label: "Out of Stock", value: "out-of-stock" },
+  { label: "In Stock", value: "IN_STOCK" },
+  { label: "Low Stock", value: "LOW_STOCK" },
+  { label: "Out of Stock", value: "OUT_OF_STOCK" },
 ];
 
 const productStatusOptions = [
-  { label: "Active", value: "active" },
-  { label: "Inactive", value: "inactive" },
-  { label: "Draft", value: "draft" },
+  { label: "Active", value: "ACTIVE" },
+  { label: "Inactive", value: "INACTIVE" },
 ];
 type FormValues = {
   discountType: string;
@@ -113,6 +112,8 @@ export default function CreateProductForm() {
     const hasLength = lengthCm !== null && !Number.isNaN(Number(lengthCm));
     const hasWidth = widthCm !== null && !Number.isNaN(Number(widthCm));
     const hasHeight = heightCm !== null && !Number.isNaN(Number(heightCm));
+    const hasDimensions = hasLength && hasWidth && hasHeight;
+    const hasWeightOrDimensions = hasWeight || hasDimensions;
     const hasBrand = Boolean(brandValue);
     const hasStockStatus = Boolean(stockStatusValue);
     const hasProductStatus = Boolean(productStatusValue);
@@ -125,10 +126,7 @@ export default function CreateProductForm() {
       hasDescription &&
       hasBasePrice &&
       hasStockQuantity &&
-      hasWeight &&
-      hasLength &&
-      hasWidth &&
-      hasHeight &&
+      hasWeightOrDimensions &&
       hasBrand &&
       hasStockStatus &&
       hasProductStatus &&

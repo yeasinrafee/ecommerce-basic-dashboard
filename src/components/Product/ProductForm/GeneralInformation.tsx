@@ -157,7 +157,6 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           type="number"
           value={weight === null ? "" : weight}
           onValueChange={(value) => setWeight(value as number | null)}
-          requiredMark
           placeholder="0"
           min={0}
         />
@@ -172,7 +171,6 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
               type="number"
               value={lengthCm === null ? "" : lengthCm}
               onValueChange={(value) => setLengthCm(value as number | null)}
-              requiredMark
               placeholder="0"
               min={0}
             />
@@ -181,7 +179,6 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
               type="number"
               value={widthCm === null ? "" : widthCm}
               onValueChange={(value) => setWidthCm(value as number | null)}
-              requiredMark
               placeholder="0"
               min={0}
             />
@@ -190,11 +187,11 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
               type="number"
               value={heightCm === null ? "" : heightCm}
               onValueChange={(value) => setHeightCm(value as number | null)}
-              requiredMark
               placeholder="0"
               min={0}
             />
           </div>
+          <p className="mt-2 text-xs text-slate-500">Either provide weight or all three dimensions (Length, Width, Height).</p>
         </div>
       </div>
 
