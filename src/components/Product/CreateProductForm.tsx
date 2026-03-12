@@ -17,9 +17,7 @@ import Attributes, {
 } from "./ProductForm/Attributes";
 import AdditionalInfo from "./ProductForm/AdditionalInfo";
 import Seo, { SeoData } from "./ProductForm/Seo";
-import RightSection, {
-  RightSectionData,
-} from "./ProductForm/RightSection";
+import RightSection, { RightSectionData } from "./ProductForm/RightSection";
 import { useAllCategories } from "@/hooks/product-category.api";
 import { useAllTags } from "@/hooks/product-tag.api";
 import { useAllBrands, Brand } from "@/hooks/brand.api";
@@ -49,45 +47,33 @@ const toNumber = (value: unknown) => {
   return Number(value);
 };
 
-const nullableNumberSchema = z.preprocess(
-  (value) => {
-    if (value === "" || value === null || value === undefined) {
-      return null;
-    }
-    return Number(value);
-  },
-  z.number().nullable(),
-);
+const nullableNumberSchema = z.preprocess((value) => {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+  return Number(value);
+}, z.number().nullable());
 
-const nullablePositiveNumberSchema = z.preprocess(
-  (value) => {
-    if (value === "" || value === null || value === undefined) {
-      return null;
-    }
-    return Number(value);
-  },
-  z.number().positive().nullable(),
-);
+const nullablePositiveNumberSchema = z.preprocess((value) => {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+  return Number(value);
+}, z.number().positive().nullable());
 
-const nullableStringSchema = z.preprocess(
-  (value) => {
-    if (value === "" || value === null || value === undefined) {
-      return null;
-    }
-    return String(value).trim();
-  },
-  z.string().nullable(),
-);
+const nullableStringSchema = z.preprocess((value) => {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+  return String(value).trim();
+}, z.string().nullable());
 
-const nullableDateStringSchema = z.preprocess(
-  (value) => {
-    if (value === "" || value === null || value === undefined) {
-      return null;
-    }
-    return String(value);
-  },
-  z.string().nullable(),
-);
+const nullableDateStringSchema = z.preprocess((value) => {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+  return String(value);
+}, z.string().nullable());
 
 const createProductSchema = z
   .object({
@@ -108,8 +94,12 @@ const createProductSchema = z
     brand: z.string().trim().min(1, "Brand is required"),
     status: z.enum(["ACTIVE", "INACTIVE"]),
     stockStatus: z.enum(["IN_STOCK", "LOW_STOCK", "OUT_OF_STOCK"]),
-    categories: z.array(z.string().trim().min(1)).min(1, "At least one category is required"),
-    tags: z.array(z.string().trim().min(1)).min(1, "At least one tag is required"),
+    categories: z
+      .array(z.string().trim().min(1))
+      .min(1, "At least one category is required"),
+    tags: z
+      .array(z.string().trim().min(1))
+      .min(1, "At least one tag is required"),
     galleryImagesMeta: z.array(
       z.object({
         id: z.string().trim().min(1),
@@ -146,7 +136,8 @@ const createProductSchema = z
   })
   .superRefine((data, ctx) => {
     const hasWeight = data.weight != null;
-    const hasDimensions = data.length != null && data.width != null && data.height != null;
+    const hasDimensions =
+      data.length != null && data.width != null && data.height != null;
 
     if (!hasWeight && !hasDimensions) {
       ctx.addIssue({
@@ -157,7 +148,10 @@ const createProductSchema = z
     }
 
     const needsDiscountValue = data.discountType !== "NONE";
-    if (needsDiscountValue && (data.discountValue == null || Number.isNaN(data.discountValue))) {
+    if (
+      needsDiscountValue &&
+      (data.discountValue == null || Number.isNaN(data.discountValue))
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["discountValue"],
@@ -178,7 +172,10 @@ const createProductSchema = z
     }
 
     const seoProvided = Boolean(
-      data.seo && (data.seo.metaTitle || data.seo.metaDescription || data.seo.seoKeywords.length > 0),
+      data.seo &&
+      (data.seo.metaTitle ||
+        data.seo.metaDescription ||
+        data.seo.seoKeywords.length > 0),
     );
 
     if (seoProvided && !data.seo?.metaTitle) {
@@ -247,7 +244,9 @@ export default function CreateProductForm() {
     reset,
     formState: { isValid, isSubmitting },
   } = useForm<z.infer<typeof createProductSchema>>({
-    resolver: zodResolver(createProductSchema) as Resolver<z.infer<typeof createProductSchema>>,
+    resolver: zodResolver(createProductSchema) as Resolver<
+      z.infer<typeof createProductSchema>
+    >,
     mode: "onChange",
     defaultValues: defaultFormValues,
   });
@@ -268,7 +267,9 @@ export default function CreateProductForm() {
 
   const [rightData, setRightData] = React.useState(initialRightSectionState);
   const [rightResetKey, setRightResetKey] = React.useState(0);
-  const [attributesData, setAttributesData] = React.useState(initialAttributesState);
+  const [attributesData, setAttributesData] = React.useState(
+    initialAttributesState,
+  );
   const [attributesResetKey, setAttributesResetKey] = React.useState(0);
   const [additionalResetKey, setAdditionalResetKey] = React.useState(0);
   const [seoResetKey, setSeoResetKey] = React.useState(0);
@@ -284,7 +285,11 @@ export default function CreateProductForm() {
   const { data: allBrands } = useAllBrands();
 
   const brandOptions = React.useMemo(
-    () => (allBrands ?? []).map((brand: Brand) => ({ label: brand.name, value: brand.id })),
+    () =>
+      (allBrands ?? []).map((brand: Brand) => ({
+        label: brand.name,
+        value: brand.id,
+      })),
     [allBrands],
   );
 
@@ -297,7 +302,10 @@ export default function CreateProductForm() {
     }
   }, [brandOptions, brandValue, setValue]);
 
-  const categoriesList = React.useMemo(() => productCategories ?? [], [productCategories]);
+  const categoriesList = React.useMemo(
+    () => productCategories ?? [],
+    [productCategories],
+  );
   const tagList = React.useMemo(() => productTags ?? [], [productTags]);
 
   const updateMainInformation = (value: string) => {
@@ -401,7 +409,10 @@ export default function CreateProductForm() {
   const handleRightSectionChange = React.useCallback(
     (data: RightSectionData) => {
       setRightData(data);
-      const galleryMeta = data.galleryImages.map((image) => ({ id: image.id, name: image.name }));
+      const galleryMeta = data.galleryImages.map((image) => ({
+        id: image.id,
+        name: image.name,
+      }));
       setValue("categories", data.categories, {
         shouldValidate: true,
         shouldDirty: true,
@@ -434,7 +445,9 @@ export default function CreateProductForm() {
 
   React.useEffect(() => {
     const hasSeoData = Boolean(
-      seoData.metaTitle || seoData.metaDescription || seoData.seoKeywords.length > 0,
+      seoData.metaTitle ||
+      seoData.metaDescription ||
+      seoData.seoKeywords.length > 0,
     );
     setValue("seo", hasSeoData ? seoData : null, {
       shouldValidate: true,
@@ -442,12 +455,9 @@ export default function CreateProductForm() {
     });
   }, [seoData, setValue]);
 
-  const handleAttributesChange = React.useCallback(
-    (data: AttributesData) => {
-      setAttributesData((prev) => ({ ...prev, attributes: data.attributes }));
-    },
-    [],
-  );
+  const handleAttributesChange = React.useCallback((data: AttributesData) => {
+    setAttributesData((prev) => ({ ...prev, attributes: data.attributes }));
+  }, []);
 
   const handleAdditionalInfoChange = React.useCallback(
     (info: AdditionalInfoType[]) => {
@@ -466,13 +476,13 @@ export default function CreateProductForm() {
     [rightData.galleryImages],
   );
 
-  const mutationPending = Boolean((createProductMutation as any).isPending || (createProductMutation as any).isLoading);
+  const mutationPending = Boolean(
+    (createProductMutation as any).isPending ||
+    (createProductMutation as any).isLoading,
+  );
 
   const submitDisabled =
-    !isValid ||
-    !rightData.mainImage ||
-    mutationPending ||
-    isSubmitting;
+    !isValid || !rightData.mainImage || mutationPending || isSubmitting;
 
   const normalizeAttributesForSubmit = () =>
     attributesData.attributes.map((attribute) => ({
@@ -500,15 +510,27 @@ export default function CreateProductForm() {
     payload.append("description", values.description);
     payload.append("basePrice", String(values.basePrice));
     payload.append("discountType", values.discountType);
-    payload.append("discountValue", values.discountValue == null ? "" : String(values.discountValue));
+    payload.append(
+      "discountValue",
+      values.discountValue == null ? "" : String(values.discountValue),
+    );
     payload.append("discountStartDate", values.discountStartDate ?? "");
     payload.append("discountEndDate", values.discountEndDate ?? "");
     payload.append("stock", String(values.stock));
     payload.append("sku", values.sku ?? "");
-    payload.append("weight", values.weight == null ? "" : String(values.weight));
-    payload.append("length", values.length == null ? "" : String(values.length));
+    payload.append(
+      "weight",
+      values.weight == null ? "" : String(values.weight),
+    );
+    payload.append(
+      "length",
+      values.length == null ? "" : String(values.length),
+    );
     payload.append("width", values.width == null ? "" : String(values.width));
-    payload.append("height", values.height == null ? "" : String(values.height));
+    payload.append(
+      "height",
+      values.height == null ? "" : String(values.height),
+    );
     payload.append("brandId", values.brand);
     payload.append("status", values.status);
     payload.append("stockStatus", values.stockStatus);
@@ -520,21 +542,32 @@ export default function CreateProductForm() {
       name: image.name,
     }));
     payload.append("galleryImagesMeta", JSON.stringify(galleryMeta));
-    payload.append("attributes", JSON.stringify(normalizeAttributesForSubmit()));
-    payload.append("additionalInfo", JSON.stringify(normalizeAdditionalInfoForSubmit()));
+    payload.append(
+      "attributes",
+      JSON.stringify(normalizeAttributesForSubmit()),
+    );
+    payload.append(
+      "additionalInfo",
+      JSON.stringify(normalizeAdditionalInfoForSubmit()),
+    );
 
     const hasSeoData = Boolean(
-      seoData.metaTitle || seoData.metaDescription || seoData.seoKeywords.length > 0,
+      seoData.metaTitle ||
+      seoData.metaDescription ||
+      seoData.seoKeywords.length > 0,
     );
     payload.append("seo", JSON.stringify(hasSeoData ? seoData : null));
 
     payload.append("mainImage", rightData.mainImage!.file);
-    rightData.galleryImages.forEach((image) => payload.append("galleryImages", image.file));
+    rightData.galleryImages.forEach((image) =>
+      payload.append("galleryImages", image.file),
+    );
 
     return payload;
   }
 
   const handleSuccess = () => {
+    router.push("/dashboard/product/manage");
     reset(defaultFormValues);
     setProductName("");
     setShortDescription("");
@@ -568,7 +601,6 @@ export default function CreateProductForm() {
       shouldValidate: true,
       shouldDirty: true,
     });
-    router.push("/dashboard/product/manage");
   };
 
   const onSubmit = (values: z.infer<typeof createProductSchema>) => {
@@ -643,9 +675,7 @@ export default function CreateProductForm() {
     {
       id: "seo",
       label: "SEO",
-      content: (
-        <Seo key={seoResetKey} onChange={setSeoData} />
-      ),
+      content: <Seo key={seoResetKey} onChange={setSeoData} />,
     },
   ];
 

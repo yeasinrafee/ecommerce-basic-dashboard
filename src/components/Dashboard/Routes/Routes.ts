@@ -47,7 +47,7 @@ export const routes: RouteItem[] = [
       },
       { 
         label: "Manage Products", 
-        href: "/dashboard/products", 
+        href: "/dashboard/product/manage", 
       },
     ],
   },
