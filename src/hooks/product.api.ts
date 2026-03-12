@@ -176,3 +176,23 @@ export const usePatchProduct = () => {
 	});
 };
 
+const bulkPatchProductsReq = async (payload: { ids: string[]; status?: string; stockStatus?: string }) => {
+	const response = await apiClient.patch<ApiResponse<{ count: number }>>(ProductRoutes.bulkPatch, payload);
+	return ensurePayload(response.data, 'Failed to bulk update products');
+};
+
+export const useBulkPatchProducts = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: bulkPatchProductsReq,
+		onSuccess: async (data) => {
+			toast.success(`${(data as any).count ?? 'Products'} product(s) updated`);
+			await queryClient.invalidateQueries({ queryKey: productKeys.all });
+		},
+		onError: (err: any) => {
+			const message = err?.response?.data?.message || err?.message || 'Failed to bulk update products';
+			toast.error(message);
+		}
+	});
+};
+

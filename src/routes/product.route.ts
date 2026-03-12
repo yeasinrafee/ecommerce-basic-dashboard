@@ -7,6 +7,7 @@ export const ProductRoutes = {
   create: `${productBase}/create`,
   update: (id: string) => `${productBase}/${id}`,
   patch: (id: string) => `${productBase}/${id}/fields`,
+  bulkPatch: `${productBase}/bulk/fields`,
   delete: (id: string) => `${productBase}/${id}`
 };
 

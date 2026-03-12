@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { usePaginatedProducts, useDeleteProduct, usePatchProduct } from "@/hooks/product.api";
+import { usePaginatedProducts, useDeleteProduct, usePatchProduct, useBulkPatchProducts } from "@/hooks/product.api";
 import CustomSelect from "@/components/FormFields/CustomSelect";
 
 const productStatusOptions = [
@@ -43,9 +43,37 @@ const ManageProduct: React.FC = () => {
 
   const { data: paged, isLoading, isError } = usePaginatedProducts(page, limit);
   const patchMutation = usePatchProduct();
+  const bulkPatchMutation = useBulkPatchProducts();
 
   const products = paged?.data ?? [];
   const total = paged?.meta?.total ?? 0;
+
+  const [selected, setSelected] = React.useState<Record<string, boolean>>({});
+  const selectedIds = React.useMemo(() => Object.keys(selected).filter((k) => selected[k]), [selected]);
+
+  const [bulkStatus, setBulkStatus] = React.useState("");
+  const [bulkStockStatus, setBulkStockStatus] = React.useState("");
+  const bulkStatusForm = useForm<{ status: string; stockStatus: string }>({ defaultValues: { status: "", stockStatus: "" } });
+
+  const toggleSelect = (id: string) => {
+    setSelected((s) => ({ ...s, [id]: !s[id] }));
+  };
+
+  const selectAllOnPage = () => {
+    const newSel: Record<string, boolean> = { ...selected };
+    products.forEach((p: any) => { newSel[p.id] = true; });
+    setSelected(newSel);
+  };
+
+  const clearSelection = () => setSelected({});
+
+  const applyBulkUpdate = () => {
+    if (selectedIds.length === 0) return;
+    const payload: { ids: string[]; status?: string; stockStatus?: string } = { ids: selectedIds };
+    if (bulkStatus) payload.status = bulkStatus;
+    if (bulkStockStatus) payload.stockStatus = bulkStockStatus;
+    bulkPatchMutation.mutate(payload, { onSuccess: () => clearSelection() });
+  };
 
   const [deleteTarget, setDeleteTarget] = React.useState<any | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
@@ -84,6 +112,29 @@ const ManageProduct: React.FC = () => {
 
   const columns = React.useMemo<Column<any>[]>(
     () => [
+      {
+        header: (
+          <div className="flex items-center justify-center gap-2">
+            <input
+              type="checkbox"
+              checked={products.length > 0 && products.every((p: any) => selected[p.id])}
+              onChange={(e) => {
+                if (e.target.checked) selectAllOnPage();
+                else clearSelection();
+              }}
+            />
+            <span className="text-sm">Select</span>
+          </div>
+        ),
+        cell: (row) => (
+          <input
+            type="checkbox"
+            checked={!!selected[row.id]}
+            onChange={() => toggleSelect(row.id)}
+          />
+        ),
+        className: "w-12 text-center"
+      },
       {
         header: "Image",
         cell: (row) =>
@@ -133,7 +184,7 @@ const ManageProduct: React.FC = () => {
       { header: "Stock", accessor: "stock" },
       // { header: "Created", accessor: "createdAt", cell: (row) => new Date(row.createdAt).toLocaleString() }
     ],
-    []
+    [products, selected]
   );
 
   return (
@@ -142,7 +193,36 @@ const ManageProduct: React.FC = () => {
 
       <div className="flex items-center justify-between mb-4">
         <SearchBar searchInput={searchInput} setSearchInput={setSearchInput} clearSearch={() => setSearchInput("")} />
-        <CustomButton onClick={handleCreate}>Create Product</CustomButton>
+        <div className="flex items-center gap-2">
+          <CustomSelect
+            name="status"
+            control={bulkStatusForm.control}
+            options={productStatusOptions}
+            valueToField={(v) => v}
+            fieldToValue={(v) => v}
+            onChangeCallback={(v: string) => setBulkStatus(v)}
+            placeholder="Bulk Status"
+            triggerClassName="w-40 min-h-10 bg-background"
+          />
+          <CustomSelect
+            name="stockStatus"
+            control={bulkStatusForm.control}
+            options={stockStatusOptions}
+            valueToField={(v) => v}
+            fieldToValue={(v) => v}
+            onChangeCallback={(v: string) => setBulkStockStatus(v)}
+            placeholder="Bulk Stock Status"
+            triggerClassName="w-44 min-h-10 bg-background"
+          />
+          <CustomButton
+            disabled={selectedIds.length === 0 || (!bulkStatus && !bulkStockStatus)}
+            onClick={applyBulkUpdate}
+            loading={bulkPatchMutation.isPending}
+          >
+            Update
+          </CustomButton>
+          <CustomButton onClick={handleCreate}>Create Product</CustomButton>
+        </div>
       </div>
 
       <Table<any>
