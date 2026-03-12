@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -195,7 +195,7 @@ const defaultFormValues: z.infer<typeof createProductSchema> = {
   shortDescription: null,
   description: "",
   basePrice: 0,
-  discountType: discountOptions[0].value,
+  discountType: "NONE",
   discountValue: null,
   discountStartDate: null,
   discountEndDate: null,
@@ -206,8 +206,8 @@ const defaultFormValues: z.infer<typeof createProductSchema> = {
   width: null,
   height: null,
   brand: "",
-  status: productStatusOptions[0].value,
-  stockStatus: stockStatusOptions[0].value,
+  status: "ACTIVE",
+  stockStatus: "IN_STOCK",
   categories: [],
   tags: [],
   galleryImagesMeta: [],
@@ -236,7 +236,8 @@ const initialSeoState: SeoData = {
 
 export default function CreateProductForm() {
   const router = useRouter();
-  const { mutate: createProduct, isLoading } = useCreateProduct();
+  const createProductMutation = useCreateProduct();
+  const { mutate: createProduct } = createProductMutation;
 
   const {
     control,
@@ -246,7 +247,7 @@ export default function CreateProductForm() {
     reset,
     formState: { isValid, isSubmitting },
   } = useForm<z.infer<typeof createProductSchema>>({
-    resolver: zodResolver(createProductSchema),
+    resolver: zodResolver(createProductSchema) as Resolver<z.infer<typeof createProductSchema>>,
     mode: "onChange",
     defaultValues: defaultFormValues,
   });
@@ -465,10 +466,12 @@ export default function CreateProductForm() {
     [rightData.galleryImages],
   );
 
+  const mutationPending = Boolean((createProductMutation as any).isPending || (createProductMutation as any).isLoading);
+
   const submitDisabled =
     !isValid ||
     !rightData.mainImage ||
-    isLoading ||
+    mutationPending ||
     isSubmitting;
 
   const normalizeAttributesForSubmit = () =>
@@ -685,6 +688,7 @@ export default function CreateProductForm() {
           className="px-4"
           onClick={handleSubmit(onSubmit)}
           disabled={submitDisabled}
+          loading={mutationPending || isSubmitting}
         >
           Save Product
         </CustomButton>
