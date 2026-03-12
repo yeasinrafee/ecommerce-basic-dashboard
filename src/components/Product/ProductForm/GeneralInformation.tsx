@@ -207,7 +207,7 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           options={stockStatusOptions}
         />
         <CustomSelect
-          name="productStatus"
+          name="status"
           control={control}
           label="Product Status"
           requiredMark
