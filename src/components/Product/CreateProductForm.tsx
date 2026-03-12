@@ -13,6 +13,7 @@ import MainInformation from "./ProductForm/MainInformation";
 import GeneralInformation from "./ProductForm/GeneralInformation";
 import Attributes, {
   AttributesData,
+  AttributeRecord,
   AdditionalInfo as AdditionalInfoType,
 } from "./ProductForm/Attributes";
 import AdditionalInfo from "./ProductForm/AdditionalInfo";
@@ -21,7 +22,7 @@ import RightSection, { RightSectionData } from "./ProductForm/RightSection";
 import { useAllCategories } from "@/hooks/product-category.api";
 import { useAllTags } from "@/hooks/product-tag.api";
 import { useAllBrands, Brand } from "@/hooks/brand.api";
-import { useCreateProduct } from "@/hooks/product.api";
+import { useCreateProduct, useUpdateProduct, useGetProduct } from "@/hooks/product.api";
 
 const discountOptions = [
   { label: "None", value: "NONE" },
@@ -215,7 +216,9 @@ const defaultFormValues: z.infer<typeof createProductSchema> = {
 
 const initialRightSectionState: RightSectionData = {
   mainImage: null,
+  mainImageExistingUrl: null,
   galleryImages: [],
+  existingGalleryUrls: [],
   categories: [],
   tags: [],
 };
@@ -231,10 +234,16 @@ const initialSeoState: SeoData = {
   seoKeywords: [],
 };
 
-export default function CreateProductForm() {
+export default function CreateProductForm({ productId }: { productId?: string }) {
+  const isEditMode = !!productId;
   const router = useRouter();
   const createProductMutation = useCreateProduct();
+  const updateProductMutation = useUpdateProduct();
   const { mutate: createProduct } = createProductMutation;
+  const { mutate: updateProduct } = updateProductMutation;
+
+  // Load existing product in edit mode
+  const { data: productData, isLoading: productLoading } = useGetProduct(productId ?? "");
 
   const {
     control,
@@ -307,6 +316,113 @@ export default function CreateProductForm() {
     [productCategories],
   );
   const tagList = React.useMemo(() => productTags ?? [], [productTags]);
+
+  // ── Edit-mode: pre-fill all fields when productData arrives ─────────────────
+  const editPrefillDoneRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!isEditMode || !productData || editPrefillDoneRef.current) return;
+    editPrefillDoneRef.current = true;
+
+    const p = productData as any;
+
+    // Local state
+    setProductName(p.name ?? "");
+    setShortDescription(p.shortDescription ?? "");
+    setDescription(p.description ?? "");
+    setBasePrice(p.Baseprice ?? null);
+    setDiscountValue(p.discountValue ?? null);
+    setDiscountStart(p.discountStartDate ? new Date(p.discountStartDate) : null);
+    setDiscountEnd(p.discountEndDate ? new Date(p.discountEndDate) : null);
+    setStockQuantity(p.stock ?? null);
+    setSku(p.sku ?? "");
+    setWeight(p.weight ?? null);
+    setLengthCm(p.length ?? null);
+    setWidthCm(p.width ?? null);
+    setHeightCm(p.height ?? null);
+
+    // SEO
+    const seo = p.seos?.[0];
+    if (seo) {
+      setSeoData({ metaTitle: seo.title ?? "", metaDescription: seo.description ?? "", seoKeywords: seo.keyword ?? [] });
+    }
+
+    // form values
+    reset({
+      name: p.name ?? "",
+      shortDescription: p.shortDescription ?? null,
+      description: p.description ?? "",
+      basePrice: p.Baseprice ?? 0,
+      discountType: p.discountType ?? "NONE",
+      discountValue: p.discountValue ?? null,
+      discountStartDate: p.discountStartDate ?? null,
+      discountEndDate: p.discountEndDate ?? null,
+      stock: p.stock ?? 0,
+      sku: p.sku ?? null,
+      weight: p.weight ?? null,
+      length: p.length ?? null,
+      width: p.width ?? null,
+      height: p.height ?? null,
+      brand: p.brandId ?? "",
+      status: p.status ?? "ACTIVE",
+      stockStatus: p.stockStatus ?? "IN_STOCK",
+      categories: (p.categories ?? []).map((c: any) => c.categoryId),
+      tags: (p.tags ?? []).map((t: any) => t.tagId),
+      galleryImagesMeta: [],
+      attributes: [],
+      additionalInfo: (p.additionalInformations ?? []).map((i: any) => ({ name: i.name, value: i.value })),
+      seo: seo ? { metaTitle: seo.title ?? "", metaDescription: seo.description ?? "", seoKeywords: seo.keyword ?? [] } : null,
+    });
+  }, [isEditMode, productData, reset]);
+
+  // ── Merged gallery list: existing (kept) + new uploads — fed to Attributes ──
+  const allGalleryForAttributes = React.useMemo(() => {
+    const existing = rightData.existingGalleryUrls.map((url) => ({
+      id: `__existing__${url}`,
+      name: url.split("/").pop()?.split(".")[0] ?? "gallery",
+      url,
+    }));
+    const fresh = rightData.galleryImages.map((img) => ({
+      id: img.id,
+      name: img.name,
+      url: img.url,
+    }));
+    return [...existing, ...fresh];
+  }, [rightData.existingGalleryUrls, rightData.galleryImages]);
+
+  // ── Initial attributes derived from existing product variations ─────────────
+  const initialAttributes = React.useMemo<AttributeRecord[] | undefined>(() => {
+    if (!productData) return undefined;
+    const p = productData as any;
+    if (!p.productVariations?.length) return undefined;
+
+    const grouped = new Map<string, AttributeRecord>();
+    for (const v of p.productVariations) {
+      const attrName = v.attribute?.name ?? "";
+      if (!attrName) continue;
+      if (!grouped.has(attrName)) grouped.set(attrName, { name: attrName, pairs: [] });
+      grouped.get(attrName)!.pairs.push({
+        value: v.attributeValue ?? "",
+        price: String(v.price ?? 0),
+        imageId: v.galleryImage ? `__existing__${v.galleryImage}` : null,
+      });
+    }
+    return Array.from(grouped.values());
+  }, [productData]);
+
+  // ── Initial additional info ──────────────────────────────────────────────────
+  const initialAdditionalInfo = React.useMemo<AdditionalInfoType[] | undefined>(() => {
+    if (!productData) return undefined;
+    const p = productData as any;
+    return p.additionalInformations?.map((i: any) => ({ name: i.name, value: i.value }));
+  }, [productData]);
+
+  // ── Initial SEO data ─────────────────────────────────────────────────────────
+  const initialSeoForForm = React.useMemo<SeoData | undefined>(() => {
+    if (!productData) return undefined;
+    const seo = (productData as any).seos?.[0];
+    if (!seo) return undefined;
+    return { metaTitle: seo.title ?? "", metaDescription: seo.description ?? "", seoKeywords: seo.keyword ?? [] };
+  }, [productData]);
 
   const updateMainInformation = (value: string) => {
     setProductName(value);
@@ -467,32 +583,41 @@ export default function CreateProductForm() {
   );
 
   const rightGalleryPreview = React.useMemo(
-    () =>
-      rightData.galleryImages.map((image) => ({
-        id: image.id,
-        name: image.name,
-        url: image.url,
-      })),
-    [rightData.galleryImages],
+    () => allGalleryForAttributes,
+    [allGalleryForAttributes],
   );
 
   const mutationPending = Boolean(
     (createProductMutation as any).isPending ||
-    (createProductMutation as any).isLoading,
+    (createProductMutation as any).isLoading ||
+    (updateProductMutation as any).isPending ||
+    (updateProductMutation as any).isLoading,
   );
 
+  // In edit mode, existing main image counts as having a main image
+  const hasMainImage = !!rightData.mainImage || !!rightData.mainImageExistingUrl;
   const submitDisabled =
-    !isValid || !rightData.mainImage || mutationPending || isSubmitting;
+    !isValid || !hasMainImage || mutationPending || isSubmitting;
 
   const normalizeAttributesForSubmit = () =>
     attributesData.attributes.map((attribute) => ({
       name: attribute.name.trim(),
       pairs: attribute.pairs.map((pair) => {
         const trimmedPrice = pair.price?.trim() ?? "";
+        const rawImageId = pair.imageId ?? null;
+        // Resolve __existing__ prefix (edit mode) → existingImageUrl
+        let imageId: string | null = null;
+        let existingImageUrl: string | null = null;
+        if (rawImageId?.startsWith("__existing__")) {
+          existingImageUrl = rawImageId.slice("__existing__".length);
+        } else {
+          imageId = rawImageId;
+        }
         return {
           value: pair.value.trim(),
           price: trimmedPrice === "" ? null : Number(trimmedPrice),
-          imageId: pair.imageId ?? null,
+          imageId,
+          existingImageUrl,
         };
       }),
     }));
@@ -503,65 +628,82 @@ export default function CreateProductForm() {
       value: info.value.trim(),
     }));
 
-  function buildFormData(values: z.infer<typeof createProductSchema>) {
+  function buildCreateFormData(values: z.infer<typeof createProductSchema>) {
     const payload = new FormData();
     payload.append("name", values.name);
     payload.append("shortDescription", values.shortDescription ?? "");
     payload.append("description", values.description);
     payload.append("basePrice", String(values.basePrice));
     payload.append("discountType", values.discountType);
-    payload.append(
-      "discountValue",
-      values.discountValue == null ? "" : String(values.discountValue),
-    );
+    payload.append("discountValue", values.discountValue == null ? "" : String(values.discountValue));
     payload.append("discountStartDate", values.discountStartDate ?? "");
     payload.append("discountEndDate", values.discountEndDate ?? "");
     payload.append("stock", String(values.stock));
     payload.append("sku", values.sku ?? "");
-    payload.append(
-      "weight",
-      values.weight == null ? "" : String(values.weight),
-    );
-    payload.append(
-      "length",
-      values.length == null ? "" : String(values.length),
-    );
+    payload.append("weight", values.weight == null ? "" : String(values.weight));
+    payload.append("length", values.length == null ? "" : String(values.length));
     payload.append("width", values.width == null ? "" : String(values.width));
-    payload.append(
-      "height",
-      values.height == null ? "" : String(values.height),
-    );
+    payload.append("height", values.height == null ? "" : String(values.height));
     payload.append("brandId", values.brand);
     payload.append("status", values.status);
     payload.append("stockStatus", values.stockStatus);
     payload.append("categories", JSON.stringify(values.categories));
     payload.append("tags", JSON.stringify(values.tags));
 
-    const galleryMeta = rightData.galleryImages.map((image) => ({
-      id: image.id,
-      name: image.name,
-    }));
+    const galleryMeta = rightData.galleryImages.map((image) => ({ id: image.id, name: image.name }));
     payload.append("galleryImagesMeta", JSON.stringify(galleryMeta));
-    payload.append(
-      "attributes",
-      JSON.stringify(normalizeAttributesForSubmit()),
-    );
-    payload.append(
-      "additionalInfo",
-      JSON.stringify(normalizeAdditionalInfoForSubmit()),
-    );
+    payload.append("attributes", JSON.stringify(normalizeAttributesForSubmit()));
+    payload.append("additionalInfo", JSON.stringify(normalizeAdditionalInfoForSubmit()));
 
-    const hasSeoData = Boolean(
-      seoData.metaTitle ||
-      seoData.metaDescription ||
-      seoData.seoKeywords.length > 0,
-    );
+    const hasSeoData = Boolean(seoData.metaTitle || seoData.metaDescription || seoData.seoKeywords.length > 0);
     payload.append("seo", JSON.stringify(hasSeoData ? seoData : null));
 
     payload.append("mainImage", rightData.mainImage!.file);
-    rightData.galleryImages.forEach((image) =>
-      payload.append("galleryImages", image.file),
-    );
+    rightData.galleryImages.forEach((image) => payload.append("galleryImages", image.file));
+
+    return payload;
+  }
+
+  function buildUpdateFormData(values: z.infer<typeof createProductSchema>) {
+    const payload = new FormData();
+    payload.append("name", values.name);
+    payload.append("shortDescription", values.shortDescription ?? "");
+    payload.append("description", values.description);
+    payload.append("basePrice", String(values.basePrice));
+    payload.append("discountType", values.discountType);
+    payload.append("discountValue", values.discountValue == null ? "" : String(values.discountValue));
+    payload.append("discountStartDate", values.discountStartDate ?? "");
+    payload.append("discountEndDate", values.discountEndDate ?? "");
+    payload.append("stock", String(values.stock));
+    payload.append("sku", values.sku ?? "");
+    payload.append("weight", values.weight == null ? "" : String(values.weight));
+    payload.append("length", values.length == null ? "" : String(values.length));
+    payload.append("width", values.width == null ? "" : String(values.width));
+    payload.append("height", values.height == null ? "" : String(values.height));
+    payload.append("brandId", values.brand);
+    payload.append("status", values.status);
+    payload.append("stockStatus", values.stockStatus);
+    payload.append("categories", JSON.stringify(values.categories));
+    payload.append("tags", JSON.stringify(values.tags));
+
+    // Main image handling
+    const keepMainImage = !rightData.mainImage && !!rightData.mainImageExistingUrl;
+    payload.append("keepMainImage", keepMainImage ? "true" : "false");
+    if (!keepMainImage && rightData.mainImage) {
+      payload.append("mainImage", rightData.mainImage.file);
+    }
+
+    // Gallery handling: kept existing + new uploads
+    payload.append("existingGalleryUrls", JSON.stringify(rightData.existingGalleryUrls));
+    const newGalleryMeta = rightData.galleryImages.map((image) => ({ id: image.id, name: image.name }));
+    payload.append("galleryImagesMeta", JSON.stringify(newGalleryMeta));
+    rightData.galleryImages.forEach((image) => payload.append("galleryImages", image.file));
+
+    payload.append("attributes", JSON.stringify(normalizeAttributesForSubmit()));
+    payload.append("additionalInfo", JSON.stringify(normalizeAdditionalInfoForSubmit()));
+
+    const hasSeoData = Boolean(seoData.metaTitle || seoData.metaDescription || seoData.seoKeywords.length > 0);
+    payload.append("seo", JSON.stringify(hasSeoData ? seoData : null));
 
     return payload;
   }
@@ -589,32 +731,24 @@ export default function CreateProductForm() {
     setAdditionalResetKey((prev) => prev + 1);
     setSeoData(initialSeoState);
     setSeoResetKey((prev) => prev + 1);
-    setValue("categories", [], {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-    setValue("tags", [], {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-    setValue("galleryImagesMeta", [], {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
+    setValue("categories", [], { shouldValidate: true, shouldDirty: true });
+    setValue("tags", [], { shouldValidate: true, shouldDirty: true });
+    setValue("galleryImagesMeta", [], { shouldValidate: true, shouldDirty: true });
   };
 
   const onSubmit = (values: z.infer<typeof createProductSchema>) => {
-    if (!rightData.mainImage) {
+    if (!hasMainImage) {
       toast.error("Main image is required");
       return;
     }
 
-    const payload = buildFormData(values);
-    createProduct(payload, {
-      onSuccess: () => {
-        handleSuccess();
-      },
-    });
+    if (isEditMode && productId) {
+      const payload = buildUpdateFormData(values);
+      updateProduct({ id: productId, payload }, { onSuccess: handleSuccess });
+    } else {
+      const payload = buildCreateFormData(values);
+      createProduct(payload, { onSuccess: handleSuccess });
+    }
   };
 
   const tabItems: CustomTabItem[] = [
@@ -659,6 +793,7 @@ export default function CreateProductForm() {
           key={attributesResetKey}
           galleryImages={rightGalleryPreview}
           onChange={handleAttributesChange}
+          initialAttributes={initialAttributes}
         />
       ),
     },
@@ -669,18 +804,26 @@ export default function CreateProductForm() {
         <AdditionalInfo
           key={additionalResetKey}
           onChange={handleAdditionalInfoChange}
+          initialInfo={initialAdditionalInfo}
         />
       ),
     },
     {
       id: "seo",
       label: "SEO",
-      content: <Seo key={seoResetKey} onChange={setSeoData} />,
+      content: <Seo key={seoResetKey} onChange={setSeoData} initialData={initialSeoForForm} />,
     },
   ];
 
   return (
     <div className="min-h-screen bg-slate-50 py-10">
+      {isEditMode && productLoading && (
+        <div className="flex items-center justify-center py-20 text-slate-500">
+          <span>Loading product data…</span>
+        </div>
+      )}
+      {(!isEditMode || !productLoading) && (
+      <>
       <div className="mx-auto w-full max-w-full px-4 grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="left-section space-y-6 col-span-7">
           <MainInformation
@@ -692,6 +835,7 @@ export default function CreateProductForm() {
             setDescription={updateDescription}
             brandOptions={brandOptions}
             control={control}
+            isEditMode={isEditMode}
           />
 
           <div className="rounded-2xl border border-slate-200 bg-background px-6 py-6 shadow-sm">
@@ -709,6 +853,10 @@ export default function CreateProductForm() {
             categoriesList={categoriesList}
             tagList={tagList}
             onChange={handleRightSectionChange}
+            initialMainImageUrl={isEditMode ? (productData as any)?.image : undefined}
+            initialGalleryUrls={isEditMode ? ((productData as any)?.galleryImages ?? []) : undefined}
+            initialCategories={isEditMode ? ((productData as any)?.categories ?? []).map((c: any) => c.categoryId) : undefined}
+            initialTags={isEditMode ? ((productData as any)?.tags ?? []).map((t: any) => t.tagId) : undefined}
           />
         </div>
       </div>
@@ -720,9 +868,11 @@ export default function CreateProductForm() {
           disabled={submitDisabled}
           loading={mutationPending || isSubmitting}
         >
-          Save Product
+          {isEditMode ? "Update Product" : "Save Product"}
         </CustomButton>
       </div>
+      </>
+      )}
     </div>
   );
 }

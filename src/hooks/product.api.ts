@@ -124,6 +124,27 @@ export const useGetProduct = (id: string) => {
 	});
 };
 
+const updateProductReq = async ({ id, payload }: { id: string; payload: FormData }) => {
+	const response = await apiClient.patch<ApiResponse<Product>>(ProductRoutes.update(id), payload);
+	return ensurePayload(response.data, 'Failed to update product');
+};
+
+export const useUpdateProduct = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: updateProductReq,
+		onSuccess: async (data, variables) => {
+			toast.success('Product updated successfully');
+			await queryClient.invalidateQueries({ queryKey: productKeys.all });
+			queryClient.setQueryData(productKeys.detail(variables.id), data);
+		},
+		onError: (err: any) => {
+			const message = err?.response?.data?.message || err?.message || 'Failed to update product';
+			toast.error(message);
+		}
+	});
+};
+
 export const useDeleteProduct = () => {
 	const queryClient = useQueryClient();
 	return useMutation({

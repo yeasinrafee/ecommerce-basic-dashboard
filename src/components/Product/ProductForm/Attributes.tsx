@@ -9,7 +9,7 @@ import CustomSelect from "../../FormFields/CustomSelect";
 
 export type AttributeRecord = {
   name: string;
-  pairs: { value: string; price: string; imageId?: string | null }[];
+  pairs: { value: string; price: string; imageId?: string | null; existingImageUrl?: string | null }[];
 };
 
 export type AdditionalInfo = { name: string; value: string };
@@ -22,14 +22,24 @@ export interface AttributesData {
 interface AttributesProps {
   onChange?: (data: AttributesData) => void;
   galleryImages?: { id: string; name: string; url: string }[];
+  initialAttributes?: AttributeRecord[];
 }
 
-const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [] }) => {
+const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], initialAttributes }) => {
   const [attributeName, setAttributeName] = React.useState("");
   const [attributeValue, setAttributeValue] = React.useState("");
   const [attributePrice, setAttributePrice] = React.useState("");
   const [attributes, setAttributes] = React.useState<AttributeRecord[]>([]);
   const [selectedGalleryImageId, setSelectedGalleryImageId] = React.useState<string | null>(null);
+
+  // Seed initial attributes once when edit-mode data arrives
+  const initializedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!initializedRef.current && initialAttributes && initialAttributes.length > 0) {
+      initializedRef.current = true;
+      setAttributes(initialAttributes);
+    }
+  }, [initialAttributes]);
 
   const { control } = useForm<{ attributeName: string }>({
     defaultValues: { attributeName: "" },
@@ -201,7 +211,9 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [] })
               </div>
               <div className="flex flex-wrap gap-2">
                 {attr.pairs.map((pair, index) => {
-                  const pairImage = galleryImages.find((img) => img.id === pair.imageId);
+                  // Resolve image: prefer imageId lookup in gallery, fall back to existingImageUrl (edit mode)
+                  const pairImage = galleryImages.find((img) => img.id === pair.imageId)
+                    ?? (pair.existingImageUrl ? { url: pair.existingImageUrl, name: 'Gallery image' } : null);
                   return (
                     <div
                       key={`${attr.name}-${index}`}

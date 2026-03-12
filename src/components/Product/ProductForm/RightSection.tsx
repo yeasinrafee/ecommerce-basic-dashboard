@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { X } from "lucide-react";
 
 import CustomCheckbox from "../../FormFields/CustomCheckbox";
 import CustomFileUpload, {
@@ -13,7 +14,11 @@ export type UploadedImage = CustomFileUploadFile;
 
 export type RightSectionData = {
   mainImage: UploadedImage | null;
+  /** Existing Cloudinary URL to keep when no new main image is uploaded */
+  mainImageExistingUrl: string | null;
   galleryImages: UploadedImage[];
+  /** Existing Cloudinary gallery URLs that should be retained */
+  existingGalleryUrls: string[];
   categories: string[];
   tags: string[];
 };
@@ -22,17 +27,41 @@ interface RightSectionProps {
   categoriesList: Category[];
   tagList: Tag[];
   onChange?: (data: RightSectionData) => void;
+  // Edit-mode seed values
+  initialMainImageUrl?: string | null;
+  initialGalleryUrls?: string[];
+  initialCategories?: string[];
+  initialTags?: string[];
 }
 
 const RightSection: React.FC<RightSectionProps> = ({
   categoriesList,
   tagList,
   onChange,
+  initialMainImageUrl,
+  initialGalleryUrls,
+  initialCategories,
+  initialTags,
 }) => {
   const [mainImage, setMainImage] = React.useState<UploadedImage | null>(null);
+  const [mainImageExistingUrl, setMainImageExistingUrl] = React.useState<string | null>(null);
   const [galleryImages, setGalleryImages] = React.useState<UploadedImage[]>([]);
+  const [existingGalleryUrls, setExistingGalleryUrls] = React.useState<string[]>([]);
   const [categories, setCategories] = React.useState<string[]>([]);
   const [tags, setTags] = React.useState<string[]>([]);
+
+  // Seed state once when initial edit-mode values arrive
+  const initializedRef = React.useRef(false);
+  React.useEffect(() => {
+    const hasSeeds = initialMainImageUrl || (initialGalleryUrls?.length ?? 0) > 0 || (initialCategories?.length ?? 0) > 0 || (initialTags?.length ?? 0) > 0;
+    if (!initializedRef.current && hasSeeds) {
+      initializedRef.current = true;
+      if (initialMainImageUrl) setMainImageExistingUrl(initialMainImageUrl);
+      if (initialGalleryUrls) setExistingGalleryUrls(initialGalleryUrls);
+      if (initialCategories) setCategories(initialCategories);
+      if (initialTags) setTags(initialTags);
+    }
+  }, [initialMainImageUrl, initialGalleryUrls, initialCategories, initialTags]);
 
   const toggleCategory = (categoryId: string) => {
     setCategories((prev) => {
@@ -79,9 +108,9 @@ const RightSection: React.FC<RightSectionProps> = ({
 
   React.useEffect(() => {
     if (onChange) {
-      onChange({ mainImage, galleryImages, categories, tags });
+      onChange({ mainImage, mainImageExistingUrl, galleryImages, existingGalleryUrls, categories, tags });
     }
-  }, [mainImage, galleryImages, categories, tags, onChange]);
+  }, [mainImage, mainImageExistingUrl, galleryImages, existingGalleryUrls, categories, tags, onChange]);
 
   return (
     <div className="flex w-full flex-col gap-6">
@@ -101,24 +130,66 @@ const RightSection: React.FC<RightSectionProps> = ({
               Product image
               <span className="ml-1 text-destructive">*</span>
             </label>
-            <div className="mt-2">
-              <CustomFileUpload
-                label=""
-                description="This hero image represents the product across listings."
-                helperText="Formats: PNG, JPG, JPEG, WEBP. Maximum 5MB."
-                maxFiles={1}
-                onFilesChange={handleMainFilesChange}
-              />
-            </div>
+            {/* Existing main image preview in edit mode */}
+            {mainImageExistingUrl && !mainImage && (
+              <div className="mt-2">
+                <p className="text-xs text-slate-500 mb-1">Current image (will be kept)</p>
+                <div className="relative inline-block">
+                  <img src={mainImageExistingUrl} alt="Current product" className="h-24 w-24 object-cover rounded-md border border-slate-200" />
+                  <button
+                    type="button"
+                    onClick={() => setMainImageExistingUrl(null)}
+                    className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-white flex items-center justify-center shadow"
+                    title="Remove and upload a new image"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">Click × to replace with a new upload.</p>
+              </div>
+            )}
+            {/* Only show upload when no existing image is being kept */}
+            {!mainImageExistingUrl && (
+              <div className="mt-2">
+                <CustomFileUpload
+                  label=""
+                  description="This hero image represents the product across listings."
+                  helperText="Formats: PNG, JPG, JPEG, WEBP. Maximum 5MB."
+                  maxFiles={1}
+                  onFilesChange={handleMainFilesChange}
+                />
+              </div>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700">Gallery images</label>
+            {/* Existing gallery thumbnails in edit mode */}
+            {existingGalleryUrls.length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs text-slate-500 mb-1">Existing gallery (click × to remove)</p>
+                <div className="flex flex-wrap gap-2">
+                  {existingGalleryUrls.map((url, idx) => (
+                    <div key={idx} className="relative">
+                      <img src={url} alt={`Gallery ${idx + 1}`} className="h-14 w-14 object-cover rounded-md border border-slate-200" />
+                      <button
+                        type="button"
+                        onClick={() => setExistingGalleryUrls((prev) => prev.filter((_, i) => i !== idx))}
+                        className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-destructive text-white flex items-center justify-center shadow"
+                        title="Remove from gallery"
+                      >
+                        <X size={8} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="mt-2">
               <CustomFileUpload
                 label=""
                 description="Supplement the hero shot with contextual photos."
-                helperText="Up to 10 images. JPG, PNG, or WEBP."
+                helperText="Up to 10 new images. JPG, PNG, or WEBP."
                 maxFiles={10}
                 onFilesChange={handleGalleryFilesChange}
               />

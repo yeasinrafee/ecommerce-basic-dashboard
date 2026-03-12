@@ -20,6 +20,7 @@ interface MainInformationProps {
   setDescription: (value: string) => void;
   brandOptions: BrandOption[];
   control: Control<any>;
+  isEditMode?: boolean;
 }
 
 const MainInformation: React.FC<MainInformationProps> = ({
@@ -31,11 +32,12 @@ const MainInformation: React.FC<MainInformationProps> = ({
   setDescription,
   brandOptions,
   control,
+  isEditMode = false,
 }) => {
   return (
     <div className="rounded-2xl border border-slate-200 bg-background px-6 py-6 shadow-sm">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold text-slate-900">Create Product</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">{isEditMode ? 'Edit Product' : 'Create Product'}</h1>
         <p className="text-sm text-slate-500">
           Capture the primary details your team needs to launch the item.
         </p>
