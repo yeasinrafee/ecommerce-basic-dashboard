@@ -21,6 +21,7 @@ interface MainInformationProps {
   setDescription: (value: string) => void;
   brandOptions: BrandOption[];
   control: Control<any>;
+  onCreateBrand?: (name: string) => void;
 }
 
 const MainInformation: React.FC<MainInformationProps> = ({
@@ -32,7 +33,10 @@ const MainInformation: React.FC<MainInformationProps> = ({
   setDescription,
   brandOptions,
   control,
+  onCreateBrand,
 }) => {
+  const [showCreate, setShowCreate] = React.useState(false);
+  const [newBrandName, setNewBrandName] = React.useState("");
   return (
     <div className="rounded-2xl border border-slate-200 bg-background px-6 py-6 shadow-sm">
       <div className="flex flex-col gap-1">
@@ -50,13 +54,47 @@ const MainInformation: React.FC<MainInformationProps> = ({
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => setProductName(event.target.value)}
             requiredMark
           />
-          <CustomSelect
-            name="brand"
-            control={control}
-            label="Product Brand"
-            requiredMark
-            options={brandOptions}
-          />
+          <div className="flex items-start gap-2">
+            <div className="flex-1">
+              <CustomSelect
+                name="brand"
+                control={control}
+                label="Product Brand"
+                requiredMark
+                options={brandOptions}
+              />
+            </div>
+            <div className="mt-6">
+              <CustomButton type="button" variant="ghost" size="sm" onClick={() => setShowCreate((s) => !s)}>
+                Add
+              </CustomButton>
+            </div>
+          </div>
+
+          {showCreate && (
+            <div className="mt-2 flex gap-2">
+              <CustomInput
+                label=""
+                placeholder="New brand name"
+                value={newBrandName}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewBrandName(e.target.value)}
+              />
+              <CustomButton
+                type="button"
+                onClick={() => {
+                  if (!newBrandName.trim()) return;
+                  onCreateBrand?.(newBrandName.trim());
+                  setNewBrandName("");
+                  setShowCreate(false);
+                }}
+              >
+                Create
+              </CustomButton>
+              <CustomButton type="button" variant="ghost" onClick={() => { setShowCreate(false); setNewBrandName(""); }}>
+                Cancel
+              </CustomButton>
+            </div>
+          )}
         </div>
 
         <CustomTextArea

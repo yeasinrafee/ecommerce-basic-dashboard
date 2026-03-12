@@ -12,13 +12,7 @@ import Seo, { SeoData } from "./ProductForm/Seo";
 import RightSection, { RightSectionData } from "./ProductForm/RightSection";
 import { useAllCategories } from "@/hooks/product-category.api";
 import { useAllTags } from "@/hooks/product-tag.api";
-
-const brandOptions = [
-  { label: "Arwa Signature", value: "arwa-signature" },
-  { label: "Aurora Studio", value: "aurora-studio" },
-  { label: "Lumen Works", value: "lumen-works" },
-  { label: "Cedar & Silk", value: "cedar-silk" },
-];
+import { useAllBrands, useCreateBrand, Brand } from "@/hooks/brand.api";
 
 const discountOptions = [
   { label: "None", value: "NONE" },
@@ -50,10 +44,10 @@ type UploadedImage = {
 };
 
 export default function CreateProductForm() {
-  const { control, watch } = useForm<FormValues>({
+  const { control, watch, setValue } = useForm<FormValues>({
     defaultValues: {
-      discountType: "none",
-      brand: brandOptions[0].value,
+      discountType: discountOptions[0].value,
+      brand: "",
       stockStatus: stockStatusOptions[0].value,
       productStatus: productStatusOptions[0].value,
     },
@@ -64,6 +58,21 @@ export default function CreateProductForm() {
   // fetch categories and tags from backend
   const { data: productCategories } = useAllCategories();
   const { data: productTags } = useAllTags();
+  const { data: allBrands } = useAllBrands();
+  const createBrandMutation = useCreateBrand();
+
+  const brandOptions = React.useMemo(() => {
+    return (allBrands ?? []).map((b: Brand) => ({ label: b.name, value: b.id }));
+  }, [allBrands]);
+
+  // set default brand when brands load
+  const currentBrand = watch("brand");
+  React.useEffect(() => {
+    if (!currentBrand && brandOptions.length > 0) {
+      setValue("brand", brandOptions[0].value);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brandOptions]);
 
   const categoriesList = React.useMemo(() => productCategories ?? [], [productCategories]);
   const tagList = React.useMemo(() => productTags?.map((t) => t.name) ?? [], [productTags]);
@@ -232,6 +241,16 @@ export default function CreateProductForm() {
             description={description}
             setDescription={setDescription}
             brandOptions={brandOptions}
+            onCreateBrand={(name: string) =>
+              createBrandMutation.mutate(name, {
+                onSuccess: (res) => {
+                  try {
+                    // set newly created brand as selected
+                    setValue("brand", res.payload.id);
+                  } catch (e) {}
+                },
+              })
+            }
             control={control}
           />
 
