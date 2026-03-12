@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { usePaginatedProducts, useDeleteProduct, useUpdateProduct } from "@/hooks/product.api";
+import { usePaginatedProducts, useDeleteProduct, usePatchProduct } from "@/hooks/product.api";
 import CustomSelect from "@/components/FormFields/CustomSelect";
 
 const productStatusOptions = [
@@ -42,7 +42,7 @@ const ManageProduct: React.FC = () => {
   }, [searchInput]);
 
   const { data: paged, isLoading, isError } = usePaginatedProducts(page, limit);
-  const updateMutation = useUpdateProduct();
+  const patchMutation = usePatchProduct();
 
   const products = paged?.data ?? [];
   const total = paged?.meta?.total ?? 0;
@@ -75,15 +75,11 @@ const ManageProduct: React.FC = () => {
   };
 
   const handleInlineStatusChange = (id: string, status: string) => {
-    const fd = new FormData();
-    fd.append("status", status);
-    updateMutation.mutate({ id, payload: fd });
+    patchMutation.mutate({ id, payload: { status } });
   };
 
   const handleInlineStockStatusChange = (id: string, stockStatus: string) => {
-    const fd = new FormData();
-    fd.append("stockStatus", stockStatus);
-    updateMutation.mutate({ id, payload: fd });
+    patchMutation.mutate({ id, payload: { stockStatus } });
   };
 
   const columns = React.useMemo<Column<any>[]>(

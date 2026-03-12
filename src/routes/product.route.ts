@@ -6,6 +6,7 @@ export const ProductRoutes = {
   getById: (id: string) => `${productBase}/${id}`,
   create: `${productBase}/create`,
   update: (id: string) => `${productBase}/${id}`,
+  patch: (id: string) => `${productBase}/${id}/fields`,
   delete: (id: string) => `${productBase}/${id}`
 };
 

@@ -155,3 +155,24 @@ export const useDeleteProduct = () => {
 	});
 };
 
+const patchProductReq = async ({ id, payload }: { id: string; payload: Record<string, string> }) => {
+	const response = await apiClient.patch<ApiResponse<Product>>(ProductRoutes.patch(id), payload);
+	return ensurePayload(response.data, 'Failed to update product');
+};
+
+export const usePatchProduct = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: patchProductReq,
+		onSuccess: async (data, variables) => {
+			toast.success('Product updated');
+			await queryClient.invalidateQueries({ queryKey: productKeys.all });
+			queryClient.setQueryData(productKeys.detail(variables.id), data);
+		},
+		onError: (err: any) => {
+			const message = err?.response?.data?.message || err?.message || 'Failed to update product';
+			toast.error(message);
+		}
+	});
+};
+
