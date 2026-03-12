@@ -33,7 +33,7 @@ export default function DeleteModal({
       description={description}
       footer={
         <div className="flex justify-start gap-2">
-          <CustomButton variant="primary" className="text-black bg-gray-200" onClick={() => onOpenChange(false)}>{cancelLabel}</CustomButton>
+          <CustomButton variant="primary" className="text-black bg-gray-200" onClick={() => onOpenChange(false)} disabled={loading}>{cancelLabel}</CustomButton>
           <CustomButton variant="primary" className="text-white bg-red-500" loading={loading} onClick={() => onConfirm()}>{confirmLabel}</CustomButton>
         </div>
       }
