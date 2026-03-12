@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react";
+import { useForm } from "react-hook-form";
 import Table, { type Column } from "@/components/Common/Table";
 import CustomButton from "@/components/Common/CustomButton";
 import DeleteModal from "@/components/Common/DeleteModal";
@@ -11,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { usePaginatedProducts, useDeleteProduct } from "@/hooks/product.api";
+import { usePaginatedProducts, useDeleteProduct, useUpdateProduct } from "@/hooks/product.api";
+import CustomSelect from "@/components/FormFields/CustomSelect";
 
 const ManageProduct: React.FC = () => {
   const router = useRouter();
@@ -30,6 +32,7 @@ const ManageProduct: React.FC = () => {
   }, [searchInput]);
 
   const { data: paged, isLoading, isError } = usePaginatedProducts(page, limit);
+  const updateMutation = useUpdateProduct();
 
   const products = paged?.data ?? [];
   const total = paged?.meta?.total ?? 0;
@@ -61,9 +64,21 @@ const ManageProduct: React.FC = () => {
     });
   };
 
+  const handleInlineStatusChange = (id: string, status: string) => {
+    const fd = new FormData();
+    fd.append("status", status);
+    updateMutation.mutate({ id, payload: fd });
+  };
+
+  const handleInlineStockStatusChange = (id: string, stockStatus: string) => {
+    const fd = new FormData();
+    fd.append("stockStatus", stockStatus);
+    updateMutation.mutate({ id, payload: fd });
+  };
+
   const columns = React.useMemo<Column<any>[]>(
     () => [
-      { header: "Image", cell: (row) => row.image ? <Image src={row.image} alt="" width={60} height={60} className="object-cover size-[60px]" /> : null },
+      { header: "Image", cell: (row) => row.image ? <Image src={row.image} alt="" width={60} height={60} className="object-cover size-15" /> : null },
       { header: "Name", accessor: "name" },
       { header: "Brand", cell: (row) => row.brand?.name || "-" },
       { header: "Categories", cell: (row) => {
@@ -94,8 +109,24 @@ const ManageProduct: React.FC = () => {
       },
       { header: "Price", cell: (row) => row.finalPrice != null ? `$${row.finalPrice}` : "-" },
       { header: "Stock", accessor: "stock" },
-      { header: "Status", accessor: "status" },
-      { header: "Stock Status", accessor: "stockStatus" },
+      {
+        header: "Status",
+        cell: (row) => (
+          <InlineStatusSelect
+            value={row.status || ""}
+            onChange={(v) => handleInlineStatusChange(row.id, v)}
+          />
+        ),
+      },
+      {
+        header: "Stock Status",
+        cell: (row) => (
+          <InlineStatusSelect
+            value={row.stockStatus || ""}
+            onChange={(v) => handleInlineStockStatusChange(row.id, v)}
+          />
+        ),
+      },
       // { header: "Created", accessor: "createdAt", cell: (row) => new Date(row.createdAt).toLocaleString() }
     ],
     []
@@ -141,9 +172,50 @@ const ManageProduct: React.FC = () => {
         onConfirm={confirmDelete}
       />
 
-      {/* view modal removed */}
+      {/* inline status select component */}
+      
     </div>
   );
 };
 
 export default ManageProduct;
+
+// reusable inline select with built-in debounce for status updates
+function InlineStatusSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { control, reset } = useForm<{ status: string }>({ defaultValues: { status: value } });
+  const [val, setVal] = React.useState<string>(value);
+  const timerRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    reset({ status: value });
+    setVal(value);
+  }, [value, reset]);
+
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const handleChange = (v: string) => {
+    setVal(v);
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => {
+      onChange(v);
+      timerRef.current = null;
+    }, 500);
+  };
+
+  return (
+    <CustomSelect
+      name={"status"}
+      control={control}
+      options={[{ label: "Active", value: "ACTIVE" }, { label: "Inactive", value: "INACTIVE" }]}
+      fieldToValue={(v: any) => v ?? ""}
+      valueToField={(v: string) => v}
+      onChangeCallback={handleChange}
+      placeholder="Status"
+      triggerClassName="w-40"
+    />
+  );
+}
