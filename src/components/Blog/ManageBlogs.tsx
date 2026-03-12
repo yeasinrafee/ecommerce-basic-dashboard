@@ -117,7 +117,7 @@ export default function ManageBlogs() {
         onOpenChange={setDeleteModalOpen}
         title="Confirm deletion"
         description={deleteTarget ? `Are you sure you want to delete blog "${deleteTarget.title}"? This action cannot be undone.` : undefined}
-        loading={deleteBlogMutation.isLoading}
+        loading={(deleteBlogMutation as any).isPending || (deleteBlogMutation as any).isLoading}
         onConfirm={confirmDelete}
       />
     </div>
