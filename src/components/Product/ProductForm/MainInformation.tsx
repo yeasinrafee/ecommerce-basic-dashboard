@@ -48,11 +48,13 @@ const MainInformation: React.FC<MainInformationProps> = ({
             label="Product Name"
             value={productName}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => setProductName(event.target.value)}
+            requiredMark
           />
           <CustomSelect
             name="brand"
             control={control}
             label="Product Brand"
+            requiredMark
             options={brandOptions}
           />
         </div>
@@ -67,6 +69,7 @@ const MainInformation: React.FC<MainInformationProps> = ({
         <div className="space-y-3">
           <div className="text-sm font-semibold text-slate-700">
             Description
+            <span className="ml-1 text-destructive">*</span>
           </div>
           <CustomRichTextEditor value={description} onChange={setDescription} />
         </div>

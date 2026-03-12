@@ -18,6 +18,7 @@ interface CustomFileUploadProps {
   className?: string;
   accept?: string;
   disabled?: boolean;
+  requiredMark?: boolean;
   onFilesChange?: (files: CustomFileUploadFile[]) => void;
 }
 
@@ -58,6 +59,7 @@ const CustomFileUpload: React.FC<CustomFileUploadProps> = ({
   accept = DEFAULT_ACCEPT,
   className,
   disabled = false,
+  requiredMark = false,
   onFilesChange,
 }) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -243,7 +245,12 @@ const CustomFileUpload: React.FC<CustomFileUploadProps> = ({
             : "border-slate-300 bg-background"
         }`}> 
         <CloudUpload className="mx-auto h-6 w-6 text-slate-400" />
-        <p className="mt-3 text-sm font-semibold text-slate-700">{label}</p>
+        <p className="mt-3 text-sm font-semibold text-slate-700">
+          {label}
+          {requiredMark ? (
+            <span className="ml-1 text-destructive" aria-hidden="true">*</span>
+          ) : null}
+        </p>
         <p className="text-xs text-slate-500">
           {description ?? "PNG, JPG, JPEG, or WEBP up to 5MB each."}
         </p>

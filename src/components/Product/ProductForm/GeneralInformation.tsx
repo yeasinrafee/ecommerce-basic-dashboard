@@ -85,6 +85,7 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           type="number"
           value={basePrice === null ? "" : basePrice}
           onValueChange={(value) => setBasePrice(value as number | null)}
+          requiredMark
           placeholder="0.00"
         />
         <div>
@@ -139,6 +140,7 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           type="number"
           value={stockQuantity === null ? "" : stockQuantity}
           onValueChange={(value) => setStockQuantity(value as number | null)}
+          requiredMark
           placeholder="0"
           min={0}
         />
@@ -155,6 +157,7 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           type="number"
           value={weight === null ? "" : weight}
           onValueChange={(value) => setWeight(value as number | null)}
+          requiredMark
           placeholder="0"
           min={0}
         />
@@ -169,6 +172,7 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
               type="number"
               value={lengthCm === null ? "" : lengthCm}
               onValueChange={(value) => setLengthCm(value as number | null)}
+              requiredMark
               placeholder="0"
               min={0}
             />
@@ -177,6 +181,7 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
               type="number"
               value={widthCm === null ? "" : widthCm}
               onValueChange={(value) => setWidthCm(value as number | null)}
+              requiredMark
               placeholder="0"
               min={0}
             />
@@ -185,6 +190,7 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
               type="number"
               value={heightCm === null ? "" : heightCm}
               onValueChange={(value) => setHeightCm(value as number | null)}
+              requiredMark
               placeholder="0"
               min={0}
             />
@@ -197,12 +203,14 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           name="stockStatus"
           control={control}
           label="Stock Status"
+          requiredMark
           options={stockStatusOptions}
         />
         <CustomSelect
           name="productStatus"
           control={control}
           label="Product Status"
+          requiredMark
           options={productStatusOptions}
         />
       </div>

@@ -16,6 +16,7 @@ export type CustomDatePickerProps = {
   format?: (date: Date | null) => string
   disabled?: boolean
   required?: boolean
+  requiredMark?: boolean
   // class overrides
   className?: string
   fieldClassName?: string
@@ -92,6 +93,7 @@ const CustomDatePicker = React.forwardRef<HTMLButtonElement, CustomDatePickerPro
       format = defaultFormat,
       disabled,
       required,
+      requiredMark = false,
       className,
       fieldClassName,
       labelClassName,
@@ -183,10 +185,13 @@ const CustomDatePicker = React.forwardRef<HTMLButtonElement, CustomDatePickerPro
     return (
       <div className={cn("inline-block w-full", fieldClassName, className)}>
         {label ? (
-          <Label htmlFor={id} className={cn("mb-2", labelClassName)}>
-            {label}
-          </Label>
-        ) : null}
+              <Label htmlFor={id} className={cn("mb-2", labelClassName)}>
+                {label}
+                {requiredMark ? (
+                  <span className="ml-1 text-destructive" aria-hidden="true">*</span>
+                ) : null}
+              </Label>
+            ) : null}
 
         <div className="relative inline-block w-full">
           <Button

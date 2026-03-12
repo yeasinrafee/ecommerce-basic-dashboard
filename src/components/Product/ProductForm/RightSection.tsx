@@ -102,7 +102,10 @@ const RightSection: React.FC<RightSectionProps> = ({
 
         <div className="mt-5 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Product image</label>
+            <label className="block text-sm font-medium text-slate-700">
+              Product image
+              <span className="ml-1 text-destructive">*</span>
+            </label>
             <div className="mt-2">
               <CustomFileUpload
                 label=""
@@ -130,7 +133,10 @@ const RightSection: React.FC<RightSectionProps> = ({
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-background px-4 py-4 shadow-sm">
-        <h3 className="text-lg font-semibold text-slate-900">Categories</h3>
+        <h3 className="text-lg font-semibold text-slate-900">
+          Categories
+          <span className="ml-1 text-destructive">*</span>
+        </h3>
         <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
           {categoriesList
             .filter((c) => !c.parentId)
@@ -160,7 +166,10 @@ const RightSection: React.FC<RightSectionProps> = ({
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-background px-4 py-4 shadow-sm">
-        <h3 className="text-lg font-semibold text-slate-900">Product Tags</h3>
+        <h3 className="text-lg font-semibold text-slate-900">
+          Product Tags
+          <span className="ml-1 text-destructive">*</span>
+        </h3>
         <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
           {tagList.map((tag) => (
             <CustomCheckbox

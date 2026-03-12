@@ -100,6 +100,57 @@ export default function CreateProductForm() {
     seoKeywords: [],
   });
 
+  const brandValue = watch("brand");
+  const stockStatusValue = watch("stockStatus");
+  const productStatusValue = watch("productStatus");
+
+  const isFormValid = React.useMemo(() => {
+    const hasProductName = productName.trim() !== "";
+    const hasDescription = description.trim() !== "";
+    const hasBasePrice = basePrice !== null && !Number.isNaN(Number(basePrice));
+    const hasStockQuantity = stockQuantity !== null && !Number.isNaN(Number(stockQuantity));
+    const hasWeight = weight !== null && !Number.isNaN(Number(weight));
+    const hasLength = lengthCm !== null && !Number.isNaN(Number(lengthCm));
+    const hasWidth = widthCm !== null && !Number.isNaN(Number(widthCm));
+    const hasHeight = heightCm !== null && !Number.isNaN(Number(heightCm));
+    const hasBrand = Boolean(brandValue);
+    const hasStockStatus = Boolean(stockStatusValue);
+    const hasProductStatus = Boolean(productStatusValue);
+    const hasMainImage = rightData.mainImage !== null;
+    const hasCategories = rightData.categories && rightData.categories.length > 0;
+    const hasTags = rightData.tags && rightData.tags.length > 0;
+
+    return (
+      hasProductName &&
+      hasDescription &&
+      hasBasePrice &&
+      hasStockQuantity &&
+      hasWeight &&
+      hasLength &&
+      hasWidth &&
+      hasHeight &&
+      hasBrand &&
+      hasStockStatus &&
+      hasProductStatus &&
+      hasMainImage &&
+      hasCategories &&
+      hasTags
+    );
+  }, [
+    productName,
+    description,
+    basePrice,
+    stockQuantity,
+    weight,
+    lengthCm,
+    widthCm,
+    heightCm,
+    brandValue,
+    stockStatusValue,
+    productStatusValue,
+    rightData,
+  ]);
+
   const tabItems: CustomTabItem[] = [
     {
       id: "general",
@@ -207,6 +258,7 @@ export default function CreateProductForm() {
         <CustomButton
           className="px-4"
           onClick={() => console.log("Submit", { productName })}
+          disabled={!isFormValid}
         >
           Save Product
         </CustomButton>
