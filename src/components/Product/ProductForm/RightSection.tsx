@@ -7,6 +7,7 @@ import CustomFileUpload, {
   CustomFileUploadFile,
 } from "../../FormFields/CustomFileUpload";
 import type { Category } from "@/hooks/product-category.api";
+import type { Tag } from "@/hooks/product-tag.api";
 
 export type UploadedImage = CustomFileUploadFile;
 
@@ -19,7 +20,7 @@ export type RightSectionData = {
 
 interface RightSectionProps {
   categoriesList: Category[];
-  tagList: string[];
+  tagList: Tag[];
   onChange?: (data: RightSectionData) => void;
 }
 
@@ -54,10 +55,8 @@ const RightSection: React.FC<RightSectionProps> = ({
     });
   };
 
-  const toggleTag = (tag: string) => {
-    setTags((prev) =>
-      prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag],
-    );
+  const toggleTag = (tagId: string) => {
+    setTags((prev) => (prev.includes(tagId) ? prev.filter((item) => item !== tagId) : [...prev, tagId]));
   };
 
   const mapUploads = (items: CustomFileUploadFile[]) =>
@@ -169,10 +168,10 @@ const RightSection: React.FC<RightSectionProps> = ({
         <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
           {tagList.map((tag) => (
             <CustomCheckbox
-              key={tag}
-              label={tag}
-              checked={tags.includes(tag)}
-              onCheckedChange={() => toggleTag(tag)}
+              key={tag.id}
+              label={tag.name}
+              checked={tags.includes(tag.id)}
+              onCheckedChange={() => toggleTag(tag.id)}
             />
           ))}
         </div>

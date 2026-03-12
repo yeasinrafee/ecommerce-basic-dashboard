@@ -298,7 +298,7 @@ export default function CreateProductForm() {
   }, [brandOptions, brandValue, setValue]);
 
   const categoriesList = React.useMemo(() => productCategories ?? [], [productCategories]);
-  const tagList = React.useMemo(() => productTags?.map((tag) => tag.name) ?? [], [productTags]);
+  const tagList = React.useMemo(() => productTags ?? [], [productTags]);
 
   const updateMainInformation = (value: string) => {
     setProductName(value);
