@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { usePaginatedBlogs } from "@/hooks/blog.api"
+import { usePaginatedBlogs, useDeleteBlog } from "@/hooks/blog.api"
 
 export default function ManageBlogs() {
   const router = useRouter()
@@ -35,6 +35,7 @@ export default function ManageBlogs() {
 
   const [deleteTarget, setDeleteTarget] = React.useState<any | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false)
+  const deleteBlogMutation = useDeleteBlog()
 
   const handleCreate = () => {
     router.push("/dashboard/blog/create")
@@ -50,14 +51,18 @@ export default function ManageBlogs() {
   }
 
   const confirmDelete = () => {
-    console.log("(UI-only) delete", deleteTarget)
-    setDeleteModalOpen(false)
-    setDeleteTarget(null)
+    if (!deleteTarget) return
+    deleteBlogMutation.mutate(deleteTarget.id, {
+      onSuccess: () => {
+        setDeleteModalOpen(false)
+        setDeleteTarget(null)
+      }
+    })
   }
 
   const columns = React.useMemo<Column<any>[]>(
     () => [
-      { header: "Image", cell: (row) => row.image ? <Image src={row.image} alt="" width={60} height={40} className="object-cover" /> : null },
+      { header: "Image", cell: (row) => row.image ? <Image src={row.image} alt="" width={60} height={40} className="object-cover size-[60px]" /> : null },
       { header: "Title", accessor: "title" },
       { header: "Author", accessor: "authorName" },
       { header: "Category", cell: (row) => (row.category?.name || "-") },
@@ -107,7 +112,14 @@ export default function ManageBlogs() {
         )}
       />
 
-      <DeleteModal open={deleteModalOpen} onOpenChange={setDeleteModalOpen} title="Confirm deletion" description={deleteTarget ? `Are you sure you want to delete blog "${deleteTarget.title}"? This action cannot be undone.` : undefined} loading={false} onConfirm={confirmDelete} />
+      <DeleteModal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        title="Confirm deletion"
+        description={deleteTarget ? `Are you sure you want to delete blog "${deleteTarget.title}"? This action cannot be undone.` : undefined}
+        loading={(deleteBlogMutation as any).isPending || (deleteBlogMutation as any).isLoading}
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }

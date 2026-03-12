@@ -20,6 +20,7 @@ interface CustomSelectProps<T extends FieldValues> {
   name: Path<T>;
   control: Control<T>;
   label?: string;
+  requiredMark?: boolean;
   placeholder?: string;
   description?: string;
   options: SelectOption[];
@@ -44,6 +45,7 @@ export default function CustomSelect<T extends FieldValues>({
   placeholder = "Select an option",
   description,
   options,
+  requiredMark = false,
   fieldToValue,
   valueToField,
   disabled = false,
@@ -69,6 +71,9 @@ export default function CustomSelect<T extends FieldValues>({
             {label && (
               <Label htmlFor={`select-${String(name)}`} className={cn("mb-2", labelClassName)}>
                 {label}
+                {requiredMark ? (
+                  <span className="ml-1 text-destructive" aria-hidden="true">*</span>
+                ) : null}
               </Label>
             )}
 

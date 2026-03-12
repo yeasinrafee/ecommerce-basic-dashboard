@@ -1,11 +1,18 @@
 "use client"
+import { Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import CreateProductForm from '@/components/Product/CreateProductForm'
 
-const page = () => {
-  return (
-    <div><CreateProductForm />
-    </div>
-  )
+function CreateProductPage() {
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id') || undefined
+  return <CreateProductForm productId={id} />
 }
 
-export default page
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-20 text-slate-500">Loading…</div>}>
+      <CreateProductPage />
+    </Suspense>
+  )
+}

@@ -1,8 +1,9 @@
+import ManageProduct from '@/components/Product/ManageProduct'
 import React from 'react'
 
 const page = () => {
   return (
-    <div>page</div>
+    <div><ManageProduct /></div>
   )
 }
 

@@ -11,6 +11,7 @@ interface CustomCheckboxProps extends React.ComponentProps<typeof Checkbox> {
   containerClassName?: string;
   labelClassName?: string;
   descriptionClassName?: string;
+  requiredMark?: boolean;
 }
 
 const CustomCheckbox = ({
@@ -20,6 +21,7 @@ const CustomCheckbox = ({
   containerClassName,
   labelClassName,
   descriptionClassName,
+  requiredMark = false,
   className,
   ...props
 }: CustomCheckboxProps) => {
@@ -38,6 +40,9 @@ const CustomCheckbox = ({
               className={cn("cursor-pointer text-sm font-medium", labelClassName)}
             >
               {label}
+              {requiredMark ? (
+                <span className="ml-1 text-destructive" aria-hidden="true">*</span>
+              ) : null}
             </Label>
           ) : null}
 

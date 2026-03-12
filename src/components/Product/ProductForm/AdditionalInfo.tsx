@@ -7,12 +7,22 @@ import type { AdditionalInfo as AdditionalInfoType } from "./Attributes";
 
 interface AdditionalInfoProps {
   onChange?: (info: AdditionalInfoType[]) => void;
+  initialInfo?: AdditionalInfoType[];
 }
 
-const AdditionalInfo: React.FC<AdditionalInfoProps> = ({ onChange }) => {
+const AdditionalInfo: React.FC<AdditionalInfoProps> = ({ onChange, initialInfo }) => {
   const [infoName, setInfoName] = React.useState("");
   const [infoValue, setInfoValue] = React.useState("");
   const [additionalInfo, setAdditionalInfo] = React.useState<AdditionalInfoType[]>([]);
+
+  // Seed initial data once when edit-mode values arrive
+  const initializedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!initializedRef.current && initialInfo && initialInfo.length > 0) {
+      initializedRef.current = true;
+      setAdditionalInfo(initialInfo);
+    }
+  }, [initialInfo]);
 
   const addAdditionalInfo = () => {
     if (!infoName.trim() || !infoValue.trim()) return;

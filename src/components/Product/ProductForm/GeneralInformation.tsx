@@ -69,9 +69,9 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
     if (basePrice == null) return "";
     const disc = discountValue ?? 0;
     switch (selectedDiscountType) {
-      case "flat":
+      case "FLAT_DISCOUNT":
         return Math.max(0, basePrice - disc);
-      case "percent":
+      case "PERCENTAGE_DISCOUNT":
         return Math.max(0, basePrice - basePrice * (disc / 100));
       default:
         return basePrice;
@@ -85,6 +85,7 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           type="number"
           value={basePrice === null ? "" : basePrice}
           onValueChange={(value) => setBasePrice(value as number | null)}
+          requiredMark
           placeholder="0.00"
         />
         <div>
@@ -107,15 +108,15 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           label="Discount Type"
           options={discountOptions}
         />
-        <CustomInput
-          label="Discount Value"
-          type="number"
-          value={discountValue === null ? "" : discountValue}
-          onValueChange={(value) => setDiscountValue(value as number | null)}
-          placeholder="0"
-          min={0}
-          disabled={selectedDiscountType === "none"}
-        />
+          <CustomInput
+            label="Discount Value"
+            type="number"
+            value={discountValue === null ? "" : discountValue}
+            onValueChange={(value) => setDiscountValue(value as number | null)}
+            placeholder="0"
+            min={0}
+            disabled={selectedDiscountType === "NONE"}
+          />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -123,13 +124,13 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           label="Discount Start Date"
           value={discountStart}
           onChange={setDiscountStart}
-          disabled={selectedDiscountType === "none"}
+          disabled={selectedDiscountType === "NONE"}
         />
         <CustomDatePicker
           label="Discount End Date"
           value={discountEnd}
           onChange={setDiscountEnd}
-          disabled={selectedDiscountType === "none"}
+          disabled={selectedDiscountType === "NONE"}
         />
       </div>
 
@@ -139,55 +140,60 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           type="number"
           value={stockQuantity === null ? "" : stockQuantity}
           onValueChange={(value) => setStockQuantity(value as number | null)}
+          requiredMark
           placeholder="0"
           min={0}
         />
         <CustomInput
           label="SKU"
           value={sku}
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSku(event.target.value)}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            setSku(event.target.value)
+          }
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <CustomInput
-          label="Weight (grams)"
-          type="number"
-          value={weight === null ? "" : weight}
-          onValueChange={(value) => setWeight(value as number | null)}
-          placeholder="0"
-          min={0}
-        />
+      <div className="">
+        <p className="my-2 text-xs text-slate-500">
+          Either provide weight or all three dimensions (Length, Width, Height).
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <CustomInput
+            label="Weight (grams)"
+            type="number"
+            value={weight === null ? "" : weight}
+            onValueChange={(value) => setWeight(value as number | null)}
+            placeholder="0"
+            min={0}
+          />
 
-        <div>
-          {/* <label className="block text-sm font-medium text-slate-700">
-            Dimensions (cm)
-          </label> */}
-          <div className="mt-1 grid grid-cols-3 gap-2">
-            <CustomInput
-              label="Length"
-              type="number"
-              value={lengthCm === null ? "" : lengthCm}
-              onValueChange={(value) => setLengthCm(value as number | null)}
-              placeholder="0"
-              min={0}
-            />
-            <CustomInput
-              label="Width"
-              type="number"
-              value={widthCm === null ? "" : widthCm}
-              onValueChange={(value) => setWidthCm(value as number | null)}
-              placeholder="0"
-              min={0}
-            />
-            <CustomInput
-              label="Height"
-              type="number"
-              value={heightCm === null ? "" : heightCm}
-              onValueChange={(value) => setHeightCm(value as number | null)}
-              placeholder="0"
-              min={0}
-            />
+          <div>
+            <div className="mt-1 grid grid-cols-3 gap-2">
+              <CustomInput
+                label="Length"
+                type="number"
+                value={lengthCm === null ? "" : lengthCm}
+                onValueChange={(value) => setLengthCm(value as number | null)}
+                placeholder="0"
+                min={0}
+              />
+              <CustomInput
+                label="Width"
+                type="number"
+                value={widthCm === null ? "" : widthCm}
+                onValueChange={(value) => setWidthCm(value as number | null)}
+                placeholder="0"
+                min={0}
+              />
+              <CustomInput
+                label="Height"
+                type="number"
+                value={heightCm === null ? "" : heightCm}
+                onValueChange={(value) => setHeightCm(value as number | null)}
+                placeholder="0"
+                min={0}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -197,12 +203,14 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
           name="stockStatus"
           control={control}
           label="Stock Status"
+          requiredMark
           options={stockStatusOptions}
         />
         <CustomSelect
-          name="productStatus"
+          name="status"
           control={control}
           label="Product Status"
+          requiredMark
           options={productStatusOptions}
         />
       </div>

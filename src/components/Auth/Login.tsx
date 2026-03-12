@@ -11,7 +11,8 @@ import { AuthRoutes } from "@/routes/auth.route";
 import { useRouter } from "next/navigation";
 import type { ApiResponse, AuthData, LoginCredentials } from "@/types/auth";
 
-const ERROR_MESSAGE = "Login failed. Please verify your credentials and try again.";
+const ERROR_MESSAGE =
+  "Login failed. Please verify your credentials and try again.";
 
 const resolveErrorMessage = (error: unknown) => {
   if (axios.isAxiosError(error)) {
@@ -27,37 +28,42 @@ const resolveErrorMessage = (error: unknown) => {
 
 const Login = () => {
   const router = useRouter();
-  const setUser = useAuthStore((state) => state.setUser); 
+  const setUser = useAuthStore((state) => state.setUser);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (event) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
+    event,
+  ) => {
     event.preventDefault();
     setError(null);
     setLoading(true);
 
     const credentials: LoginCredentials = {
       email: email.trim(),
-      password
+      password,
     };
 
     try {
-      const response = await apiClient.post<ApiResponse<AuthData>>(AuthRoutes.login, credentials);
+      const response = await apiClient.post<ApiResponse<AuthData>>(
+        AuthRoutes.login,
+        credentials,
+      );
       const payload = response.data.data;
       if (!payload) {
-        throw new Error('Invalid login response');
+        throw new Error("Invalid login response");
       }
       const { user } = payload;
       const stored = {
         email: user.email,
         role: user.role,
         name: user.name,
-        image: user.image
+        image: user.image,
       };
       toast.success(`Welcome back, ${user.name}!`);
-      router.push('/dashboard');
+      router.push("/dashboard");
       setTimeout(() => {
         setUser(stored);
         setPassword("");
@@ -66,13 +72,16 @@ const Login = () => {
       const message = resolveErrorMessage(err);
       setError(message);
       toast.error(message);
-    } finally {
       setLoading(false);
+    } finally {
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 border shadow-sm border-slate-200 rounded p-4 w-full max-w-sm md:max-w-[400px]">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-6 border shadow-sm border-slate-200 rounded p-4 w-full max-w-sm md:max-w-[400px]"
+    >
       <CustomInput
         label="Email"
         type="email"

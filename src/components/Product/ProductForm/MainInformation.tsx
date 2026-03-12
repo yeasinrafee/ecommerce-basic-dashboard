@@ -1,7 +1,6 @@
 import React from "react";
 import { Control } from "react-hook-form";
 
-import CustomButton from "../../Common/CustomButton";
 import CustomInput from "../../FormFields/CustomInput";
 import CustomRichTextEditor from "../../Common/CustomRichTextEditor";
 import CustomSelect from "../../FormFields/CustomSelect";
@@ -21,6 +20,8 @@ interface MainInformationProps {
   setDescription: (value: string) => void;
   brandOptions: BrandOption[];
   control: Control<any>;
+  isEditMode?: boolean;
+  onEditorProcessingChange?: (processing: boolean) => void;
 }
 
 const MainInformation: React.FC<MainInformationProps> = ({
@@ -32,11 +33,13 @@ const MainInformation: React.FC<MainInformationProps> = ({
   setDescription,
   brandOptions,
   control,
+  isEditMode = false,
+  onEditorProcessingChange,
 }) => {
   return (
     <div className="rounded-2xl border border-slate-200 bg-background px-6 py-6 shadow-sm">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold text-slate-900">Create Product</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">{isEditMode ? 'Edit Product' : 'Create Product'}</h1>
         <p className="text-sm text-slate-500">
           Capture the primary details your team needs to launch the item.
         </p>
@@ -48,11 +51,13 @@ const MainInformation: React.FC<MainInformationProps> = ({
             label="Product Name"
             value={productName}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => setProductName(event.target.value)}
+            requiredMark
           />
           <CustomSelect
             name="brand"
             control={control}
             label="Product Brand"
+            requiredMark
             options={brandOptions}
           />
         </div>
@@ -67,8 +72,9 @@ const MainInformation: React.FC<MainInformationProps> = ({
         <div className="space-y-3">
           <div className="text-sm font-semibold text-slate-700">
             Description
+            <span className="ml-1 text-destructive">*</span>
           </div>
-          <CustomRichTextEditor value={description} onChange={setDescription} />
+          <CustomRichTextEditor value={description} onChange={setDescription} onProcessingChange={onEditorProcessingChange} />
         </div>
       </div>
     </div>
