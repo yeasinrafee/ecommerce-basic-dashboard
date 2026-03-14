@@ -9,6 +9,8 @@ import CustomInput from "@/components/FormFields/CustomInput";
 import CustomButton from "@/components/Common/CustomButton";
 import { useCreateAdmin, useUpdateAdmin } from "@/hooks/admin.api";
 import CustomFileUpload, { type CustomFileUploadFile } from "@/components/FormFields/CustomFileUpload";
+import OtpInput from "../FormFields/OtpInput"; 
+import { useVerifyOtp } from "@/hooks/auth.api";
 
 const createSchema = z
   .object({
@@ -39,9 +41,7 @@ interface Props {
 
 export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props) {
   const isEdit = Boolean(defaultValues?.id);
-
   const activeSchema = isEdit ? editSchema : createSchema;
-
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormSchema>({
     resolver: zodResolver(activeSchema),
     defaultValues: isEdit
@@ -55,19 +55,49 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
 
   const createMutation = useCreateAdmin();
   const updateMutation = useUpdateAdmin();
+  const verifyOtpMutation = useVerifyOtp();
   const [uploadedFiles, setUploadedFiles] = React.useState<CustomFileUploadFile[]>([]);
+  const [pendingVerificationUser, setPendingVerificationUser] = React.useState<{ id: string; email: string } | null>(null);
+  const [otpCode, setOtpCode] = React.useState("");
+  const [otpMessage, setOtpMessage] = React.useState<string | null>(null);
+  const [otpError, setOtpError] = React.useState<string | null>(null);
+  const OTP_LENGTH = 6;
+
+  React.useEffect(() => {
+    if (!open) {
+      setPendingVerificationUser(null);
+      setOtpCode("");
+      setOtpMessage(null);
+      setOtpError(null);
+      setUploadedFiles([]);
+    }
+  }, [open]);
+
+  React.useEffect(() => {
+    if (isEdit) {
+      setPendingVerificationUser(null);
+      setOtpCode("");
+      setOtpMessage(null);
+      setOtpError(null);
+    }
+  }, [isEdit]);
+
   const existingImage = defaultValues?.image;
   const showExistingImage = isEdit && existingImage && uploadedFiles.length === 0;
+
+  const handleOtpChange = (value: string) => {
+    setOtpError(null);
+    setOtpCode(value);
+  };
 
   const onSubmit = async (data: FormSchema) => {
     if (isEdit && defaultValues?.id) {
       const editData = data as EditFormSchema;
-      // if a new image was uploaded, send multipart/form-data
       if (uploadedFiles && uploadedFiles.length > 0) {
         const formData = new FormData();
-        formData.append('name', editData.name);
-        formData.append('email', editData.email);
-        formData.append('image', uploadedFiles[0].file);
+        formData.append("name", editData.name);
+        formData.append("email", editData.email);
+        formData.append("image", uploadedFiles[0].file);
         await updateMutation.mutateAsync({ id: defaultValues.id, payload: formData });
       } else {
         await updateMutation.mutateAsync({ id: defaultValues.id, payload: { name: editData.name, email: editData.email } });
@@ -76,8 +106,11 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
       return;
     }
 
-    const createData = data as CreateFormSchema;
+    if (pendingVerificationUser) {
+      return;
+    }
 
+    const createData = data as CreateFormSchema;
     const formData = new FormData();
     formData.append("name", createData.name);
     formData.append("email", createData.email);
@@ -85,11 +118,33 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
     if (uploadedFiles && uploadedFiles.length > 0) {
       formData.append("image", uploadedFiles[0].file);
     }
-    // image handling left to future: users can extend to append file under 'image'
 
-    await createMutation.mutateAsync(formData);
-    reset({ name: "", email: "", password: undefined });
-    onOpenChange(false);
+    const result = await createMutation.mutateAsync(formData);
+    const email = result.payload.email ?? "";
+    setPendingVerificationUser({ id: result.payload.id, email });
+    setOtpMessage(email ? `OTP sent to ${email}` : "OTP sent, check the inbox");
+    setOtpError(null);
+    setOtpCode("");
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!pendingVerificationUser || otpCode.length < OTP_LENGTH) {
+      return;
+    }
+
+    try {
+      await verifyOtpMutation.mutateAsync({ userId: pendingVerificationUser.id, code: otpCode });
+      setPendingVerificationUser(null);
+      setOtpCode("");
+      setOtpMessage(null);
+      setOtpError(null);
+      setUploadedFiles([]);
+      reset({ name: "", email: "", password: undefined });
+      onOpenChange(false);
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || "Invalid OTP code";
+      setOtpError(message);
+    }
   };
 
   return (
@@ -100,9 +155,20 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
       description={isEdit ? "Edit admin details" : "Create a new admin"}
       footer={
         <div className="flex gap-2 w-full justify-center">
-          <CustomButton loading={isSubmitting} type="button" onClick={handleSubmit(onSubmit)}>
-            {isEdit ? "Update Admin" : "Create Admin"}
-          </CustomButton>
+          {pendingVerificationUser ? (
+            <CustomButton
+              loading={verifyOtpMutation.isPending}
+              disabled={otpCode.length < OTP_LENGTH}
+              type="button"
+              onClick={handleVerifyOtp}
+            >
+              Verify OTP
+            </CustomButton>
+          ) : (
+            <CustomButton loading={isSubmitting} type="button" onClick={handleSubmit(onSubmit)}>
+              {isEdit ? "Update Admin" : "Create Admin"}
+            </CustomButton>
+          )}
         </div>
       }
     >
@@ -115,6 +181,26 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
               <CustomInput label="Password" type="password" {...register("password" as any)} error={(errors as any).password?.message} requiredMark />
               <CustomInput label="Confirm Password" type="password" {...register("confirmPassword" as any)} error={(errors as any).confirmPassword?.message} requiredMark />
             </>
+          )}
+          {!isEdit && pendingVerificationUser && (
+            <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-semibold text-slate-900">OTP verification</span>
+                <span className="text-xs text-slate-500">{otpMessage ?? `Code sent to ${pendingVerificationUser.email}`}</span>
+              </div>
+              <OtpInput
+                length={OTP_LENGTH}
+                value={otpCode}
+                onChange={handleOtpChange}
+                allowedPattern="^\\d+$"
+                placeholderChar="●"
+              />
+              {otpError ? (
+                <p className="text-xs text-rose-600">{otpError}</p>
+              ) : (
+                <p className="text-xs text-slate-500">The code expires in approximately 15 minutes.</p>
+              )}
+            </div>
           )}
           <div>
             <label className="block mb-2 text-sm font-medium">Profile Image</label>
