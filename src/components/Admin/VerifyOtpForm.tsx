@@ -9,10 +9,11 @@ interface VerifyOtpFormProps {
   user: { id: string; email: string; otpExpiry?: string | null };
   onVerified: () => void;
   onResend: () => void;
+  onCancel: () => void;
   isResending?: boolean;
 }
 
-export default function VerifyOtpForm({ user, onVerified, onCancel }: VerifyOtpFormProps) {
+export default function VerifyOtpForm({ user, onVerified, onResend, onCancel, isResending }: VerifyOtpFormProps) {
   const [code, setCode] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [message] = React.useState<string | null>(`OTP sent to ${user.email}`);
@@ -87,20 +88,16 @@ export default function VerifyOtpForm({ user, onVerified, onCancel }: VerifyOtpF
         onChange={handleChange}
         allowedPattern="^\\d+$"
         placeholderChar="●"
+        expiry={user.otpExpiry}
       />
-
       {error ? (
         <p className="text-xs text-rose-600">{error}</p>
       ) : (
-        <p className="text-xs text-slate-500">
-          {remainingSeconds === null ? (
-            "The code expires in approximately 15 minutes."
-          ) : remainingSeconds <= 0 ? (
-            "OTP has expired"
-          ) : (
-            <>Time remaining: <strong>{formatRemaining(remainingSeconds)}</strong></>
-          )}
-        </p>
+        (remainingSeconds === null ? (
+          <p className="text-xs text-slate-500">The code expires in approximately 15 minutes.</p>
+        ) : remainingSeconds <= 0 ? (
+          <p className="text-xs text-rose-600">OTP has expired</p>
+        ) : null)
       )}
 
       <div className="flex gap-2 w-full justify-center">
@@ -117,9 +114,6 @@ export default function VerifyOtpForm({ user, onVerified, onCancel }: VerifyOtpF
         >
           Send OTP again
         </button>
-        {remainingSeconds !== null && remainingSeconds > 0 && (
-          <span className="text-slate-400"> available in {formatRemaining(remainingSeconds)}</span>
-        )}
       </div>
     </div>
   );

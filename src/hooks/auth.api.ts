@@ -9,17 +9,20 @@ export interface VerifyOtpPayload {
   code: string;
 }
 
-const ensurePayload = (response: ApiResponse<null>, fallbackMessage: string) => {
+const ensurePayload = <T>(response: ApiResponse<T>, fallbackMessage: string) => {
   if (!response.success) {
     throw new Error(response.message || fallbackMessage);
   }
 
-  return response;
+  return response.data;
 };
 
 const verifyOtpRequest = async (payload: VerifyOtpPayload) => {
   const response = await apiClient.post<ApiResponse<null>>(AuthRoutes.verifyOtp, payload);
-  return ensurePayload(response.data, 'Unable to verify OTP');
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Unable to verify OTP');
+  }
+  return { message: response.data.message };
 };
 
 export const useVerifyOtp = () => {

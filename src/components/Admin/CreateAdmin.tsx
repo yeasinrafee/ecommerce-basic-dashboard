@@ -7,7 +7,8 @@ import * as z from "zod";
 import Modal from "@/components/Common/Modal";
 import CustomInput from "@/components/FormFields/CustomInput";
 import CustomButton from "@/components/Common/CustomButton";
-import { useCreateAdmin, useSendOtp, useUpdateAdmin } from "@/hooks/admin.api";
+import { useCreateAdmin, useUpdateAdmin } from "@/hooks/admin.api";
+import { useSendOtp } from "@/hooks/auth.api";
 import CustomFileUpload, { type CustomFileUploadFile } from "@/components/FormFields/CustomFileUpload";
 import VerifyOtpForm from "@/components/Admin/VerifyOtpForm";
 
@@ -105,8 +106,8 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
     }
 
     const result = await createMutation.mutateAsync(formData);
-    const email = result.payload.email ?? "";
-    setPendingVerificationUser({ id: result.payload.id, email, otpExpiry: result.payload.otpExpiry ?? null });
+    const email = result.payload?.email ?? "";
+    setPendingVerificationUser({ id: result.payload?.id, email, otpExpiry: result.payload?.otpExpiry ?? null });
   };
 
   const handleOtpVerified = () => {
@@ -124,7 +125,7 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
     const result = await sendOtpMutation.mutateAsync({ userId: pendingVerificationUser.id });
     setPendingVerificationUser({
       ...pendingVerificationUser,
-      otpExpiry: result.payload.otpExpiry ?? null,
+      otpExpiry: result.payload?.otpExpiry ?? null,
     });
   };
 
@@ -151,6 +152,7 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
           user={pendingVerificationUser}
           onVerified={handleOtpVerified}
           onResend={handleResendOtp}
+          onCancel={() => setPendingVerificationUser(null)}
           isResending={sendOtpMutation.isPending}
         />
       ) : (
