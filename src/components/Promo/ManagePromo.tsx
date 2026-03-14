@@ -9,7 +9,6 @@ import { usePaginatedPromos, useDeletePromo, Promo } from "@/hooks/promo.api";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-// router not required here; editing opens modal instead
 
 export default function ManagePromo() {
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -175,6 +174,7 @@ export default function ManagePromo() {
         title="Delete Promo"
         description={`Are you sure you want to delete promo code "${deleteTarget?.code}"? This action cannot be undone.`}
         onConfirm={confirmDelete}
+        loading={deleteMutation.isLoading}
       />
     </div>
   );

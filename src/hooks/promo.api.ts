@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 import type { ApiResponse } from "@/types/auth";
 import PromoRoutes from "@/routes/promo.route";
+import { toast } from "react-hot-toast";
 
 export interface Promo {
   id: string;
@@ -104,6 +105,10 @@ export const useDeletePromo = () => {
     mutationFn: (id: string) => apiClient.delete<ApiResponse<null>>(PromoRoutes.delete(id)).then(res => ensurePayload(res.data, 'Failed to delete promo')),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["promos"] });
+      toast.success("Promo deleted successfully");
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Failed to delete promo");
     }
   });
 };
