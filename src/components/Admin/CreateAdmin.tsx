@@ -99,9 +99,9 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
       title={isEdit ? "Update Admin" : "Create Admin"}
       description={isEdit ? "Edit admin details" : "Create a new admin"}
       footer={
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full justify-center">
           <CustomButton loading={isSubmitting} type="button" onClick={handleSubmit(onSubmit)}>
-            {isEdit ? "Update" : "Create"}
+            {isEdit ? "Update Admin" : "Create Admin"}
           </CustomButton>
         </div>
       }

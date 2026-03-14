@@ -11,6 +11,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import SidebarItem from "./SidebarItem";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface SidebarProps {
   routes: {
@@ -30,6 +31,7 @@ interface SidebarProps {
     email: string;
     image?: string;
     fallback?: string;
+    role?: string;
   };
   title?: string;
   logo?: React.ReactNode;
@@ -41,11 +43,7 @@ interface SidebarProps {
 
 const Sidebar = ({
   routes,
-  user = {
-    name: "Admin User",
-    email: "admin@example.com",
-    fallback: "AU",
-  },
+  user,
   title = "Admin Panel",
   logo = <BarChart3 className="h-6 w-6" />,
   mobileOpen = false,
@@ -57,7 +55,23 @@ const Sidebar = ({
   const isMobile = useMediaQuery("(max-width: 768px)");
   const pathname = usePathname();
 
-  const processedRoutes = routes.map((route) => {
+  const storedUser = useAuthStore((s) => s.user);
+  const defaultUser = {
+    name: "Admin User",
+    email: "admin@example.com",
+    fallback: "AU",
+  };
+  const currentUser = storedUser ?? user ?? defaultUser;
+
+  const visibleRoutes = routes.filter((route) => {
+    // only show Manage Admin route for SUPER_ADMIN users
+    if (route.href === "/dashboard/admin") {
+      return currentUser?.role === "SUPER_ADMIN";
+    }
+    return true;
+  });
+
+  const processedRoutes = visibleRoutes.map((route) => {
     const isRouteActive = pathname === route.href;
 
     let hasActiveChild = false;
@@ -144,7 +158,7 @@ const Sidebar = ({
         </ScrollArea>
 
         {/* User Profile */}
-        {user && (
+        {currentUser && (
           <div
             className={cn(
               "absolute bottom-0 w-full bg-primary2  border-t border-slate-700 ",
@@ -153,18 +167,18 @@ const Sidebar = ({
           >
             {isCollapsed ? (
               <Avatar>
-                <AvatarImage src={user.image} alt={user.name} />
-                <AvatarFallback>{user.fallback}</AvatarFallback>
+                <AvatarImage src={currentUser.image} alt={currentUser.name} />
+                <AvatarFallback>{currentUser.fallback}</AvatarFallback>
               </Avatar>
             ) : (
               <div className="flex items-center gap-3">
                 <Avatar>
-                  <AvatarImage src={user.image} alt={user.name} />
-                  <AvatarFallback>{user.fallback}</AvatarFallback>
+                  <AvatarImage src={currentUser.image} alt={currentUser.name} />
+                  <AvatarFallback>{currentUser.fallback}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium">{user.name}</p>
-                  <p className="text-xs text-slate-400">{user.email}</p>
+                  <p className="text-sm font-medium">{currentUser.name}</p>
+                  <p className="text-xs text-slate-400">{currentUser.email}</p>
                 </div>
               </div>
             )}
