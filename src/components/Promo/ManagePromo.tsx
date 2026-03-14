@@ -1,19 +1,17 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import Table, { type Column } from "@/components/Common/Table";
-import CustomButton from "@/components/Common/CustomButton";
 import CreatePromo from "./CreatePromo";
 import DeleteModal from "@/components/Common/DeleteModal";
 import SearchBar from "@/components/FormFields/SearchBar";
 import { usePaginatedPromos, useDeletePromo, Promo } from "@/hooks/promo.api";
-import { FiEdit2, FiTrash2 } from "react-icons/fi";
-import { LuPlus } from "react-icons/lu";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal } from "lucide-react";
 
 export default function ManagePromo() {
-  const router = useRouter();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Promo | null>(null);
   const [page, setPage] = React.useState(1);
@@ -77,7 +75,27 @@ export default function ManagePromo() {
         cell: (row) => row.discountValue,
       },
       {
-        header: "Remaining Uses",
+        header: "Products",
+        cell: (row) => {
+          const items = (row as any).promoProducts ?? [];
+          if (!items || items.length === 0) return "-";
+          return (
+            <div className="flex items-center gap-2">
+              {items.map((pp: any) => {
+                const img = pp.product?.image;
+                const name = pp.product?.name ?? "";
+                return img ? (
+                  <Image key={pp.id} src={img} alt={name} width={40} height={40} className="object-cover size-[40px] rounded-sm" />
+                ) : (
+                  <div key={pp.id} className="h-10 w-10 bg-gray-100 rounded-sm flex items-center justify-center text-xs">{name ? name[0] : '-'}</div>
+                );
+              })}
+            </div>
+          );
+        },
+      },
+      {
+        header: "Allowed Uses",
         cell: (row) => row.numberOfUses,
         align: "center",
       },
@@ -133,22 +151,17 @@ export default function ManagePromo() {
           totalItems={data?.meta?.total ?? 0}
           onPageChange={setPage}
           renderRowActions={(promo) => (
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => handleEdit(promo)}
-                className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                title="Edit"
-              >
-                <FiEdit2 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handleDelete(promo)}
-                className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="Delete"
-              >
-                <FiTrash2 className="w-4 h-4" />
-              </button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleEdit(promo)}>Edit</DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={() => handleDelete(promo)}>Delete</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         />
       </div>
