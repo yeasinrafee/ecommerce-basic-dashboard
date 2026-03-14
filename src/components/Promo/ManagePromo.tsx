@@ -51,12 +51,15 @@ export default function ManagePromo() {
     setDeleteModalOpen(true);
   };
 
-  const confirmDelete = async () => {
-    if (deleteTarget) {
-      await deleteMutation.mutateAsync(deleteTarget.id);
-      setDeleteModalOpen(false);
-      setDeleteTarget(null);
-    }
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+
+    deleteMutation.mutate(deleteTarget.id, {
+      onSuccess: () => {
+        setDeleteModalOpen(false);
+        setDeleteTarget(null);
+      },
+    });
   };
 
   const columns = React.useMemo<Column<Promo>[]>(
@@ -174,7 +177,7 @@ export default function ManagePromo() {
         title="Delete Promo"
         description={`Are you sure you want to delete promo code "${deleteTarget?.code}"? This action cannot be undone.`}
         onConfirm={confirmDelete}
-        loading={deleteMutation.isLoading}
+        loading={deleteMutation.isPending}
       />
     </div>
   );

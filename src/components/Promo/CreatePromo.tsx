@@ -13,25 +13,36 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { useCreatePromo, useUpdatePromo } from "@/hooks/promo.api";
 
-const schema = z.object({
-  code: z.string().min(1, "Promo code is required").trim(),
-  discountType: z.enum(["PERCENTAGE_DISCOUNT", "FLAT_DISCOUNT", "NONE"]),
-  discountValue: z.coerce.number().min(0, "Discount value must be at least 0"),
-  numberOfUses: z.coerce.number().int().min(1, "Number of uses must be at least 1"),
-  startDate: z.string().min(1, "Start date is required"),
-  endDate: z.string().min(1, "End date is required"),
-}).refine(data => new Date(data.endDate) >= new Date(data.startDate), {
-  message: "End date must be after or equal to start date",
-  path: ["endDate"],
-}).superRefine((data, ctx) => {
-  if (data.discountType === "PERCENTAGE_DISCOUNT" && data.discountValue > 100) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Percentage discount cannot exceed 100%",
-      path: ["discountValue"],
-    });
-  }
-});
+const schema = z
+  .object({
+    code: z.string().min(1, "Promo code is required").trim(),
+    discountType: z.enum(["PERCENTAGE_DISCOUNT", "FLAT_DISCOUNT", "NONE"]),
+    discountValue: z.coerce
+      .number()
+      .min(0, "Discount value must be at least 0"),
+    numberOfUses: z.coerce
+      .number()
+      .int()
+      .min(1, "Number of uses must be at least 1"),
+    startDate: z.string().min(1, "Start date is required"),
+    endDate: z.string().min(1, "End date is required"),
+  })
+  .refine((data) => new Date(data.endDate) >= new Date(data.startDate), {
+    message: "End date must be after or equal to start date",
+    path: ["endDate"],
+  })
+  .superRefine((data, ctx) => {
+    if (
+      data.discountType === "PERCENTAGE_DISCOUNT" &&
+      data.discountValue > 100
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Percentage discount cannot exceed 100%",
+        path: ["discountValue"],
+      });
+    }
+  });
 
 type FormSchema = z.infer<typeof schema>;
 
@@ -42,7 +53,12 @@ interface Props {
   inline?: boolean;
 }
 
-export default function CreatePromo({ open = true, onOpenChange, defaultValues, inline = false }: Props) {
+export default function CreatePromo({
+  open = true,
+  onOpenChange,
+  defaultValues,
+  inline = false,
+}: Props) {
   const isEdit = Boolean(defaultValues?.id);
   const router = useRouter();
 
@@ -63,8 +79,12 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
       discountType: defaultValues?.discountType ?? "PERCENTAGE_DISCOUNT",
       discountValue: defaultValues?.discountValue ?? 0,
       numberOfUses: defaultValues?.numberOfUses ?? 1,
-      startDate: defaultValues?.startDate ? new Date(defaultValues.startDate).toISOString().slice(0, 10) : "",
-      endDate: defaultValues?.endDate ? new Date(defaultValues.endDate).toISOString().slice(0, 10) : "",
+      startDate: defaultValues?.startDate
+        ? new Date(defaultValues.startDate).toISOString().slice(0, 10)
+        : "",
+      endDate: defaultValues?.endDate
+        ? new Date(defaultValues.endDate).toISOString().slice(0, 10)
+        : "",
     },
   });
 
@@ -74,13 +94,21 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
       discountType: defaultValues?.discountType ?? "PERCENTAGE_DISCOUNT",
       discountValue: defaultValues?.discountValue ?? 0,
       numberOfUses: defaultValues?.numberOfUses ?? 1,
-      startDate: defaultValues?.startDate ? new Date(defaultValues.startDate).toISOString().slice(0, 10) : "",
-      endDate: defaultValues?.endDate ? new Date(defaultValues.endDate).toISOString().slice(0, 10) : "",
+      startDate: defaultValues?.startDate
+        ? new Date(defaultValues.startDate).toISOString().slice(0, 10)
+        : "",
+      endDate: defaultValues?.endDate
+        ? new Date(defaultValues.endDate).toISOString().slice(0, 10)
+        : "",
     });
   }, [defaultValues, reset]);
 
   const submit = async (data: FormSchema) => {
-    const payload = { ...data, startDate: new Date(data.startDate).toISOString(), endDate: new Date(data.endDate).toISOString() };
+    const payload = {
+      ...data,
+      startDate: new Date(data.startDate).toISOString(),
+      endDate: new Date(data.endDate).toISOString(),
+    };
     try {
       if (isEdit && defaultValues?.id) {
         await updateMutation.mutateAsync({ id: defaultValues.id, payload });
@@ -100,7 +128,8 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
     }
   };
 
-  const isPending = isSubmitting || createMutation.isPending || updateMutation.isPending;
+  const isPending =
+    isSubmitting || createMutation.isPending || updateMutation.isPending;
 
   const form = (
     <form onSubmit={handleSubmit(submit)}>
@@ -146,11 +175,15 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
                     id="startDate"
                     label="Start Date"
                     value={field.value ? new Date(field.value) : null}
-                    onChange={(d) => field.onChange(d ? d.toISOString().slice(0, 10) : "")}
+                    onChange={(d) =>
+                      field.onChange(d ? d.toISOString().slice(0, 10) : "")
+                    }
                     requiredMark
                   />
                   {errors.startDate?.message && (
-                    <p className="text-sm text-destructive mt-1">{errors.startDate?.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.startDate?.message}
+                    </p>
                   )}
                 </div>
               )}
@@ -167,11 +200,15 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
                     id="endDate"
                     label="End Date"
                     value={field.value ? new Date(field.value) : null}
-                    onChange={(d) => field.onChange(d ? d.toISOString().slice(0, 10) : "")}
+                    onChange={(d) =>
+                      field.onChange(d ? d.toISOString().slice(0, 10) : "")
+                    }
                     requiredMark
                   />
                   {errors.endDate?.message && (
-                    <p className="text-sm text-destructive mt-1">{errors.endDate?.message}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.endDate?.message}
+                    </p>
                   )}
                 </div>
               )}
@@ -185,7 +222,9 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
   if (inline) {
     return (
       <div className="p-4 max-w-4xl mx-auto">
-        <h2 className="mb-4 text-2xl font-bold text-slate-800">{isEdit ? "Update Promo" : "Create Promo"}</h2>
+        <h2 className="mb-4 text-2xl font-bold text-slate-800">
+          {isEdit ? "Update Promo" : "Create Promo"}
+        </h2>
         <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
           {form}
           <div className="mt-8 flex justify-center gap-4">
@@ -208,7 +247,9 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
       open={open}
       onOpenChange={(v) => onOpenChange && onOpenChange(v)}
       title={isEdit ? "Update Promo" : "Create Promo"}
-      description={isEdit ? "Edit promo details" : "Create a new promotional code"}
+      description={
+        isEdit ? "Edit promo details" : "Create a new promotional code"
+      }
       className="w-full lg:max-w-[500px]"
       footer={
         <div className="flex gap-2 justify-center w-full">

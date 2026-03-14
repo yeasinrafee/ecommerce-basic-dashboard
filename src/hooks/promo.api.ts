@@ -102,7 +102,12 @@ export const useUpdatePromo = () => {
 export const useDeletePromo = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => apiClient.delete<ApiResponse<null>>(PromoRoutes.delete(id)).then(res => ensurePayload(res.data, 'Failed to delete promo')),
+    mutationFn: async (id: string) => {
+      const res = await apiClient.delete<ApiResponse<null>>(PromoRoutes.delete(id));
+      if (!res.data.success) {
+        throw new Error(res.data.message || "Failed to delete promo");
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["promos"] });
       toast.success("Promo deleted successfully");
