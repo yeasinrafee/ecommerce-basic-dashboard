@@ -61,8 +61,9 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
     handleSubmit,
     reset,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<FormSchema>({
+    mode: "onChange",
     resolver: zodResolver(schema) as any,
     defaultValues: {
       code: defaultValues?.code ?? "",
@@ -242,8 +243,13 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
         <h2 className="mb-4 text-2xl font-bold text-slate-800">{isEdit ? "Update Promo" : "Create Promo"}</h2>
         <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
           {form}
-          <div className="mt-8 flex justify-end gap-4">
-            <CustomButton loading={isPending} type="button" onClick={handleSubmit(submit)}>
+          <div className="mt-8 flex justify-center gap-4">
+            <CustomButton
+              loading={isPending}
+              type="button"
+              onClick={handleSubmit(submit)}
+              disabled={!isValid || isPending}
+            >
               {isEdit ? "Update Promo" : "Create Promo"}
             </CustomButton>
           </div>
@@ -260,7 +266,12 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
       description={isEdit ? "Edit promo details" : "Create a new promotional code"}
       footer={
         <div className="flex gap-2">
-          <CustomButton loading={isPending} type="button" onClick={handleSubmit(submit)}>
+          <CustomButton
+            loading={isPending}
+            type="button"
+            onClick={handleSubmit(submit)}
+            disabled={!isValid || isPending}
+          >
             {isEdit ? "Update" : "Create"}
           </CustomButton>
         </div>
