@@ -264,6 +264,7 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
       onOpenChange={(v) => onOpenChange && onOpenChange(v)}
       title={isEdit ? "Update Promo" : "Create Promo"}
       description={isEdit ? "Edit promo details" : "Create a new promotional code"}
+      className="w-full lg:max-w-[800px]"
       footer={
         <div className="flex gap-2">
           <CustomButton
