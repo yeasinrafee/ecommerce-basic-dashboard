@@ -266,14 +266,14 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
       description={isEdit ? "Edit promo details" : "Create a new promotional code"}
       className="w-full lg:max-w-[800px]"
       footer={
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-center w-full">
           <CustomButton
             loading={isPending}
             type="button"
             onClick={handleSubmit(submit)}
             disabled={!isValid || isPending}
           >
-            {isEdit ? "Update" : "Create"}
+            {isEdit ? "Update Promo" : "Create Promo"}
           </CustomButton>
         </div>
       }
