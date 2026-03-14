@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import SidebarItem from "./SidebarItem";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useAuthStore } from "@/store/useAuthStore";
+import type { StoredUser } from "@/types/auth";
 
 interface SidebarProps {
   routes: {
@@ -61,7 +62,8 @@ const Sidebar = ({
     email: "admin@example.com",
     fallback: "AU",
   };
-  const currentUser = storedUser ?? user ?? defaultUser;
+  const currentUser: StoredUser | { name: string; email: string; image?: string | null; fallback?: string; role?: string } =
+    (storedUser ?? user ?? defaultUser) as any;
 
   const visibleRoutes = routes.filter((route) => {
     // only show Manage Admin route for SUPER_ADMIN users
@@ -104,6 +106,14 @@ const Sidebar = ({
   };
 
   const isCollapsed = setCollapsed ? collapsed : internalCollapsed;
+
+  const getInitials = (name?: string) => {
+    if (!name) return "AU";
+    const parts = name.split(" ").filter(Boolean);
+    if (parts.length === 0) return "AU";
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+  };
 
   return (
     <TooltipProvider>
@@ -167,14 +177,14 @@ const Sidebar = ({
           >
             {isCollapsed ? (
               <Avatar>
-                <AvatarImage src={currentUser.image} alt={currentUser.name} />
-                <AvatarFallback>{currentUser.fallback}</AvatarFallback>
+                <AvatarImage src={currentUser.image ?? undefined} alt={currentUser.name} />
+                <AvatarFallback>{(currentUser as any).fallback ?? getInitials(currentUser.name)}</AvatarFallback>
               </Avatar>
             ) : (
               <div className="flex items-center gap-3">
                 <Avatar>
-                  <AvatarImage src={currentUser.image} alt={currentUser.name} />
-                  <AvatarFallback>{currentUser.fallback}</AvatarFallback>
+                  <AvatarImage src={currentUser.image ?? undefined} alt={currentUser.name} />
+                  <AvatarFallback>{(currentUser as any).fallback ?? getInitials(currentUser.name)}</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-sm font-medium">{currentUser.name}</p>
