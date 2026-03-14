@@ -20,7 +20,9 @@ export default function ManagePromo() {
   const limit = 10;
 
   const [searchInput, setSearchInput] = React.useState("");
-  const [searchTerm, setSearchTerm] = React.useState<string | undefined>(undefined);
+  const [searchTerm, setSearchTerm] = React.useState<string | undefined>(
+    undefined,
+  );
 
   React.useEffect(() => {
     const handle = setTimeout(() => {
@@ -30,7 +32,11 @@ export default function ManagePromo() {
     return () => clearTimeout(handle);
   }, [searchInput]);
 
-  const { data, isLoading, error } = usePaginatedPromos(page, limit, searchTerm);
+  const { data, isLoading, error } = usePaginatedPromos(
+    page,
+    limit,
+    searchTerm,
+  );
   const deleteMutation = useDeletePromo();
 
   const items = data?.data ?? [];
@@ -84,20 +90,17 @@ export default function ManagePromo() {
         cell: (row) => new Date(row.endDate).toLocaleDateString(),
       },
     ],
-    []
+    [],
   );
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Manage Promos</h1>
-          <p className="text-sm text-slate-500 mt-1">Create and manage your promotional codes</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard/promo/create">
-            <CustomButton><LuPlus className="w-4 h-4 mr-2 inline-block" />Create Promo</CustomButton>
-          </Link>
+          <p className="text-sm text-slate-500 mt-1">
+            Create and manage your promotional codes
+          </p>
         </div>
       </div>
 
@@ -157,16 +160,21 @@ export default function ManagePromo() {
             setModalOpen(v);
             if (!v) setEditing(null);
           }}
-          defaultValues={editing ? {
-            id: editing.id,
-            code: editing.code,
-            discountType: editing.discountType,
-            discountValue: editing.discountValue,
-            numberOfUses: editing.numberOfUses,
-            startDate: editing.startDate,
-            endDate: editing.endDate,
-            productIds: editing.promoProducts?.map(pp => pp.productId) ?? []
-          } : undefined}
+          defaultValues={
+            editing
+              ? {
+                  id: editing.id,
+                  code: editing.code,
+                  discountType: editing.discountType,
+                  discountValue: editing.discountValue,
+                  numberOfUses: editing.numberOfUses,
+                  startDate: editing.startDate,
+                  endDate: editing.endDate,
+                  productIds:
+                    editing.promoProducts?.map((pp) => pp.productId) ?? [],
+                }
+              : undefined
+          }
         />
       )}
 

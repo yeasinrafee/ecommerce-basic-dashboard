@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
+import { FiCalendar } from "react-icons/fi"
 
 export type CustomDatePickerProps = {
   id?: string
@@ -127,7 +128,6 @@ const CustomDatePicker = React.forwardRef<HTMLButtonElement, CustomDatePickerPro
 
     React.useEffect(() => {
       if (isOpenControlled && onOpenChange) onOpenChange(!!openProp)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const setOpen = (v: boolean) => {
@@ -197,14 +197,16 @@ const CustomDatePicker = React.forwardRef<HTMLButtonElement, CustomDatePickerPro
           <Button
             id={id}
             ref={ref}
+            type={buttonProps?.type ?? "button"}
             variant={size === "md" ? "outline" : "default"}
-            className={cn("justify-start font-normal w-full", buttonClassName)}
+            className={cn("justify-between font-normal w-full", buttonClassName)}
             onClick={() => setOpen(!open)}
             aria-expanded={open}
             disabled={disabled}
             {...buttonProps}
           >
             <span className={cn("truncate")}>{selected ? format(selected) : placeholder}</span>
+            <FiCalendar className="ml-2 h-4 w-4 text-muted-foreground" />
           </Button>
 
           {open ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import CustomInput from "@/components/FormFields/CustomInput";
@@ -9,6 +9,8 @@ import CustomSelect from "@/components/FormFields/CustomSelect";
 import Modal from "@/components/Common/Modal";
 import CustomButton from "@/components/Common/CustomButton";
 import CustomCheckbox from "@/components/FormFields/CustomCheckbox";
+import CustomDatePicker from "@/components/FormFields/CustomDatePicker";
+import Image from "next/image";
 import { useAllProducts } from "@/hooks/product.api";
 import { useRouter } from "next/navigation";
 import { useCreatePromo, useUpdatePromo } from "@/hooks/promo.api";
@@ -20,9 +22,18 @@ const schema = z.object({
   numberOfUses: z.coerce.number().int().min(1, "Number of uses must be at least 1"),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
+  productIds: z.array(z.string()).min(1, "Please select at least one product"),
 }).refine(data => new Date(data.endDate) >= new Date(data.startDate), {
   message: "End date must be after or equal to start date",
   path: ["endDate"],
+}).superRefine((data, ctx) => {
+  if (data.discountType === "PERCENTAGE_DISCOUNT" && data.discountValue > 100) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Percentage discount cannot exceed 100%",
+      path: ["discountValue"],
+    });
+  }
 });
 
 type FormSchema = z.infer<typeof schema>;
@@ -49,6 +60,7 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormSchema>({
     resolver: zodResolver(schema) as any,
@@ -59,6 +71,7 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
       numberOfUses: defaultValues?.numberOfUses ?? 1,
       startDate: defaultValues?.startDate ? new Date(defaultValues.startDate).toISOString().slice(0, 10) : "",
       endDate: defaultValues?.endDate ? new Date(defaultValues.endDate).toISOString().slice(0, 10) : "",
+      productIds: defaultValues?.productIds ?? [],
     },
   });
 
@@ -70,12 +83,17 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
       numberOfUses: defaultValues?.numberOfUses ?? 1,
       startDate: defaultValues?.startDate ? new Date(defaultValues.startDate).toISOString().slice(0, 10) : "",
       endDate: defaultValues?.endDate ? new Date(defaultValues.endDate).toISOString().slice(0, 10) : "",
+      productIds: defaultValues?.productIds ?? [],
     });
     setSelectedProducts(defaultValues?.productIds ?? []);
   }, [defaultValues, reset]);
 
   const toggleProduct = (id: string) => {
-    setSelectedProducts((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
+    setSelectedProducts((prev) => {
+      const next = prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id];
+      setValue("productIds", next, { shouldValidate: true });
+      return next;
+    });
   };
 
   const submit = async (data: FormSchema) => {
@@ -109,10 +127,10 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
             name="discountType"
             control={control}
             label="Discount Type"
+            requiredMark
             options={[
               { label: "Percentage Discount", value: "PERCENTAGE_DISCOUNT" },
               { label: "Flat Discount", value: "FLAT_DISCOUNT" },
-              { label: "None", value: "NONE" },
             ]}
           />
           <CustomInput
@@ -129,31 +147,78 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
             error={errors.numberOfUses?.message}
             requiredMark
           />
-          <CustomInput
-            label="Start Date"
-            type="date"
-            {...register("startDate")}
-            error={errors.startDate?.message}
-            requiredMark
-          />
-          <CustomInput
-            label="End Date"
-            type="date"
-            {...register("endDate")}
-            error={errors.endDate?.message}
-            requiredMark
-          />
+          <div>
+            <Controller
+              name="startDate"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <CustomDatePicker
+                    id="startDate"
+                    label="Start Date"
+                    value={field.value ? new Date(field.value) : null}
+                    onChange={(d) => field.onChange(d ? d.toISOString().slice(0, 10) : "")}
+                    requiredMark
+                  />
+                  {errors.startDate?.message && (
+                    <p className="text-sm text-destructive mt-1">{errors.startDate?.message}</p>
+                  )}
+                </div>
+              )}
+            />
+          </div>
+
+          <div>
+            <Controller
+              name="endDate"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <CustomDatePicker
+                    id="endDate"
+                    label="End Date"
+                    value={field.value ? new Date(field.value) : null}
+                    onChange={(d) => field.onChange(d ? d.toISOString().slice(0, 10) : "")}
+                    requiredMark
+                  />
+                  {errors.endDate?.message && (
+                    <p className="text-sm text-destructive mt-1">{errors.endDate?.message}</p>
+                  )}
+                </div>
+              )}
+            />
+          </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Applicable Products</label>
+          <label className="block text-sm font-medium mb-2">
+            Products
+            <span className="ml-1 text-destructive" aria-hidden="true">
+              *
+            </span>
+          </label>
           <div className="rounded-lg border border-slate-200 bg-background p-3 max-h-96 overflow-y-auto">
             <div className="flex flex-col gap-2">
               {products && products.length > 0 ? (
                 products.map((p) => (
                   <CustomCheckbox
+                    containerClassName="items-center"
                     key={p.id}
-                    label={p.name}
+                    label={
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-10 w-10 overflow-hidden rounded-md bg-slate-100">
+                          {p.image ? (
+                            <Image
+                              src={p.image}
+                              alt={p.name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : null}
+                        </div>
+                        <span className="text-sm font-medium">{p.name}</span>
+                      </div>
+                    }
                     checked={selectedProducts.includes(p.id)}
                     onCheckedChange={() => toggleProduct(p.id)}
                   />
@@ -163,6 +228,9 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
               )}
             </div>
           </div>
+          {errors.productIds?.message && (
+            <p className="text-sm text-destructive mt-2">{errors.productIds?.message}</p>
+          )}
         </div>
       </div>
     </form>
