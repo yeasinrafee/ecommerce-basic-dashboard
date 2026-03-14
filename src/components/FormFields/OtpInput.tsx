@@ -207,9 +207,9 @@ const OtpInput = React.forwardRef<HTMLDivElement, OtpInputProps>(
                 onFocus={(e) => e.target.select()}
                 className={clsx(
                   "w-14 h-16 text-center text-2xl font-bold bg-white border-2 rounded-xl transition-all duration-200 outline-none",
-                  "focus:border-indigo-500 focus:shadow-[0_0_15px_rgba(79,70,229,0.3)] focus:-translate-y-1",
+                  "focus:border-brand-primary focus:-translate-y-1",
                   value[i]
-                    ? "border-indigo-400 text-indigo-900 bg-indigo-50/30"
+                    ? "border-brand-primary text-black bg-brand-primary-50/30"
                     : "border-slate-200 text-slate-900",
                   slotClassName,
                 )}
