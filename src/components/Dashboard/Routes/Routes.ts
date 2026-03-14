@@ -150,11 +150,11 @@ export const routes: RouteItem[] = [
     subItems: [
       { 
         label: "Create Promo", 
-        href: "/admin/promos/create", 
+        href: "/dashboard/promo/create", 
       },
       { 
         label: "Manage Promos", 
-        href: "/admin/promos", 
+        href: "/dashboard/promo/manage", 
       },
     ],
   },
