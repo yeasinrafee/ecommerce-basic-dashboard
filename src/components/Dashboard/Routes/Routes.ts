@@ -133,14 +133,8 @@ export const routes: RouteItem[] = [
   // --- Users ---
   {
     icon: LuUsers,
-    label: "Users",
+    label: "Manage Customers",
     href: "/admin/users",
-    subItems: [
-      { 
-        label: "Manage Users", 
-        href: "/admin/users", 
-      },
-    ],
   },
   // --- Marketing ---
   {
@@ -150,11 +144,11 @@ export const routes: RouteItem[] = [
     subItems: [
       { 
         label: "Create Promo", 
-        href: "/admin/promos/create", 
+        href: "/dashboard/promo/create", 
       },
       { 
         label: "Manage Promos", 
-        href: "/admin/promos", 
+        href: "/dashboard/promo/manage", 
       },
     ],
   },
@@ -174,9 +168,9 @@ export const routes: RouteItem[] = [
       },
     ],
   },
-  {
-    icon: LuSettings,
-    label: "Settings",
-    href: "/admin/settings",
-  },
+  // {
+  //   icon: LuSettings,
+  //   label: "Settings",
+  //   href: "/admin/settings",
+  // },
 ];
