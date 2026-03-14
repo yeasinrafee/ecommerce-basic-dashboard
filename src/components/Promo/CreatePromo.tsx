@@ -8,11 +8,9 @@ import CustomInput from "@/components/FormFields/CustomInput";
 import CustomSelect from "@/components/FormFields/CustomSelect";
 import Modal from "@/components/Common/Modal";
 import CustomButton from "@/components/Common/CustomButton";
-import CustomCheckbox from "@/components/FormFields/CustomCheckbox";
 import CustomDatePicker from "@/components/FormFields/CustomDatePicker";
-import Image from "next/image";
-import { useAllProducts } from "@/hooks/product.api";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 import { useCreatePromo, useUpdatePromo } from "@/hooks/promo.api";
 
 const schema = z.object({
@@ -22,7 +20,6 @@ const schema = z.object({
   numberOfUses: z.coerce.number().int().min(1, "Number of uses must be at least 1"),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
-  productIds: z.array(z.string()).min(1, "Please select at least one product"),
 }).refine(data => new Date(data.endDate) >= new Date(data.startDate), {
   message: "End date must be after or equal to start date",
   path: ["endDate"],
@@ -41,16 +38,13 @@ type FormSchema = z.infer<typeof schema>;
 interface Props {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  defaultValues?: Partial<FormSchema> & { id?: string, productIds?: string[] };
+  defaultValues?: Partial<FormSchema> & { id?: string };
   inline?: boolean;
 }
 
 export default function CreatePromo({ open = true, onOpenChange, defaultValues, inline = false }: Props) {
   const isEdit = Boolean(defaultValues?.id);
   const router = useRouter();
-
-  const { data: products } = useAllProducts();
-  const [selectedProducts, setSelectedProducts] = React.useState<string[]>(defaultValues?.productIds ?? []);
 
   const createMutation = useCreatePromo();
   const updateMutation = useUpdatePromo();
@@ -60,7 +54,6 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
     control,
     handleSubmit,
     reset,
-    setValue,
     formState: { errors, isSubmitting, isValid },
   } = useForm<FormSchema>({
     mode: "onChange",
@@ -72,7 +65,6 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
       numberOfUses: defaultValues?.numberOfUses ?? 1,
       startDate: defaultValues?.startDate ? new Date(defaultValues.startDate).toISOString().slice(0, 10) : "",
       endDate: defaultValues?.endDate ? new Date(defaultValues.endDate).toISOString().slice(0, 10) : "",
-      productIds: defaultValues?.productIds ?? [],
     },
   });
 
@@ -84,31 +76,27 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
       numberOfUses: defaultValues?.numberOfUses ?? 1,
       startDate: defaultValues?.startDate ? new Date(defaultValues.startDate).toISOString().slice(0, 10) : "",
       endDate: defaultValues?.endDate ? new Date(defaultValues.endDate).toISOString().slice(0, 10) : "",
-      productIds: defaultValues?.productIds ?? [],
     });
-    setSelectedProducts(defaultValues?.productIds ?? []);
   }, [defaultValues, reset]);
 
-  const toggleProduct = (id: string) => {
-    setSelectedProducts((prev) => {
-      const next = prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id];
-      setValue("productIds", next, { shouldValidate: true });
-      return next;
-    });
-  };
-
   const submit = async (data: FormSchema) => {
-    const payload = { ...data, productIds: selectedProducts, startDate: new Date(data.startDate).toISOString(), endDate: new Date(data.endDate).toISOString() };
-    if (isEdit && defaultValues?.id) {
-      await updateMutation.mutateAsync({ id: defaultValues.id, payload });
-      if (onOpenChange) onOpenChange(false);
-    } else {
-      await createMutation.mutateAsync(payload);
-      if (inline) {
-        router.push("/dashboard/promo/manage");
-      } else if (onOpenChange) {
-        onOpenChange(false);
+    const payload = { ...data, startDate: new Date(data.startDate).toISOString(), endDate: new Date(data.endDate).toISOString() };
+    try {
+      if (isEdit && defaultValues?.id) {
+        await updateMutation.mutateAsync({ id: defaultValues.id, payload });
+        toast.success("Promo updated successfully");
+        if (onOpenChange) onOpenChange(false);
+      } else {
+        await createMutation.mutateAsync(payload);
+        toast.success("Promo created successfully");
+        if (inline) {
+          router.push("/dashboard/promo/manage");
+        } else if (onOpenChange) {
+          onOpenChange(false);
+        }
       }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save promo");
     }
   };
 
@@ -116,7 +104,7 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
 
   const form = (
     <form onSubmit={handleSubmit(submit)}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-10">
         <div className="space-y-4">
           <CustomInput
             label="Promo Code"
@@ -190,49 +178,6 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
             />
           </div>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Products
-            <span className="ml-1 text-destructive" aria-hidden="true">
-              *
-            </span>
-          </label>
-          <div className="rounded-lg border border-slate-200 bg-background p-3 max-h-96 overflow-y-auto">
-            <div className="flex flex-col gap-2">
-              {products && products.length > 0 ? (
-                products.map((p) => (
-                  <CustomCheckbox
-                    containerClassName="items-center"
-                    key={p.id}
-                    label={
-                      <div className="flex items-center gap-3">
-                        <div className="relative h-10 w-10 overflow-hidden rounded-md bg-slate-100">
-                          {p.image ? (
-                            <Image
-                              src={p.image}
-                              alt={p.name}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : null}
-                        </div>
-                        <span className="text-sm font-medium">{p.name}</span>
-                      </div>
-                    }
-                    checked={selectedProducts.includes(p.id)}
-                    onCheckedChange={() => toggleProduct(p.id)}
-                  />
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">No products available</p>
-              )}
-            </div>
-          </div>
-          {errors.productIds?.message && (
-            <p className="text-sm text-destructive mt-2">{errors.productIds?.message}</p>
-          )}
-        </div>
       </div>
     </form>
   );
@@ -264,7 +209,7 @@ export default function CreatePromo({ open = true, onOpenChange, defaultValues, 
       onOpenChange={(v) => onOpenChange && onOpenChange(v)}
       title={isEdit ? "Update Promo" : "Create Promo"}
       description={isEdit ? "Edit promo details" : "Create a new promotional code"}
-      className="w-full lg:max-w-[800px]"
+      className="w-full lg:max-w-[500px]"
       footer={
         <div className="flex gap-2 justify-center w-full">
           <CustomButton

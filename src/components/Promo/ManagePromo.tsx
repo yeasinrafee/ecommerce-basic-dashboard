@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import Table, { type Column } from "@/components/Common/Table";
 import CreatePromo from "./CreatePromo";
 import DeleteModal from "@/components/Common/DeleteModal";
@@ -10,6 +9,7 @@ import { usePaginatedPromos, useDeletePromo, Promo } from "@/hooks/promo.api";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
+// router not required here; editing opens modal instead
 
 export default function ManagePromo() {
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -73,26 +73,6 @@ export default function ManagePromo() {
       {
         header: "Discount Value",
         cell: (row) => row.discountValue,
-      },
-      {
-        header: "Products",
-        cell: (row) => {
-          const items = (row as any).promoProducts ?? [];
-          if (!items || items.length === 0) return "-";
-          return (
-            <div className="flex items-center gap-2">
-              {items.map((pp: any) => {
-                const img = pp.product?.image;
-                const name = pp.product?.name ?? "";
-                return img ? (
-                  <Image key={pp.id} src={img} alt={name} width={40} height={40} className="object-cover size-[40px] rounded-sm" />
-                ) : (
-                  <div key={pp.id} className="h-10 w-10 bg-gray-100 rounded-sm flex items-center justify-center text-xs">{name ? name[0] : '-'}</div>
-                );
-              })}
-            </div>
-          );
-        },
       },
       {
         header: "Allowed Uses",
@@ -183,8 +163,6 @@ export default function ManagePromo() {
                   numberOfUses: editing.numberOfUses,
                   startDate: editing.startDate,
                   endDate: editing.endDate,
-                  productIds:
-                    editing.promoProducts?.map((pp) => pp.productId) ?? [],
                 }
               : undefined
           }
