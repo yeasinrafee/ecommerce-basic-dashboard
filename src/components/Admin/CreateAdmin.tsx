@@ -7,10 +7,9 @@ import * as z from "zod";
 import Modal from "@/components/Common/Modal";
 import CustomInput from "@/components/FormFields/CustomInput";
 import CustomButton from "@/components/Common/CustomButton";
-import { useCreateAdmin, useUpdateAdmin } from "@/hooks/admin.api";
+import { useCreateAdmin, useSendOtp, useUpdateAdmin } from "@/hooks/admin.api";
 import CustomFileUpload, { type CustomFileUploadFile } from "@/components/FormFields/CustomFileUpload";
-import OtpInput from "../FormFields/OtpInput"; 
-import { useVerifyOtp } from "@/hooks/auth.api";
+import VerifyOtpForm from "@/components/Admin/VerifyOtpForm";
 
 const createSchema = z
   .object({
@@ -55,20 +54,13 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
 
   const createMutation = useCreateAdmin();
   const updateMutation = useUpdateAdmin();
-  const verifyOtpMutation = useVerifyOtp();
+  const sendOtpMutation = useSendOtp();
   const [uploadedFiles, setUploadedFiles] = React.useState<CustomFileUploadFile[]>([]);
-  const [pendingVerificationUser, setPendingVerificationUser] = React.useState<{ id: string; email: string } | null>(null);
-  const [otpCode, setOtpCode] = React.useState("");
-  const [otpMessage, setOtpMessage] = React.useState<string | null>(null);
-  const [otpError, setOtpError] = React.useState<string | null>(null);
-  const OTP_LENGTH = 6;
+  const [pendingVerificationUser, setPendingVerificationUser] = React.useState<{ id: string; email: string; otpExpiry?: string | null } | null>(null);
 
   React.useEffect(() => {
     if (!open) {
       setPendingVerificationUser(null);
-      setOtpCode("");
-      setOtpMessage(null);
-      setOtpError(null);
       setUploadedFiles([]);
     }
   }, [open]);
@@ -76,19 +68,11 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
   React.useEffect(() => {
     if (isEdit) {
       setPendingVerificationUser(null);
-      setOtpCode("");
-      setOtpMessage(null);
-      setOtpError(null);
     }
   }, [isEdit]);
 
   const existingImage = defaultValues?.image;
   const showExistingImage = isEdit && existingImage && uploadedFiles.length === 0;
-
-  const handleOtpChange = (value: string) => {
-    setOtpError(null);
-    setOtpCode(value);
-  };
 
   const onSubmit = async (data: FormSchema) => {
     if (isEdit && defaultValues?.id) {
@@ -107,6 +91,7 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
     }
 
     if (pendingVerificationUser) {
+      // already waiting for OTP verification
       return;
     }
 
@@ -121,99 +106,77 @@ export default function CreateAdmin({ open, onOpenChange, defaultValues }: Props
 
     const result = await createMutation.mutateAsync(formData);
     const email = result.payload.email ?? "";
-    setPendingVerificationUser({ id: result.payload.id, email });
-    setOtpMessage(email ? `OTP sent to ${email}` : "OTP sent, check the inbox");
-    setOtpError(null);
-    setOtpCode("");
+    setPendingVerificationUser({ id: result.payload.id, email, otpExpiry: result.payload.otpExpiry ?? null });
   };
 
-  const handleVerifyOtp = async () => {
-    if (!pendingVerificationUser || otpCode.length < OTP_LENGTH) {
+  const handleOtpVerified = () => {
+    setPendingVerificationUser(null);
+    setUploadedFiles([]);
+    reset({ name: "", email: "", password: undefined });
+    onOpenChange(false);
+  };
+
+  const handleResendOtp = async () => {
+    if (!pendingVerificationUser) {
       return;
     }
 
-    try {
-      await verifyOtpMutation.mutateAsync({ userId: pendingVerificationUser.id, code: otpCode });
-      setPendingVerificationUser(null);
-      setOtpCode("");
-      setOtpMessage(null);
-      setOtpError(null);
-      setUploadedFiles([]);
-      reset({ name: "", email: "", password: undefined });
-      onOpenChange(false);
-    } catch (error: any) {
-      const message = error?.response?.data?.message || error?.message || "Invalid OTP code";
-      setOtpError(message);
-    }
+    const result = await sendOtpMutation.mutateAsync({ userId: pendingVerificationUser.id });
+    setPendingVerificationUser({
+      ...pendingVerificationUser,
+      otpExpiry: result.payload.otpExpiry ?? null,
+    });
   };
 
   return (
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title={isEdit ? "Update Admin" : "Create Admin"}
-      description={isEdit ? "Edit admin details" : "Create a new admin"}
+      title={pendingVerificationUser ? "Verify OTP" : isEdit ? "Update Admin" : "Create Admin"}
+      description={pendingVerificationUser ? "Enter the OTP sent to your email" : isEdit ? "Edit admin details" : "Create a new admin"}
       footer={
-        <div className="flex gap-2 w-full justify-center">
-          {pendingVerificationUser ? (
-            <CustomButton
-              loading={verifyOtpMutation.isPending}
-              disabled={otpCode.length < OTP_LENGTH}
-              type="button"
-              onClick={handleVerifyOtp}
-            >
-              Verify OTP
-            </CustomButton>
-          ) : (
-            <CustomButton loading={isSubmitting} type="button" onClick={handleSubmit(onSubmit)}>
-              {isEdit ? "Update Admin" : "Create Admin"}
-            </CustomButton>
-          )}
-        </div>
+        pendingVerificationUser
+          ? undefined
+          : (
+            <div className="flex gap-2 w-full justify-center">
+              <CustomButton loading={isSubmitting} type="button" onClick={handleSubmit(onSubmit)}>
+                {isEdit ? "Update Admin" : "Create Admin"}
+              </CustomButton>
+            </div>
+          )
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="space-y-4">
-          <CustomInput label="Name" {...register("name" as any)} error={(errors as any).name?.message} requiredMark />
-          <CustomInput label="Email" {...register("email" as any)} error={(errors as any).email?.message} requiredMark />
-          {!isEdit && (
-            <>
-              <CustomInput label="Password" type="password" {...register("password" as any)} error={(errors as any).password?.message} requiredMark />
-              <CustomInput label="Confirm Password" type="password" {...register("confirmPassword" as any)} error={(errors as any).confirmPassword?.message} requiredMark />
-            </>
-          )}
-          {!isEdit && pendingVerificationUser && (
-            <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <div className="flex flex-col gap-1">
-                <span className="text-sm font-semibold text-slate-900">OTP verification</span>
-                <span className="text-xs text-slate-500">{otpMessage ?? `Code sent to ${pendingVerificationUser.email}`}</span>
-              </div>
-              <OtpInput
-                length={OTP_LENGTH}
-                value={otpCode}
-                onChange={handleOtpChange}
-                allowedPattern="^\\d+$"
-                placeholderChar="●"
-              />
-              {otpError ? (
-                <p className="text-xs text-rose-600">{otpError}</p>
-              ) : (
-                <p className="text-xs text-slate-500">The code expires in approximately 15 minutes.</p>
-              )}
+      {pendingVerificationUser ? (
+        <VerifyOtpForm
+          user={pendingVerificationUser}
+          onVerified={handleOtpVerified}
+          onResend={handleResendOtp}
+          isResending={sendOtpMutation.isPending}
+        />
+      ) : (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-4">
+            <CustomInput label="Name" {...register("name" as any)} error={(errors as any).name?.message} requiredMark />
+            <CustomInput label="Email" {...register("email" as any)} error={(errors as any).email?.message} requiredMark />
+            {!isEdit && (
+              <>
+                <CustomInput label="Password" type="password" {...register("password" as any)} error={(errors as any).password?.message} requiredMark />
+                <CustomInput label="Confirm Password" type="password" {...register("confirmPassword" as any)} error={(errors as any).confirmPassword?.message} requiredMark />
+              </>
+            )}
+            <div>
+              <label className="block mb-2 text-sm font-medium">Profile Image</label>
+              {showExistingImage ? (
+                <div className="mb-2">
+                  <img src={existingImage} alt="Existing" className="h-32 w-32 object-cover rounded-md" />
+                  <p className="text-xs text-slate-500 mt-1">Existing image. Upload a new file below to replace.</p>
+                </div>
+              ) : null}
+              <CustomFileUpload maxFiles={1} onFilesChange={setUploadedFiles} />
             </div>
-          )}
-          <div>
-            <label className="block mb-2 text-sm font-medium">Profile Image</label>
-            {showExistingImage ? (
-              <div className="mb-2">
-                <img src={existingImage} alt="Existing" className="h-32 w-32 object-cover rounded-md" />
-                <p className="text-xs text-slate-500 mt-1">Existing image. Upload a new file below to replace.</p>
-              </div>
-            ) : null}
-            <CustomFileUpload maxFiles={1} onFilesChange={setUploadedFiles} />
           </div>
-        </div>
-      </form>
+        </form>
+      )}
     </Modal>
   );
 }

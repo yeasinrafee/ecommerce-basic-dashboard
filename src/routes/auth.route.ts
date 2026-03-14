@@ -5,7 +5,8 @@ export const AuthRoutes = {
   refresh: `${authBase}/refresh`,
   logout: `${authBase}/logout`,
   createAdmin: `${authBase}/admin/create`,
-  verifyOtp: `${authBase}/otp/verify`
+  verifyOtp: `${authBase}/otp/verify`,
+  sendOtp: `${authBase}/otp/send`
 };
 
 export default AuthRoutes;
