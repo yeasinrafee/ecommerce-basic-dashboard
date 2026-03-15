@@ -256,12 +256,12 @@ export const useSocialMediaById = (id: string) => {
 export const useCreateSocialMedia = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: Partial<SocialMedia>) => {
-      const response = await apiClient.post<ApiResponse<SocialMedia>>(WebRoutes.socialMedia.create, payload);
+    mutationFn: async (payload: Partial<SocialMedia> | Partial<SocialMedia>[]) => {
+      const response = await apiClient.post<ApiResponse<SocialMedia | SocialMedia[]>>(WebRoutes.socialMedia.create, payload);
       return ensurePayload(response.data, "Failed to create social media link");
     },
     onSuccess: () => {
-      toast.success("Social media link created successfully");
+      toast.success("Social media link(s) created successfully");
       queryClient.invalidateQueries({ queryKey: webKeys.socialMedia });
     },
     onError: (err: any) => {
@@ -273,12 +273,12 @@ export const useCreateSocialMedia = () => {
 export const useUpdateSocialMedia = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, payload }: { id: string; payload: Partial<SocialMedia> }) => {
-      const response = await apiClient.patch<ApiResponse<SocialMedia>>(WebRoutes.socialMedia.update(id), payload);
+    mutationFn: async ({ id, payload }: { id?: string; payload: Partial<SocialMedia> | Partial<SocialMedia>[] }) => {
+      const response = await apiClient.patch<ApiResponse<SocialMedia | SocialMedia[]>>(id ? WebRoutes.socialMedia.update(id) : WebRoutes.socialMedia.create.replace("/create", "/update"), payload);
       return ensurePayload(response.data, "Failed to update social media link");
     },
     onSuccess: () => {
-      toast.success("Social media link updated successfully");
+      toast.success("Social media link(s) updated successfully");
       queryClient.invalidateQueries({ queryKey: webKeys.socialMedia });
     },
     onError: (err: any) => {
