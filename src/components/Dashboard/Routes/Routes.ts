@@ -156,16 +156,14 @@ export const routes: RouteItem[] = [
   {
     icon: LuGlobe,
     label: "Web Management",
-    href: "/admin/web",
+    href: "/dashboard/web",
     subItems: [
-      { 
-        label: "Banner Management", 
-        href: "/admin/web/banners", 
-      },
-      { 
-        label: "Site Info (Logo, Contact)", 
-        href: "/admin/web/info", 
-      },
+      { label: "Company Information", href: "/dashboard/web/company-information" },
+      { label: "Company Policy", href: "/dashboard/web/company-policy" },
+      { label: "Manage Sliders", href: "/dashboard/web/slider" },
+      { label: "Manage FAQs", href: "/dashboard/web/faq" },
+      { label: "Manage Testimonials", href: "/dashboard/web/testimonial" },
+      { label: "Social Media Link", href: "/dashboard/web/social-media" },
     ],
   },
   // {

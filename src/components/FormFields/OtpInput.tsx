@@ -24,6 +24,7 @@ interface OtpInputProps {
   expiry?: string | number | Date | null;
   timerDuration?: number; // fallback duration in seconds
   onExpire?: () => void;
+  onResend?: () => void;
 }
 
 const DEFAULT_LENGTH = 6;
@@ -46,6 +47,7 @@ const OtpInput = React.forwardRef<HTMLDivElement, OtpInputProps>(
       expiry = null,
       timerDuration = 180, // Default 3 minutes fallback
       onExpire,
+      onResend,
     } = props;
 
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);

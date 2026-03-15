@@ -8,57 +8,160 @@ import CustomInput from "@/components/FormFields/CustomInput";
 import CustomButton from "@/components/Common/CustomButton";
 import DeleteModal from "@/components/Common/DeleteModal";
 import * as api from "@/hooks/shipping.api";
+import Loader from "../Common/Loader";
 
-const schema = z.object({
-  minimumFreeShippingAmount: z.coerce
-    .number()
-    .min(0, "Minimum free shipping amount is required"),
-  tax: z.coerce.number().min(0, "Tax is required"),
-  defaultShippingCharge: z.coerce
-    .number()
-    .min(0, "Default shipping charge is required"),
-  // weight in grams
-  maximumWeight: z.preprocess(
-    (v) => (v === "" || v === null ? undefined : v),
-    z.coerce.number().optional(),
-  ),
-  // dimensions in cm (length, width, height). Backend will multiply and store as volume.
-  length: z.preprocess(
-    (v) => (v === "" || v === null ? undefined : v),
-    z.coerce.number().optional(),
-  ),
-  width: z.preprocess(
-    (v) => (v === "" || v === null ? undefined : v),
-    z.coerce.number().optional(),
-  ),
-  height: z.preprocess(
-    (v) => (v === "" || v === null ? undefined : v),
-    z.coerce.number().optional(),
-  ),
-  chargePerWeight: z.preprocess(
-    (v) => (v === "" || v === null ? undefined : v),
-    z.coerce.number().optional(),
-  ),
-  chargePerVolume: z.preprocess(
-    (v) => (v === "" || v === null ? undefined : v),
-    z.coerce.number().optional(),
-  ),
-  weightUnit: z.preprocess(
-    (v) => (v === "" || v === null ? undefined : v),
-    z.coerce.number().optional(),
-  ),
-  volumeUnit: z.preprocess(
-    (v) => (v === "" || v === null ? undefined : v),
-    z.coerce.number().optional(),
-  ),
-});
+const schema = z
+  .object({
+    minimumFreeShippingAmount: z.coerce
+      .number()
+      .min(0, "Minimum free shipping amount is required"),
+    tax: z.coerce.number().min(0, "Tax is required"),
+    maximumWeight: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    length: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    width: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    height: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    chargePerWeight: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    chargePerVolume: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    weightUnit: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    volumeUnit: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+  })
+  .superRefine((values, ctx) => {
+    // If maximumWeight is provided, require weightUnit and chargePerWeight
+    if (typeof values.maximumWeight === "number") {
+      if (values.weightUnit === undefined) {
+        ctx.addIssue({
+          path: ["weightUnit"],
+          code: z.ZodIssueCode.custom,
+          message: "Weight unit is required when maximum weight is provided",
+        });
+      }
+      if (values.chargePerWeight === undefined) {
+        ctx.addIssue({
+          path: ["chargePerWeight"],
+          code: z.ZodIssueCode.custom,
+          message:
+            "Charge per weight is required when maximum weight is provided",
+        });
+      }
+    }
+
+    // If any volume/dimension input is provided, require all dimensions + volume unit + charge per volume
+    const anyVolumeInput =
+      typeof values.length === "number" ||
+      typeof values.width === "number" ||
+      typeof values.height === "number" ||
+      typeof values.volumeUnit === "number" ||
+      typeof values.chargePerVolume === "number";
+
+    if (anyVolumeInput) {
+      if (typeof values.length !== "number") {
+        ctx.addIssue({
+          path: ["length"],
+          code: z.ZodIssueCode.custom,
+          message: "Length is required when setting dimensions/volume",
+        });
+      }
+      if (typeof values.width !== "number") {
+        ctx.addIssue({
+          path: ["width"],
+          code: z.ZodIssueCode.custom,
+          message: "Width is required when setting dimensions/volume",
+        });
+      }
+      if (typeof values.height !== "number") {
+        ctx.addIssue({
+          path: ["height"],
+          code: z.ZodIssueCode.custom,
+          message: "Height is required when setting dimensions/volume",
+        });
+      }
+      if (typeof values.volumeUnit !== "number") {
+        ctx.addIssue({
+          path: ["volumeUnit"],
+          code: z.ZodIssueCode.custom,
+          message: "Volume unit is required when setting dimensions/volume",
+        });
+      }
+      if (typeof values.chargePerVolume !== "number") {
+        ctx.addIssue({
+          path: ["chargePerVolume"],
+          code: z.ZodIssueCode.custom,
+          message:
+            "Charge per volume is required when setting dimensions/volume",
+        });
+      }
+    }
+  });
 
 type FormSchema = z.infer<typeof schema>;
 
 const EMPTY_FORM_VALUES = {
   minimumFreeShippingAmount: "",
   tax: "",
-  defaultShippingCharge: "",
   maximumWeight: "",
   length: "",
   width: "",
@@ -70,14 +173,11 @@ const EMPTY_FORM_VALUES = {
 };
 
 const getFormValues = (shipping: api.Shipping | null | undefined) => {
-  if (!shipping) {
-    return EMPTY_FORM_VALUES;
-  }
+  if (!shipping) return EMPTY_FORM_VALUES;
 
   return {
     minimumFreeShippingAmount: shipping.minimumFreeShippingAmount ?? "",
     tax: shipping.tax ?? "",
-    defaultShippingCharge: shipping.defaultShippingCharge ?? "",
     maximumWeight: shipping.maximumWeight ?? "",
     length: shipping.length ?? "",
     width: shipping.width ?? "",
@@ -100,189 +200,269 @@ export default function ManageShipping() {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    setError,
+    clearErrors,
+    formState: { errors, isSubmitting, isValid },
   } = useForm<FormSchema>({
     resolver: zodResolver(schema) as any,
+    mode: "onChange",
     defaultValues: getFormValues(shipping) as any,
   });
+
+  const [formError, setFormError] = React.useState<string | null>(null);
+
+  const formatError = (raw?: unknown) => {
+    if (raw === undefined || raw === null) return undefined;
+    const msg = String(raw);
+    const lower = msg.toLowerCase();
+
+    if (/expected number|received nan|\bnan\b/i.test(lower))
+      return "Please enter a valid number";
+    if (/invalid input/i.test(lower)) return "Please enter a valid value";
+    if (/required/i.test(lower)) return msg;
+    return msg;
+  };
 
   React.useEffect(() => {
     reset(getFormValues(shipping) as any);
   }, [shipping, reset]);
 
   const onSubmit = async (data: FormSchema) => {
-    const payload = { ...data } as any;
-    if (shipping && (shipping as any).id) {
-      await updateMutation.mutateAsync({ id: (shipping as any).id, payload });
-    } else {
-      await createMutation.mutateAsync(payload);
+    setFormError(null);
+    clearErrors();
+
+    try {
+      if (shipping && (shipping as any).id) {
+        await updateMutation.mutateAsync({
+          id: (shipping as any).id,
+          payload: data as any,
+        });
+      } else {
+        await createMutation.mutateAsync(data as any);
+      }
+    } catch (err: any) {
+      const serverErrors = err?.response?.data?.errors;
+      if (Array.isArray(serverErrors) && serverErrors.length > 0) {
+        const nonFieldMessages: string[] = [];
+        serverErrors.forEach((e: any) => {
+          if (e && e.field) {
+            try {
+              setError(e.field as any, { type: "server", message: e.message });
+            } catch (_err) {
+              nonFieldMessages.push(e.message || "Invalid input");
+            }
+          } else if (e && e.message) {
+            nonFieldMessages.push(e.message);
+          }
+        });
+
+        if (nonFieldMessages.length > 0)
+          setFormError(nonFieldMessages.join(". "));
+      } else {
+        const message =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save shipping settings";
+        setFormError(message);
+      }
     }
   };
 
   return (
-    <div className="p-4 max-w-3xl bg-background border border-slate-200 rounded-md p-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h2 className="mb-2 text-lg font-medium">Shipping Settings</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Create or update shipping configuration. Only one record is allowed.
-          </p>
-        </div>
-        <CustomButton
-          variant="primary"
-          size="md"
-          className="bg-red-500 text-white"
-          loading={resetMutation.isPending}
-          type="button"
-          onClick={() => setOpenDeleteModal(true)}
-        >
-          Reset all
-        </CustomButton>
-      </div>
+    <>
+      {isLoading && <Loader size="lg" label="Loading shipping settings..." />}
 
-      {isLoading ? (
-        <p>Loading...</p>
-      ) : (
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <CustomInput
-              label="Minimum free shipping amount"
-              helperText="Amount threshold for free shipping"
-              type="float"
-              {...register("minimumFreeShippingAmount" as any, {
-                valueAsNumber: true,
-              })}
-              error={(errors as any).minimumFreeShippingAmount?.message}
-              requiredMark
-            />
-            <CustomInput
-              label="Tax"
-              helperText="Tax percentage or amount"
-              type="float"
-              {...register("tax" as any, { valueAsNumber: true })}
-              error={(errors as any).tax?.message}
-              requiredMark
-            />
-
-            <CustomInput
-              label="Default shipping charge"
-              helperText="Default charge applied to orders"
-              type="float"
-              {...register("defaultShippingCharge" as any, {
-                valueAsNumber: true,
-              })}
-              error={(errors as any).defaultShippingCharge?.message}
-              requiredMark
-              containerClassName="md:col-span-2"
-            />
-
-            {/* Weight fields grouped side-by-side (grams) */}
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-              <CustomInput
-                label="Maximum weight (grams)"
-                helperText="Optional maximum weight in grams"
-                type="float"
-                {...register("maximumWeight" as any, { valueAsNumber: true })}
-                error={(errors as any).maximumWeight?.message}
-              />
-              <CustomInput
-                label="Weight unit"
-                helperText="Optional float value for weight unit"
-                type="float"
-                {...register("weightUnit" as any, { valueAsNumber: true })}
-                error={(errors as any).weightUnit?.message}
-              />
-              <CustomInput
-                label="Extra Charge"
-                helperText="Optional charge per unit weight"
-                type="float"
-                {...register("chargePerWeight" as any, { valueAsNumber: true })}
-                error={(errors as any).chargePerWeight?.message}
-              />
+      {!isLoading && (
+        <div className="max-w-3xl bg-background border border-slate-200 rounded-md p-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="mb-2 text-lg font-medium">Shipping Settings</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Create or update shipping configuration. Only one record is
+                allowed.
+              </p>
             </div>
 
-            {/* Dimensions (cm): length, width, height - backend multiplies them to compute volume */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-2">
-                Maximum dimensions (cm)
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {shipping && (shipping as any).id && (
+              <CustomButton
+                variant="primary"
+                size="md"
+                className="bg-red-500 text-white"
+                loading={resetMutation.isPending}
+                type="button"
+                onClick={() => setOpenDeleteModal(true)}
+              >
+                Reset all
+              </CustomButton>
+            )}
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            {formError && (
+              <div className="mb-4 text-sm text-red-600" role="alert">
+                {formError}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <CustomInput
+                label="Minimum free shipping amount"
+                helperText="Amount threshold for free shipping"
+                type="float"
+                {...register("minimumFreeShippingAmount" as any, {
+                  valueAsNumber: true,
+                })}
+                error={formatError(
+                  (errors as any).minimumFreeShippingAmount?.message,
+                )}
+                requiredMark
+              />
+
+              <CustomInput
+                label="Tax Percentage"
+                helperText="Tax percentage or amount"
+                type="float"
+                {...register("tax" as any, { valueAsNumber: true })}
+                error={formatError((errors as any).tax?.message)}
+                requiredMark
+              />
+
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                 <CustomInput
-                  label="Length (cm)"
-                  helperText="Enter length in cm"
+                  label="Maximum weight (grams)"
+                  helperText="Optional maximum weight in grams"
                   type="float"
-                  {...register("length" as any, { valueAsNumber: true })}
-                  error={(errors as any).length?.message}
+                  {...register("maximumWeight" as any, { valueAsNumber: true })}
+                  error={formatError((errors as any).maximumWeight?.message)}
                 />
+
                 <CustomInput
-                  label="Width (cm)"
-                  helperText="Enter width in cm"
+                  label="Weight unit (grams)"
+                  helperText="Required when maximum weight is set"
                   type="float"
-                  {...register("width" as any, { valueAsNumber: true })}
-                  error={(errors as any).width?.message}
+                  placeholder="e.g. 1000"
+                  {...register("weightUnit" as any, { valueAsNumber: true })}
+                  error={formatError((errors as any).weightUnit?.message)}
                 />
+
                 <CustomInput
-                  label="Height (cm)"
-                  helperText="Enter height in cm"
+                  label="Charge per weight"
+                  helperText="Required when maximum weight is set"
                   type="float"
-                  {...register("height" as any, { valueAsNumber: true })}
-                  error={(errors as any).height?.message}
+                  {...register("chargePerWeight" as any, {
+                    valueAsNumber: true,
+                  })}
+                  error={formatError((errors as any).chargePerWeight?.message)}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-2">
+                  Maximum dimensions (cm)
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <CustomInput
+                    label="Length (cm)"
+                    helperText="Enter length in cm"
+                    type="float"
+                    {...register("length" as any, { valueAsNumber: true })}
+                    error={formatError((errors as any).length?.message)}
+                  />
+
+                  <CustomInput
+                    label="Width (cm)"
+                    helperText="Enter width in cm"
+                    type="float"
+                    {...register("width" as any, { valueAsNumber: true })}
+                    error={formatError((errors as any).width?.message)}
+                  />
+
+                  <CustomInput
+                    label="Height (cm)"
+                    helperText="Enter height in cm"
+                    type="float"
+                    {...register("height" as any, { valueAsNumber: true })}
+                    error={formatError((errors as any).height?.message)}
+                  />
+                </div>
+              </div>
+
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <CustomInput
+                  label="Volume unit"
+                  helperText="Required when dimensions are set"
+                  type="float"
+                  placeholder="e.g. 1000"
+                  {...register("volumeUnit" as any, { valueAsNumber: true })}
+                  error={formatError((errors as any).volumeUnit?.message)}
+                />
+
+                <CustomInput
+                  label="Charge per volume"
+                  helperText="Required when dimensions are set"
+                  type="float"
+                  {...register("chargePerVolume" as any, {
+                    valueAsNumber: true,
+                  })}
+                  error={formatError((errors as any).chargePerVolume?.message)}
                 />
               </div>
             </div>
 
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-              <CustomInput
-                label="Volume unit"
-                helperText="Optional float value for volume unit"
-                type="float"
-                {...register("volumeUnit" as any, { valueAsNumber: true })}
-                error={(errors as any).volumeUnit?.message}
-              />
-              <CustomInput
-                label="Extra Charge"
-                helperText="Optional charge per unit volume (per cm³)"
-                type="float"
-                {...register("chargePerVolume" as any, { valueAsNumber: true })}
-                error={(errors as any).chargePerVolume?.message}
-              />
+            <div className="mt-6 flex justify-center gap-x-4">
+              <CustomButton
+                loading={
+                  isSubmitting ||
+                  createMutation.isPending ||
+                  updateMutation.isPending
+                }
+                disabled={
+                  !isValid ||
+                  createMutation.isPending ||
+                  updateMutation.isPending
+                }
+                type="submit"
+              >
+                {shipping ? "Update shipping" : "Create shipping"}
+              </CustomButton>
             </div>
-          </div>
 
-          <div className="mt-6 flex justify-center gap-x-4">
-            <CustomButton
-              loading={
-                isSubmitting ||
-                createMutation.isPending ||
-                updateMutation.isPending
+            <DeleteModal
+              open={openDeleteModal}
+              onOpenChange={setOpenDeleteModal}
+              title="Reset shipping settings"
+              description={
+                "This will permanently delete the shipping record from the database and reset all form values."
               }
-              type="button"
-              onClick={handleSubmit(onSubmit)}
-            >
-              {shipping ? "Update shipping" : "Create shipping"}
-            </CustomButton>
-          </div>
-          <DeleteModal
-            open={openDeleteModal}
-            onOpenChange={setOpenDeleteModal}
-            title="Reset shipping settings"
-            description={
-              "This will permanently delete the shipping record from the database and reset all form values."
-            }
-            onConfirm={async () => {
-              try {
-                await resetMutation.mutateAsync();
-                reset(EMPTY_FORM_VALUES as any);
-                setOpenDeleteModal(false);
-              } catch (e) {
-                // onError in hook shows toast; keep modal open for retry or user cancel
-              }
-            }}
-            loading={resetMutation.isPending}
-            confirmLabel="Reset"
-          />
-        </form>
+              onConfirm={async () => {
+                try {
+                  await resetMutation.mutateAsync();
+                  reset(EMPTY_FORM_VALUES as any);
+                  setOpenDeleteModal(false);
+                } catch (err: any) {
+                  const serverErrors = err?.response?.data?.errors;
+                  if (Array.isArray(serverErrors) && serverErrors.length > 0) {
+                    const nonFieldMessages: string[] = [];
+                    serverErrors.forEach((e: any) => {
+                      if (e && e.message) nonFieldMessages.push(e.message);
+                    });
+                    if (nonFieldMessages.length > 0)
+                      setFormError(nonFieldMessages.join(". "));
+                  } else {
+                    const message =
+                      err?.response?.data?.message ||
+                      err?.message ||
+                      "Failed to reset shipping settings";
+                    setFormError(message);
+                  }
+                }
+              }}
+              loading={resetMutation.isPending}
+              confirmLabel="Reset"
+            />
+          </form>
+        </div>
       )}
-    </div>
+    </>
   );
 }

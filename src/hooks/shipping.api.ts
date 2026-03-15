@@ -8,7 +8,6 @@ export interface Shipping {
   id: string;
   minimumFreeShippingAmount: number;
   tax: number;
-  defaultShippingCharge: number;
   maximumWeight?: number | null;
   maximumVolume?: number | null;
   length?: number | null;
