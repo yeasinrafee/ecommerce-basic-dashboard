@@ -1,6 +1,9 @@
 "use client";
 import axios from "axios";
 import React, { useState, useEffect, useRef } from "react";
+import { z } from "zod";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
 import CustomInput from "@/components/FormFields/CustomInput";
 import CustomPasswordInput from "@/components/FormFields/CustomPasswordInput";
@@ -34,7 +37,6 @@ const resolveErrorMessage = (error: unknown) => {
 
 type ViewState =
   | "login"
-  | "forgot-password-email"
   | "forgot-password-otp"
   | "reset-password";
 
@@ -55,12 +57,54 @@ const Login = () => {
   const [otpExpiry, setOtpExpiry] = useState<string | null>(null);
   const [otpSecondsLeft, setOtpSecondsLeft] = useState<number>(0);
   const otpTimerRef = useRef<number | null>(null);
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  
 
   const sendOtpMutation = useForgotPasswordSendOtp();
   const verifyOtpMutation = useForgotPasswordVerifyOtp();
   const resetPasswordMutation = useResetPassword();
+
+  const resetPasswordSchema = z
+    .object({
+      password: z.string().min(8, "Password must be at least 8 characters"),
+      confirmPassword: z
+        .string()
+        .min(8, "Confirm password must be at least 8 characters"),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      path: ["confirmPassword"],
+      message: "Passwords do not match",
+    });
+
+  type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ResetPasswordForm>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { password: "", confirmPassword: "" },
+  });
+
+  const onSubmitReset = async (data: ResetPasswordForm) => {
+    try {
+      await resetPasswordMutation.mutateAsync({
+        userId: resetUserId,
+        code: otpCode,
+        newPassword: data.password,
+      });
+      setView("login");
+      setForgotEmail("");
+      setOtpCode("");
+      setOtpExpiry(null);
+      setResetUserId("");
+      toast.success("Password reset successfully.");
+    } catch (err: unknown) {
+      const message = resolveErrorMessage(err);
+      setError(message);
+      toast.error(message);
+    }
+  };
 
   const handleLoginSubmit: React.FormEventHandler<HTMLFormElement> = async (
     event,
@@ -262,53 +306,6 @@ const Login = () => {
     } catch (err: any) {}
   };
 
-  if (view === "forgot-password-email") {
-    return (
-      <form
-        onSubmit={handleSendOtp}
-        className="space-y-6 border shadow-sm border-slate-200 rounded-md p-6 w-full max-w-sm md:max-w-[600px]"
-      >
-        <div className="flex flex-col gap-1">
-          <span className="text-lg font-semibold text-slate-900">
-            Reset Password
-          </span>
-          <span className="text-xs text-slate-500">
-            Enter your email to receive an OTP.
-          </span>
-        </div>
-        <CustomInput
-          label="Email"
-          type="email"
-          value={forgotEmail}
-          onChange={(e) => setForgotEmail(e.target.value)}
-          required
-        />
-        <div className="flex gap-2">
-          {/* <CustomButton
-            type="button"
-            variant="ghost"
-            className="w-full"
-            onClick={() => {
-              setView("login");
-              setOtpExpiry(null);
-              setOtpCode("");
-              setResetUserId("");
-            }}
-          >
-            Cancel
-          </CustomButton> */}
-          <CustomButton
-            type="submit"
-            loading={sendOtpMutation.isPending}
-            className="w-full"
-          >
-            Send OTP
-          </CustomButton>
-        </div>
-      </form>
-    );
-  }
-
   if (view === "forgot-password-otp") {
     return (
       <form
@@ -364,7 +361,7 @@ const Login = () => {
   if (view === "reset-password") {
     return (
       <form
-        onSubmit={handleResetPassword}
+        onSubmit={handleSubmit(onSubmitReset)}
         className="space-y-6 border shadow-sm border-slate-200 rounded p-4 w-full max-w-sm md:max-w-[400px]"
       >
         <div className="flex flex-col gap-1">
@@ -375,18 +372,37 @@ const Login = () => {
             Enter your new password below.
           </span>
         </div>
-        <CustomPasswordInput
-          label="New Password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          required
+
+        <Controller
+          name="password"
+          control={control}
+          render={({ field }) => (
+            <CustomPasswordInput
+              label="New Password"
+              value={field.value}
+              onChange={(e) => field.onChange(e.target.value)}
+              onValueChange={(v) => field.onChange(v ?? "")}
+              required
+              error={errors.password?.message}
+            />
+          )}
         />
-        <CustomPasswordInput
-          label="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
+
+        <Controller
+          name="confirmPassword"
+          control={control}
+          render={({ field }) => (
+            <CustomPasswordInput
+              label="Confirm Password"
+              value={field.value}
+              onChange={(e) => field.onChange(e.target.value)}
+              onValueChange={(v) => field.onChange(v ?? "")}
+              required
+              error={errors.confirmPassword?.message}
+            />
+          )}
         />
+
         <div className="flex gap-2 mt-4">
           <CustomButton
             type="submit"
