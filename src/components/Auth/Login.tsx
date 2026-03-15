@@ -81,25 +81,30 @@ const Login = () => {
       if (!payload) {
         throw new Error("Invalid login response");
       }
-      const { user } = payload;
+      // Support both server shapes: { data: { user: {...} } } and { data: { ...userFields } }
+      const user = (payload as any).user ?? payload;
+      if (!user || !user.email) {
+        throw new Error("Invalid user data in login response");
+      }
+
       const stored = {
         email: user.email,
         role: user.role,
         name: user.name,
         image: user.image,
       };
-      toast.success(`Welcome, ${user.name}!`);
+
+      // Set user in store before navigation so dashboard has the auth state available
+      setUser(stored);
+      setPassword("");
+      toast.success(`Welcome, ${user.name || 'User'}!`);
       router.push("/dashboard");
-      setTimeout(() => {
-        setUser(stored);
-        setPassword("");
-      }, 0);
     } catch (err: unknown) {
       const message = resolveErrorMessage(err);
       setError(message);
       toast.error(message);
-      setLoading(false);
     } finally {
+      setLoading(false);
     }
   };
 
