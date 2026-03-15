@@ -26,7 +26,7 @@ const schema = z.object({
   policyName: z.string().min(1, "Policy name is required"),
   deliveryTime: z.coerce.number().min(0, "Delivery time is required"),
   shippingCost: z.coerce.number().min(0, "Shipping cost is required"),
-  status: z.enum(["ACTIVE", "INACTIVE"], { required_error: "Status is required" }),
+  status: z.enum(["ACTIVE", "INACTIVE"]),
   zoneIds: z.array(z.string()).min(1, "At least one zone is required"),
 })
 

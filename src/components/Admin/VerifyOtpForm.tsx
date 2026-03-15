@@ -86,8 +86,6 @@ export default function VerifyOtpForm({ user, onVerified, onResend, onCancel, is
         length={OTP_LENGTH}
         value={code}
         onChange={handleChange}
-        allowedPattern="^\\d+$"
-        placeholderChar="●"
         expiry={user.otpExpiry}
       />
       {error ? (

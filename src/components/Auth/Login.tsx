@@ -285,26 +285,6 @@ const Login = () => {
     } catch (err: any) {}
   };
 
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    try {
-      await resetPasswordMutation.mutateAsync({
-        userId: resetUserId,
-        code: otpCode,
-        newPassword,
-      });
-      setView("login");
-      setForgotEmail("");
-      setOtpCode("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err: any) {}
-  };
-
   if (view === "forgot-password-otp") {
     return (
       <form
@@ -323,8 +303,6 @@ const Login = () => {
           length={6}
           value={otpCode}
           onChange={setOtpCode}
-          allowedPattern="^\\d+$"
-          placeholderChar="●"
           expiry={otpExpiry}
         />
         <div className="flex items-center justify-center gap-x-2 text-sm text-brand-primary font-semibold mt-2">
