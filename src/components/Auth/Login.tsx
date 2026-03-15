@@ -148,7 +148,6 @@ const Login = () => {
       const message = resolveErrorMessage(err);
       setError(message);
       toast.error(message);
-    } finally {
       setLoading(false);
     }
   };
