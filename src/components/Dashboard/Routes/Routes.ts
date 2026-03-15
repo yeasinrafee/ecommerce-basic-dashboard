@@ -158,8 +158,7 @@ export const routes: RouteItem[] = [
     label: "Web Management",
     href: "/dashboard/web",
     subItems: [
-      { label: "Create Company Information", href: "/dashboard/web/company-information/create" },
-      { label: "Manage Company Information", href: "/dashboard/web/company-information/manage" },
+      { label: "Create Company Information", href: "/dashboard/web/company-information" },
       { label: "Create Company Policy", href: "/dashboard/web/company-policy/create" },
       { label: "Manage Company Policy", href: "/dashboard/web/company-policy/manage" },
       { label: "Create Slider", href: "/dashboard/web/slider/create" },
