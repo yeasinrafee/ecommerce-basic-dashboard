@@ -33,11 +33,29 @@ const CreateCompanyInformation = () => {
   }, [companyInfo])
 
   const isSaving = createMutation.isPending || updateMutation.isPending
+  const isEdit = !!companyInfo?.id
+
+  const hasChanges = React.useMemo(() => {
+    if (!isEdit || !companyInfo) return true
+
+    const emailChanged = (companyInfo.email ?? "") !== email
+    const addressChanged = (companyInfo.address ?? "") !== address
+    const phoneChanged = (companyInfo.phone ?? "") !== phone
+    const shortDescriptionChanged = (companyInfo.shortDescription ?? "") !== shortDescription
+    const workingHoursChanged = (companyInfo.workingHours ?? "") !== workingHours
+    const logoChanged = removedExistingLogo || imageFiles.length > 0
+
+    return (
+      emailChanged ||
+      addressChanged ||
+      phoneChanged ||
+      shortDescriptionChanged ||
+      workingHoursChanged ||
+      logoChanged
+    )
+  }, [isEdit, companyInfo, email, address, phone, shortDescription, workingHours, imageFiles.length, removedExistingLogo])
 
   const handleSave = async () => {
-    const isEdit = !!companyInfo?.id
-    
-    // Using FormData to handle image upload correctly
     const fd = new FormData()
     if (email) fd.append("email", email)
     if (address) fd.append("address", address)
@@ -148,7 +166,7 @@ const CreateCompanyInformation = () => {
         <CustomButton
           onClick={handleSave}
           loading={isSaving}
-          disabled={isSaving}
+          disabled={isSaving || (isEdit && !hasChanges)}
           className="w-full md:max-w-[300px] px-8"
         >
           {companyInfo?.id ? "Update Information" : "Save Information"}
