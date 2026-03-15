@@ -14,6 +14,10 @@ interface CustomTextAreaProps extends React.ComponentProps<typeof Textarea> {
   helperTextClassName?: string;
   errorClassName?: string;
   requiredMark?: boolean;
+  onValueChange?: (
+    value: string | null,
+    event: React.ChangeEvent<HTMLTextAreaElement>
+  ) => void;
 }
 
 const CustomTextArea = ({
@@ -29,6 +33,8 @@ const CustomTextArea = ({
   className,
   "aria-describedby": ariaDescribedBy,
   "aria-invalid": ariaInvalid,
+  onChange,
+  onValueChange,
   ...props
 }: CustomTextAreaProps) => {
   const generatedId = React.useId();
@@ -60,6 +66,10 @@ const CustomTextArea = ({
         className={className}
         aria-describedby={describedBy || undefined}
         aria-invalid={hasError || undefined}
+        onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => {
+          onChange?.(event as any);
+          onValueChange?.(event.target.value ?? null, event);
+        }}
         {...props}
       />
 
