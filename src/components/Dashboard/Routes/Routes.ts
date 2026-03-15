@@ -156,16 +156,20 @@ export const routes: RouteItem[] = [
   {
     icon: LuGlobe,
     label: "Web Management",
-    href: "/admin/web",
+    href: "/dashboard/web",
     subItems: [
-      { 
-        label: "Banner Management", 
-        href: "/admin/web/banners", 
-      },
-      { 
-        label: "Site Info (Logo, Contact)", 
-        href: "/admin/web/info", 
-      },
+      { label: "Create Company Information", href: "/dashboard/web/company-information/create" },
+      { label: "Manage Company Information", href: "/dashboard/web/company-information/manage" },
+      { label: "Create Company Policy", href: "/dashboard/web/company-policy/create" },
+      { label: "Manage Company Policy", href: "/dashboard/web/company-policy/manage" },
+      { label: "Create Slider", href: "/dashboard/web/slider/create" },
+      { label: "Manage Sliders", href: "/dashboard/web/slider/manage" },
+      { label: "Create FAQ", href: "/dashboard/web/faq/create" },
+      { label: "Manage FAQs", href: "/dashboard/web/faq/manage" },
+      { label: "Create Testimonial", href: "/dashboard/web/testimonial/create" },
+      { label: "Manage Testimonials", href: "/dashboard/web/testimonial/manage" },
+      { label: "Create Social Media Link", href: "/dashboard/web/social-media/create" },
+      { label: "Manage Social Media Links", href: "/dashboard/web/social-media/manage" },
     ],
   },
   // {
