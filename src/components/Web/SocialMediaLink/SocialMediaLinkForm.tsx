@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import CustomInput from "@/components/FormFields/CustomInput";
 import CustomButton from "@/components/Common/CustomButton";
 import { Plus, Trash, X } from "lucide-react";
+import { toast } from "react-hot-toast";
 import {
   useAllSocialMedia,
   useCreateSocialMedia,
@@ -20,11 +21,12 @@ interface SocialMediaRow {
 
 const SocialMediaLinkForm = () => {
   const { data: existingLinks, isLoading } = useAllSocialMedia();
-  const createMutation = useCreateSocialMedia();
-  const updateMutation = useUpdateSocialMedia();
-  const deleteMutation = useDeleteSocialMedia();
+  const createMutation = useCreateSocialMedia({ showToast: false });
+  const updateMutation = useUpdateSocialMedia({ showToast: false });
+  const deleteMutation = useDeleteSocialMedia({ showToast: false });
 
   const [rows, setRows] = useState<SocialMediaRow[]>([{ name: "", link: "" }]);
+  const [deletedIds, setDeletedIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (existingLinks && existingLinks.length > 0) {
@@ -35,6 +37,7 @@ const SocialMediaLinkForm = () => {
           link: link.link,
         })),
       );
+      setDeletedIds([]);
     }
   }, [existingLinks]);
 
@@ -42,10 +45,10 @@ const SocialMediaLinkForm = () => {
     setRows([...rows, { name: "", link: "" }]);
   };
 
-  const removeRow = async (index: number) => {
+  const removeRow = (index: number) => {
     const rowToRemove = rows[index];
     if (rowToRemove.id) {
-      await deleteMutation.mutateAsync(rowToRemove.id);
+      setDeletedIds((prev) => [...prev, rowToRemove.id as string]);
     }
     const newRows = rows.filter((_, i) => i !== index);
     if (newRows.length === 0) {
@@ -65,13 +68,24 @@ const SocialMediaLinkForm = () => {
     setRows(newRows);
   };
 
-  const isSaving = createMutation.isPending || updateMutation.isPending;
+  const isSaving = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
-  const allMandatoryFieldsFilled = rows.every(
-    (row) => row.name.trim() !== "" && row.link.trim() !== "",
-  );
+  const allMandatoryFieldsFilled = (() => {
+    const filledRows = rows.filter(
+      (row) => row.name.trim() !== "" || row.link.trim() !== "",
+    );
+
+    // If there are no filled rows, we still allow saving when deletions exist.
+    if (filledRows.length === 0) return deletedIds.length > 0;
+
+    return filledRows.every(
+      (row) => row.name.trim() !== "" && row.link.trim() !== "",
+    );
+  })();
 
   const hasChanges = useMemo(() => {
+    if (deletedIds.length > 0) return true;
+
     if (!existingLinks)
       return rows.some((row) => row.name !== "" || row.link !== "");
 
@@ -81,11 +95,12 @@ const SocialMediaLinkForm = () => {
       const existing = existingLinks[index];
       return row.name !== existing.name || row.link !== existing.link;
     });
-  }, [rows, existingLinks]);
+  }, [rows, existingLinks, deletedIds]);
 
   const handleSave = async () => {
     const toCreate = rows.filter((row) => !row.id);
     const toUpdate = rows.filter((row) => row.id);
+    const toDelete = deletedIds;
 
     try {
       if (toCreate.length > 0) {
@@ -94,8 +109,19 @@ const SocialMediaLinkForm = () => {
       if (toUpdate.length > 0) {
         await updateMutation.mutateAsync({ payload: toUpdate });
       }
-    } catch (error) {
+      if (toDelete.length > 0) {
+        await deleteMutation.mutateAsync(toDelete);
+      }
 
+      const toastMessage =
+        toCreate.length > 0 || toUpdate.length > 0 || toDelete.length > 0
+          ? "Social media links saved successfully"
+          : "No changes to save";
+
+      toast.success(toastMessage);
+      setDeletedIds([]);
+    } catch (error) {
+      // Errors are already handled by the mutation hooks.
     }
   };
 

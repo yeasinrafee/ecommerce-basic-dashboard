@@ -32,6 +32,7 @@ export const WebRoutes = {
     getById: (id: string) => `${webBase}/social-media/get/${id}`,
     create: `${webBase}/social-media/create`,
     update: (id: string) => `${webBase}/social-media/update/${id}`,
+    deleteMany: `${webBase}/social-media/delete`,
     delete: (id: string) => `${webBase}/social-media/delete/${id}`,
   },
 

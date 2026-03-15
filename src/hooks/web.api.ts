@@ -253,7 +253,7 @@ export const useSocialMediaById = (id: string) => {
   });
 };
 
-export const useCreateSocialMedia = () => {
+export const useCreateSocialMedia = ({ showToast = true }: { showToast?: boolean } = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: Partial<SocialMedia> | Partial<SocialMedia>[]) => {
@@ -261,7 +261,9 @@ export const useCreateSocialMedia = () => {
       return ensurePayload(response.data, "Failed to create social media link");
     },
     onSuccess: () => {
-      toast.success("Social media link(s) created successfully");
+      if (showToast) {
+        toast.success("Social media link(s) created successfully");
+      }
       queryClient.invalidateQueries({ queryKey: webKeys.socialMedia });
     },
     onError: (err: any) => {
@@ -270,7 +272,7 @@ export const useCreateSocialMedia = () => {
   });
 };
 
-export const useUpdateSocialMedia = () => {
+export const useUpdateSocialMedia = ({ showToast = true }: { showToast?: boolean } = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, payload }: { id?: string; payload: Partial<SocialMedia> | Partial<SocialMedia>[] }) => {
@@ -278,7 +280,9 @@ export const useUpdateSocialMedia = () => {
       return ensurePayload(response.data, "Failed to update social media link");
     },
     onSuccess: () => {
-      toast.success("Social media link(s) updated successfully");
+      if (showToast) {
+        toast.success("Social media link(s) updated successfully");
+      }
       queryClient.invalidateQueries({ queryKey: webKeys.socialMedia });
     },
     onError: (err: any) => {
@@ -287,16 +291,22 @@ export const useUpdateSocialMedia = () => {
   });
 };
 
-export const useDeleteSocialMedia = () => {
+export const useDeleteSocialMedia = ({ showToast = true }: { showToast?: boolean } = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const response = await apiClient.delete<ApiResponse<null>>(WebRoutes.socialMedia.delete(id));
+    mutationFn: async (idOrIds: string | string[]) => {
+      const isBatch = Array.isArray(idOrIds);
+      const url = isBatch ? WebRoutes.socialMedia.deleteMany : WebRoutes.socialMedia.delete(idOrIds);
+      const response = await apiClient.delete<ApiResponse<null>>(url, {
+        data: isBatch ? { ids: idOrIds } : undefined,
+      });
       if (!response.data.success) throw new Error(response.data.message || "Failed to delete social media link");
       return response.data;
     },
     onSuccess: () => {
-      toast.success("Social media link deleted successfully");
+      if (showToast) {
+        toast.success("Social media link deleted successfully");
+      }
       queryClient.invalidateQueries({ queryKey: webKeys.socialMedia });
     },
     onError: (err: any) => {
