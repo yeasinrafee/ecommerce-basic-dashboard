@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 import CustomInput from "@/components/FormFields/CustomInput";
 import CustomPasswordInput from "@/components/FormFields/CustomPasswordInput";
@@ -53,6 +53,8 @@ const Login = () => {
   const [resetUserId, setResetUserId] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [otpExpiry, setOtpExpiry] = useState<string | null>(null);
+  const [otpSecondsLeft, setOtpSecondsLeft] = useState<number>(0);
+  const otpTimerRef = useRef<number | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -143,11 +145,83 @@ const Login = () => {
       if (res.payload) {
         setResetUserId(res.payload.userId);
         setOtpExpiry(res.payload.otpExpiry);
+        setForgotEmail(emailValue);
         setOtpCode("");
         setView("forgot-password-otp");
-        // toast.success("OTP sent to your email.");
       } else {
         throw new Error("Failed to send OTP");
+      }
+    } catch (err: unknown) {
+      const message = resolveErrorMessage(err);
+      setError(message);
+      toast.error(message);
+    }
+  };
+
+  useEffect(() => {
+    if (!otpExpiry) {
+      setOtpSecondsLeft(0);
+      return;
+    }
+
+    if (otpTimerRef.current) {
+      clearInterval(otpTimerRef.current);
+      otpTimerRef.current = null;
+    }
+
+    const msLeft = new Date(otpExpiry).getTime() - Date.now();
+    let seconds = Math.max(0, Math.ceil(msLeft / 1000));
+    setOtpSecondsLeft(seconds);
+
+    if (seconds > 0) {
+      const id = window.setInterval(() => {
+        setOtpSecondsLeft((prev) => {
+          if (prev <= 1) {
+            if (otpTimerRef.current) {
+              clearInterval(otpTimerRef.current);
+              otpTimerRef.current = null;
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      otpTimerRef.current = id;
+      return () => {
+        if (otpTimerRef.current) {
+          clearInterval(otpTimerRef.current);
+          otpTimerRef.current = null;
+        }
+        clearInterval(id);
+      };
+    }
+  }, [otpExpiry]);
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = (secs % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
+  const handleResendOtp = async (e?: React.MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault();
+    setError(null);
+    const emailValue = forgotEmail.trim();
+    if (!emailValue) {
+      setError("No email available to resend OTP.");
+      return;
+    }
+    try {
+      const res = await sendOtpMutation.mutateAsync({ email: emailValue });
+      if (res.payload) {
+        setResetUserId(res.payload.userId);
+        setOtpExpiry(res.payload.otpExpiry);
+        setOtpCode("");
+        // toast.success("OTP resent to your email.");
+      } else {
+        throw new Error("Failed to resend OTP");
       }
     } catch (err: unknown) {
       const message = resolveErrorMessage(err);
@@ -210,14 +284,19 @@ const Login = () => {
           required
         />
         <div className="flex gap-2">
-          <CustomButton
+          {/* <CustomButton
             type="button"
             variant="ghost"
             className="w-full"
-            onClick={() => setView("login")}
+            onClick={() => {
+              setView("login");
+              setOtpExpiry(null);
+              setOtpCode("");
+              setResetUserId("");
+            }}
           >
             Cancel
-          </CustomButton>
+          </CustomButton> */}
           <CustomButton
             type="submit"
             loading={sendOtpMutation.isPending}
@@ -252,15 +331,23 @@ const Login = () => {
           placeholderChar="●"
           expiry={otpExpiry}
         />
-        <div className="flex gap-2 mt-4">
-          <CustomButton
+        <div className="flex items-center justify-center gap-x-2 text-sm text-brand-primary font-semibold mt-2">
+          <span className="text-xs">Didn't receive the code?</span>
+          <button
             type="button"
-            variant="ghost"
-            className="w-full"
-            onClick={() => setView("login")}
+            onClick={handleResendOtp}
+            disabled={sendOtpMutation.isPending || otpSecondsLeft > 0}
+            aria-disabled={sendOtpMutation.isPending || otpSecondsLeft > 0}
+            className={`text-sm font-medium ${sendOtpMutation.isPending || otpSecondsLeft > 0 ? 'opacity-50 cursor-not-allowed' : 'hover:cursor-pointer'}`}
           >
-            Cancel
-          </CustomButton>
+            {sendOtpMutation.isPending
+              ? 'Sending...'
+              : otpSecondsLeft > 0
+              ? `Resend OTP (${formatTime(otpSecondsLeft)})`
+              : 'Resend OTP'}
+          </button>
+        </div>
+        <div className="flex gap-2 mt-4">
           <CustomButton
             type="submit"
             loading={verifyOtpMutation.isPending}
@@ -301,14 +388,6 @@ const Login = () => {
           required
         />
         <div className="flex gap-2 mt-4">
-          <CustomButton
-            type="button"
-            variant="ghost"
-            className="w-full"
-            onClick={() => setView("login")}
-          >
-            Cancel
-          </CustomButton>
           <CustomButton
             type="submit"
             loading={resetPasswordMutation.isPending}
