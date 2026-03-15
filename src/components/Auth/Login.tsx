@@ -98,11 +98,10 @@ const Login = () => {
       setOtpCode("");
       setOtpExpiry(null);
       setResetUserId("");
-      toast.success("Password reset successfully.");
     } catch (err: unknown) {
       const message = resolveErrorMessage(err);
       setError(message);
-      toast.error(message);
+      // toast.error(message);
     }
   };
 
