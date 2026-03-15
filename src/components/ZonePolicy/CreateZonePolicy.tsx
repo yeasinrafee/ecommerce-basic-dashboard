@@ -26,8 +26,8 @@ const schema = z.object({
   policyName: z.string().min(1, "Policy name is required"),
   deliveryTime: z.coerce.number().min(0, "Delivery time is required"),
   shippingCost: z.coerce.number().min(0, "Shipping cost is required"),
-  status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
-  zoneIds: z.array(z.string()).optional(),
+  status: z.enum(["ACTIVE", "INACTIVE"], { required_error: "Status is required" }),
+  zoneIds: z.array(z.string()).min(1, "At least one zone is required"),
 })
 
 type FormSchema = z.infer<typeof schema>
@@ -44,15 +44,15 @@ interface Props {
 export default function CreateZonePolicy({ open = true, onOpenChange, defaultValues, onSubmit, submitting = false, inline = false }: Props) {
   const isEdit = Boolean(defaultValues && defaultValues.policyName)
 
-  const { register, control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormSchema>({
-    // zod.coerce can cause a resolver type mismatch with react-hook-form's strict typings;
-    // cast to any to satisfy the resolver type contract during build.
+  const { register, control, handleSubmit, reset, setValue, formState: { errors, isSubmitting, isValid } } = useForm<FormSchema>({
     resolver: zodResolver(schema) as any,
+    mode: "onChange",
     defaultValues: {
       policyName: defaultValues?.policyName ?? "",
       deliveryTime: defaultValues?.deliveryTime ?? 0,
       shippingCost: defaultValues?.shippingCost ?? 0,
-      status: defaultValues?.status
+      status: defaultValues?.status,
+      zoneIds: defaultValues?.zoneIds ?? [],
     }
   })
 
@@ -61,9 +61,12 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
       policyName: defaultValues?.policyName ?? "",
       deliveryTime: defaultValues?.deliveryTime ?? 0,
       shippingCost: defaultValues?.shippingCost ?? 0,
-      status: defaultValues?.status
+      status: defaultValues?.status,
+      zoneIds: defaultValues?.zoneIds ?? [],
     })
-  }, [defaultValues, reset])
+    setSelectedZones(defaultValues?.zoneIds ?? [])
+    setValue("zoneIds", defaultValues?.zoneIds ?? [], { shouldValidate: true })
+  }, [defaultValues, reset, setValue])
 
   const submit = async (data: FormSchema) => {
     const payload = { ...data, zoneIds: selectedZones }
@@ -75,12 +78,12 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
   const { data: zones } = useAvailableZones()
   const [selectedZones, setSelectedZones] = React.useState<string[]>(defaultValues?.zoneIds ?? [])
 
-  React.useEffect(() => {
-    setSelectedZones(defaultValues?.zoneIds ?? [])
-  }, [defaultValues])
-
   const toggleZone = (id: string) => {
-    setSelectedZones((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]))
+    setSelectedZones((prev) => {
+      const next = prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
+      setValue("zoneIds", next, { shouldValidate: true })
+      return next
+    })
   }
 
   const form = (
@@ -96,6 +99,7 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
               name={"status" as any}
               control={control}
               label="Status"
+              requiredMark
               placeholder="Select status"
               options={[
                 { label: "ACTIVE", value: "ACTIVE" },
@@ -103,10 +107,16 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
               ]}
             />
           </div>
+          <input type="hidden" {...register("zoneIds" as any)} />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Zones</label>
+          <label className="block text-sm font-medium mb-2">
+            Zones
+            <span className="ml-1 text-destructive" aria-hidden="true">
+              *
+            </span>
+          </label>
           <div className="rounded-lg border border-slate-200 bg-background p-3 max-h-64 overflow-y-auto">
             <div className="flex flex-col gap-2">
               {zones && zones.length > 0 ? (
@@ -118,6 +128,9 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
               )}
             </div>
           </div>
+          {(errors as any).zoneIds?.message ? (
+            <p className="mt-1 text-xs text-destructive">{(errors as any).zoneIds?.message}</p>
+          ) : null}
         </div>
       </div>
     </form>
@@ -130,7 +143,12 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
         <p className="text-sm text-muted-foreground mb-4">{isEdit ? "Edit zone policy" : "Create a new zone policy"}</p>
         {form}
         <div className="mt-4 flex justify-center gap-2">
-          <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
+          <CustomButton
+            loading={isSubmitting || submitting}
+            disabled={!isValid || isSubmitting || submitting}
+            type="button"
+            onClick={handleSubmit(submit)}
+          >
             {isEdit ? "Update zone policy" : "Create zone policy"}
           </CustomButton>
         </div>
@@ -146,7 +164,12 @@ export default function CreateZonePolicy({ open = true, onOpenChange, defaultVal
       description={isEdit ? "Edit zone policy" : "Create a new zone policy"}
       footer={
         <div className="flex gap-2">
-          <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
+          <CustomButton
+            loading={isSubmitting || submitting}
+            disabled={!isValid || isSubmitting || submitting}
+            type="button"
+            onClick={handleSubmit(submit)}
+          >
             {isEdit ? "Update" : "Create zone"}
           </CustomButton>
         </div>
