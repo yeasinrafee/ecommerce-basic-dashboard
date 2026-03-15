@@ -123,6 +123,39 @@ const Login = () => {
     } catch (err: any) {}
   };
 
+  const handleForgotPasswordFromLogin = async (
+    e?: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    setError(null);
+    const emailValue = email.trim();
+    if (!emailValue) {
+      setError("Please enter your email to reset your password.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailValue)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    try {
+      const res = await sendOtpMutation.mutateAsync({ email: emailValue });
+      if (res.payload) {
+        setResetUserId(res.payload.userId);
+        setOtpExpiry(res.payload.otpExpiry);
+        setOtpCode("");
+        setView("forgot-password-otp");
+        // toast.success("OTP sent to your email.");
+      } else {
+        throw new Error("Failed to send OTP");
+      }
+    } catch (err: unknown) {
+      const message = resolveErrorMessage(err);
+      setError(message);
+      toast.error(message);
+    }
+  };
+
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otpCode.length < 6) return;
@@ -316,10 +349,12 @@ const Login = () => {
       <div className="flex justify-center">
         <button
           type="button"
-          onClick={() => setView("forgot-password-email")}
-          className="text-sm font-medium hover:cursor-pointer"
+          onClick={handleForgotPasswordFromLogin}
+          disabled={sendOtpMutation.isPending}
+          aria-disabled={sendOtpMutation.isPending}
+          className={`text-sm font-medium ${sendOtpMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'hover:cursor-pointer'}`}
         >
-          Forgot password?
+          {sendOtpMutation.isPending ? 'Sending...' : 'Forgot password?'}
         </button>
       </div>
     </form>
