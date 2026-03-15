@@ -8,28 +8,104 @@ import CustomInput from "@/components/FormFields/CustomInput";
 import CustomButton from "@/components/Common/CustomButton";
 import DeleteModal from "@/components/Common/DeleteModal";
 import * as api from "@/hooks/shipping.api";
+import Loader from "../Common/Loader";
 
 const schema = z
   .object({
-    minimumFreeShippingAmount: z.coerce.number().min(0, "Minimum free shipping amount is required"),
+    minimumFreeShippingAmount: z.coerce
+      .number()
+      .min(0, "Minimum free shipping amount is required"),
     tax: z.coerce.number().min(0, "Tax is required"),
-    maximumWeight: z.preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().optional()),
-    length: z.preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().optional()),
-    width: z.preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().optional()),
-    height: z.preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().optional()),
-    chargePerWeight: z.preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().optional()),
-    chargePerVolume: z.preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().optional()),
-    weightUnit: z.preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().optional()),
-    volumeUnit: z.preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().optional()),
+    maximumWeight: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    length: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    width: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    height: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    chargePerWeight: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    chargePerVolume: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    weightUnit: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
+    volumeUnit: z.preprocess(
+      (v) =>
+        v === "" ||
+        v === null ||
+        (typeof v === "number" && Number.isNaN(v))
+          ? undefined
+          : v,
+      z.coerce.number().optional(),
+    ),
   })
   .superRefine((values, ctx) => {
     // If maximumWeight is provided, require weightUnit and chargePerWeight
     if (typeof values.maximumWeight === "number") {
       if (values.weightUnit === undefined) {
-        ctx.addIssue({ path: ["weightUnit"], code: z.ZodIssueCode.custom, message: "Weight unit is required when maximum weight is provided" });
+        ctx.addIssue({
+          path: ["weightUnit"],
+          code: z.ZodIssueCode.custom,
+          message: "Weight unit is required when maximum weight is provided",
+        });
       }
       if (values.chargePerWeight === undefined) {
-        ctx.addIssue({ path: ["chargePerWeight"], code: z.ZodIssueCode.custom, message: "Charge per weight is required when maximum weight is provided" });
+        ctx.addIssue({
+          path: ["chargePerWeight"],
+          code: z.ZodIssueCode.custom,
+          message:
+            "Charge per weight is required when maximum weight is provided",
+        });
       }
     }
 
@@ -43,19 +119,40 @@ const schema = z
 
     if (anyVolumeInput) {
       if (typeof values.length !== "number") {
-        ctx.addIssue({ path: ["length"], code: z.ZodIssueCode.custom, message: "Length is required when setting dimensions/volume" });
+        ctx.addIssue({
+          path: ["length"],
+          code: z.ZodIssueCode.custom,
+          message: "Length is required when setting dimensions/volume",
+        });
       }
       if (typeof values.width !== "number") {
-        ctx.addIssue({ path: ["width"], code: z.ZodIssueCode.custom, message: "Width is required when setting dimensions/volume" });
+        ctx.addIssue({
+          path: ["width"],
+          code: z.ZodIssueCode.custom,
+          message: "Width is required when setting dimensions/volume",
+        });
       }
       if (typeof values.height !== "number") {
-        ctx.addIssue({ path: ["height"], code: z.ZodIssueCode.custom, message: "Height is required when setting dimensions/volume" });
+        ctx.addIssue({
+          path: ["height"],
+          code: z.ZodIssueCode.custom,
+          message: "Height is required when setting dimensions/volume",
+        });
       }
       if (typeof values.volumeUnit !== "number") {
-        ctx.addIssue({ path: ["volumeUnit"], code: z.ZodIssueCode.custom, message: "Volume unit is required when setting dimensions/volume" });
+        ctx.addIssue({
+          path: ["volumeUnit"],
+          code: z.ZodIssueCode.custom,
+          message: "Volume unit is required when setting dimensions/volume",
+        });
       }
       if (typeof values.chargePerVolume !== "number") {
-        ctx.addIssue({ path: ["chargePerVolume"], code: z.ZodIssueCode.custom, message: "Charge per volume is required when setting dimensions/volume" });
+        ctx.addIssue({
+          path: ["chargePerVolume"],
+          code: z.ZodIssueCode.custom,
+          message:
+            "Charge per volume is required when setting dimensions/volume",
+        });
       }
     }
   });
@@ -119,7 +216,8 @@ export default function ManageShipping() {
     const msg = String(raw);
     const lower = msg.toLowerCase();
 
-    if (/expected number|received nan|\bnan\b/i.test(lower)) return "Please enter a valid number";
+    if (/expected number|received nan|\bnan\b/i.test(lower))
+      return "Please enter a valid number";
     if (/invalid input/i.test(lower)) return "Please enter a valid value";
     if (/required/i.test(lower)) return msg;
     return msg;
@@ -135,7 +233,10 @@ export default function ManageShipping() {
 
     try {
       if (shipping && (shipping as any).id) {
-        await updateMutation.mutateAsync({ id: (shipping as any).id, payload: data as any });
+        await updateMutation.mutateAsync({
+          id: (shipping as any).id,
+          payload: data as any,
+        });
       } else {
         await createMutation.mutateAsync(data as any);
       }
@@ -155,9 +256,13 @@ export default function ManageShipping() {
           }
         });
 
-        if (nonFieldMessages.length > 0) setFormError(nonFieldMessages.join(". "));
+        if (nonFieldMessages.length > 0)
+          setFormError(nonFieldMessages.join(". "));
       } else {
-        const message = err?.response?.data?.message || err?.message || "Failed to save shipping settings";
+        const message =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save shipping settings";
         setFormError(message);
       }
     }
@@ -165,21 +270,33 @@ export default function ManageShipping() {
 
   return (
     <>
-      {isLoading && <p className="mb-4 text-sm text-muted-foreground">Loading...</p>}
+      {isLoading && <Loader size="lg" label="Loading shipping settings..." />}
 
-      <div className="max-w-3xl bg-background border border-slate-200 rounded-md p-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="mb-2 text-lg font-medium">Shipping Settings</h2>
-            <p className="text-sm text-muted-foreground mb-4">Create or update shipping configuration. Only one record is allowed.</p>
+      {!isLoading && (
+        <div className="max-w-3xl bg-background border border-slate-200 rounded-md p-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="mb-2 text-lg font-medium">Shipping Settings</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Create or update shipping configuration. Only one record is
+                allowed.
+              </p>
+            </div>
+
+            {shipping && (shipping as any).id && (
+              <CustomButton
+                variant="primary"
+                size="md"
+                className="bg-red-500 text-white"
+                loading={resetMutation.isPending}
+                type="button"
+                onClick={() => setOpenDeleteModal(true)}
+              >
+                Reset all
+              </CustomButton>
+            )}
           </div>
 
-          <CustomButton variant="primary" size="md" className="bg-red-500 text-white" loading={resetMutation.isPending} type="button" onClick={() => setOpenDeleteModal(true)}>
-            Reset all
-          </CustomButton>
-        </div>
-
-        {!isLoading && (
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             {formError && (
               <div className="mb-4 text-sm text-red-600" role="alert">
@@ -192,13 +309,17 @@ export default function ManageShipping() {
                 label="Minimum free shipping amount"
                 helperText="Amount threshold for free shipping"
                 type="float"
-                {...register("minimumFreeShippingAmount" as any, { valueAsNumber: true })}
-                error={formatError((errors as any).minimumFreeShippingAmount?.message)}
+                {...register("minimumFreeShippingAmount" as any, {
+                  valueAsNumber: true,
+                })}
+                error={formatError(
+                  (errors as any).minimumFreeShippingAmount?.message,
+                )}
                 requiredMark
               />
 
               <CustomInput
-                label="Tax"
+                label="Tax Percentage"
                 helperText="Tax percentage or amount"
                 type="float"
                 {...register("tax" as any, { valueAsNumber: true })}
@@ -228,13 +349,17 @@ export default function ManageShipping() {
                   label="Charge per weight"
                   helperText="Required when maximum weight is set"
                   type="float"
-                  {...register("chargePerWeight" as any, { valueAsNumber: true })}
+                  {...register("chargePerWeight" as any, {
+                    valueAsNumber: true,
+                  })}
                   error={formatError((errors as any).chargePerWeight?.message)}
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-2">Maximum dimensions (cm)</label>
+                <label className="block text-sm font-medium mb-2">
+                  Maximum dimensions (cm)
+                </label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <CustomInput
                     label="Length (cm)"
@@ -276,7 +401,9 @@ export default function ManageShipping() {
                   label="Charge per volume"
                   helperText="Required when dimensions are set"
                   type="float"
-                  {...register("chargePerVolume" as any, { valueAsNumber: true })}
+                  {...register("chargePerVolume" as any, {
+                    valueAsNumber: true,
+                  })}
                   error={formatError((errors as any).chargePerVolume?.message)}
                 />
               </div>
@@ -284,8 +411,16 @@ export default function ManageShipping() {
 
             <div className="mt-6 flex justify-center gap-x-4">
               <CustomButton
-                loading={isSubmitting || createMutation.isPending || updateMutation.isPending}
-                disabled={!isValid || createMutation.isPending || updateMutation.isPending}
+                loading={
+                  isSubmitting ||
+                  createMutation.isPending ||
+                  updateMutation.isPending
+                }
+                disabled={
+                  !isValid ||
+                  createMutation.isPending ||
+                  updateMutation.isPending
+                }
                 type="submit"
               >
                 {shipping ? "Update shipping" : "Create shipping"}
@@ -296,7 +431,9 @@ export default function ManageShipping() {
               open={openDeleteModal}
               onOpenChange={setOpenDeleteModal}
               title="Reset shipping settings"
-              description={"This will permanently delete the shipping record from the database and reset all form values."}
+              description={
+                "This will permanently delete the shipping record from the database and reset all form values."
+              }
               onConfirm={async () => {
                 try {
                   await resetMutation.mutateAsync();
@@ -309,9 +446,13 @@ export default function ManageShipping() {
                     serverErrors.forEach((e: any) => {
                       if (e && e.message) nonFieldMessages.push(e.message);
                     });
-                    if (nonFieldMessages.length > 0) setFormError(nonFieldMessages.join(". "));
+                    if (nonFieldMessages.length > 0)
+                      setFormError(nonFieldMessages.join(". "));
                   } else {
-                    const message = err?.response?.data?.message || err?.message || "Failed to reset shipping settings";
+                    const message =
+                      err?.response?.data?.message ||
+                      err?.message ||
+                      "Failed to reset shipping settings";
                     setFormError(message);
                   }
                 }
@@ -320,8 +461,8 @@ export default function ManageShipping() {
               confirmLabel="Reset"
             />
           </form>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }
