@@ -14,15 +14,10 @@ const schema = z.object({
     .number()
     .min(0, "Minimum free shipping amount is required"),
   tax: z.coerce.number().min(0, "Tax is required"),
-  defaultShippingCharge: z.coerce
-    .number()
-    .min(0, "Default shipping charge is required"),
-  // weight in grams
   maximumWeight: z.preprocess(
     (v) => (v === "" || v === null ? undefined : v),
     z.coerce.number().optional(),
   ),
-  // dimensions in cm (length, width, height). Backend will multiply and store as volume.
   length: z.preprocess(
     (v) => (v === "" || v === null ? undefined : v),
     z.coerce.number().optional(),
@@ -58,7 +53,6 @@ type FormSchema = z.infer<typeof schema>;
 const EMPTY_FORM_VALUES = {
   minimumFreeShippingAmount: "",
   tax: "",
-  defaultShippingCharge: "",
   maximumWeight: "",
   length: "",
   width: "",
@@ -77,7 +71,6 @@ const getFormValues = (shipping: api.Shipping | null | undefined) => {
   return {
     minimumFreeShippingAmount: shipping.minimumFreeShippingAmount ?? "",
     tax: shipping.tax ?? "",
-    defaultShippingCharge: shipping.defaultShippingCharge ?? "",
     maximumWeight: shipping.maximumWeight ?? "",
     length: shipping.length ?? "",
     width: shipping.width ?? "",
@@ -164,19 +157,8 @@ export default function ManageShipping() {
               requiredMark
             />
 
-            <CustomInput
-              label="Default shipping charge"
-              helperText="Default charge applied to orders"
-              type="float"
-              {...register("defaultShippingCharge" as any, {
-                valueAsNumber: true,
-              })}
-              error={(errors as any).defaultShippingCharge?.message}
-              requiredMark
-              containerClassName="md:col-span-2"
-            />
+            {/* Default shipping charge removed */}
 
-            {/* Weight fields grouped side-by-side (grams) */}
             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
               <CustomInput
                 label="Maximum weight (grams)"
@@ -201,7 +183,6 @@ export default function ManageShipping() {
               />
             </div>
 
-            {/* Dimensions (cm): length, width, height - backend multiplies them to compute volume */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-2">
                 Maximum dimensions (cm)
@@ -275,7 +256,6 @@ export default function ManageShipping() {
                 reset(EMPTY_FORM_VALUES as any);
                 setOpenDeleteModal(false);
               } catch (e) {
-                // onError in hook shows toast; keep modal open for retry or user cancel
               }
             }}
             loading={resetMutation.isPending}
