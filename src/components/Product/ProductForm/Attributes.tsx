@@ -112,6 +112,40 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
 
   const selectedGalleryImage = galleryImages.find((img) => img.id === selectedGalleryImageId);
 
+  const attributeOptions = React.useMemo(() => {
+    const list = attributesList ?? [];
+    return list
+      .map((a) => {
+        const allValues: string[] = a.values ?? [];
+        const addedValues = attributes.find((ar) => ar.name === a.name)?.pairs.map((p) => p.value) ?? [];
+        const remaining = allValues.filter((v) => !addedValues.includes(v));
+        return { name: a.name, remainingCount: remaining.length };
+      })
+      .filter((x) => x.remainingCount > 0)
+      .map((x) => ({ label: x.name, value: x.name }));
+  }, [attributesList, attributes]);
+
+  React.useEffect(() => {
+    if (attributeName) {
+      const stillAvailable = attributeOptions.some((o) => o.value === attributeName);
+      if (!stillAvailable) {
+        setAttributeName("");
+        setAttributeValue("");
+        setValue("attributeName", "");
+        setValue("attributeValue", "");
+        setPendingError(null);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attributeOptions, attributeName]);
+
+  const valueOptions = React.useMemo(() => {
+    const attr = (attributesList ?? []).find((a) => a.name === attributeName);
+    const allValues: string[] = attr?.values ?? [];
+    const addedValues = attributes.find((a) => a.name === attributeName)?.pairs.map((p) => p.value) ?? [];
+    return allValues.filter((v) => !addedValues.includes(v)).map((v) => ({ label: v, value: v }));
+  }, [attributesList, attributeName, attributes]);
+
   return (
     <div className="space-y-6">
       {galleryImages && galleryImages.length > 0 && (
@@ -174,7 +208,8 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
             control={control}
             label="Name"
             placeholder="Select attribute"
-            options={(attributesList ?? []).map((a) => ({ label: a.name, value: a.name }))}
+            options={attributeOptions}
+            disabled={attributeOptions.length === 0}
             onChangeCallback={(v: string) => {
               setAttributeName(v);
               setAttributeValue("");
@@ -189,9 +224,7 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
             control={control}
             label="Value"
             placeholder="Select value"
-            options={
-              (attributesList?.find((a) => a.name === attributeName)?.values ?? []).map((v) => ({ label: v, value: v }))
-            }
+            options={valueOptions}
             onChangeCallback={(v: string) => {
               setAttributeValue(v);
               setPendingError(null);
@@ -206,6 +239,7 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
             type="number"
             value={attributePrice}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => setAttributePrice(event.target.value)}
+            disabled={!attributeValue}
           />
         </div>
         <CustomButton
