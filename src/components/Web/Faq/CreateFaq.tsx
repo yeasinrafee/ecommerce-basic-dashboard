@@ -5,12 +5,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import CustomInput from "@/components/FormFields/CustomInput";
+import CustomTextArea from "@/components/FormFields/CustomTextArea";
 import Modal from "@/components/Common/Modal";
 import CustomButton from "@/components/Common/CustomButton";
 
 const schema = z.object({
-  name: z.string().min(1, "Name is required"),
-  link: z.string().url("Must be a valid URL").min(1, "Link is required"),
+  question: z.string().min(1, "Question is required"),
+  answer: z.string().min(1, "Answer is required"),
 });
 
 type FormSchema = z.infer<typeof schema>;
@@ -23,14 +24,14 @@ interface Props {
   submitting?: boolean;
 }
 
-export default function CreateSocialMedia({
+export default function CreateFaq({
   open,
   onOpenChange,
   defaultValues,
   onSubmit,
   submitting = false,
 }: Props) {
-  const isEdit = Boolean(defaultValues && defaultValues.name);
+  const isEdit = Boolean(defaultValues && defaultValues.question);
 
   const {
     register,
@@ -40,15 +41,15 @@ export default function CreateSocialMedia({
   } = useForm<FormSchema>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: defaultValues?.name ?? "",
-      link: defaultValues?.link ?? "",
+      question: defaultValues?.question ?? "",
+      answer: defaultValues?.answer ?? "",
     },
   });
 
   React.useEffect(() => {
     reset({
-      name: defaultValues?.name ?? "",
-      link: defaultValues?.link ?? "",
+      question: defaultValues?.question ?? "",
+      answer: defaultValues?.answer ?? "",
     });
   }, [defaultValues, reset]);
 
@@ -65,8 +66,8 @@ export default function CreateSocialMedia({
         onOpenChange(v);
         if (!v) reset();
       }}
-      title={isEdit ? "Update Social Media Link" : "Add Social Media Link"}
-      description={isEdit ? "Edit social media details" : "Add a new social media platform"}
+      title={isEdit ? "Update FAQ" : "Add FAQ"}
+      description={isEdit ? "Edit FAQ details" : "Add a new frequently asked question"}
       footer={
         <div className="flex gap-2 w-full justify-center">
           <CustomButton
@@ -74,7 +75,7 @@ export default function CreateSocialMedia({
             type="button"
             onClick={handleSubmit(submit)}
           >
-            {isEdit ? "Update social media" : "Add social media"}
+            {isEdit ? "Update FAQ" : "Create new FAQ"}
           </CustomButton>
         </div>
       }
@@ -82,19 +83,22 @@ export default function CreateSocialMedia({
       <form onSubmit={handleSubmit(submit)}>
         <div className="space-y-4">
           <CustomInput
-            label="Platform Name"
-            placeholder="e.g. Facebook"
-            {...register("name")}
-            error={errors.name?.message}
+            label="Question"
+            placeholder="e.g. How do I track my order?"
+            {...register("question")}
+            error={errors.question?.message}
             requiredMark
           />
-          <CustomInput
-            label="Link"
-            placeholder="e.g. https://facebook.com/company"
-            {...register("link")}
-            error={errors.link?.message}
-            requiredMark
-          />
+          <div>
+            <CustomTextArea
+              label="Answer"
+              placeholder="Type the answer here"
+              {...register("answer")}
+              error={errors.answer?.message}
+              requiredMark
+              className="min-h-[120px]"
+            />
+          </div>
         </div>
       </form>
     </Modal>
