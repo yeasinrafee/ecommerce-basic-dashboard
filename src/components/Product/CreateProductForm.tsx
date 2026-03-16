@@ -794,7 +794,11 @@ export default function CreateProductForm({ productId }: { productId?: string })
           key={attributesResetKey}
           galleryImages={rightGalleryPreview}
           onChange={handleAttributesChange}
-          initialAttributes={initialAttributes}
+          initialAttributes={
+            attributesData.attributes && attributesData.attributes.length > 0
+              ? attributesData.attributes
+              : initialAttributes
+          }
         />
       ),
     },
@@ -805,14 +809,28 @@ export default function CreateProductForm({ productId }: { productId?: string })
         <AdditionalInfo
           key={additionalResetKey}
           onChange={handleAdditionalInfoChange}
-          initialInfo={initialAdditionalInfo}
+          initialInfo={
+            attributesData.additionalInfo && attributesData.additionalInfo.length > 0
+              ? attributesData.additionalInfo
+              : initialAdditionalInfo
+          }
         />
       ),
     },
     {
       id: "seo",
       label: "SEO",
-      content: <Seo key={seoResetKey} onChange={setSeoData} initialData={initialSeoForForm} />,
+      content: (
+        <Seo
+          key={seoResetKey}
+          onChange={setSeoData}
+          initialData={
+            seoData && (seoData.metaTitle || seoData.metaDescription || seoData.seoKeywords.length > 0)
+              ? seoData
+              : initialSeoForForm
+          }
+        />
+      ),
     },
   ];
 
