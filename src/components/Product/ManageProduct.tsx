@@ -80,7 +80,7 @@ const ManageProduct: React.FC = () => {
   const deleteMutation = useDeleteProduct();
 
   const handleEdit = (item: any) => {
-    router.push(`/dashboard/product/create?id=${item.id}`);
+    router.push(`/dashboard/product/edit?id=${item.id}`);
   };
 
   const handleDelete = (item: any) => {

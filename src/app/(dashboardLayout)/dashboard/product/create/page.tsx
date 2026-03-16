@@ -1,12 +1,9 @@
 "use client"
 import { Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
 import CreateProductForm from '@/components/Product/CreateProductForm'
 
 function CreateProductPage() {
-  const searchParams = useSearchParams()
-  const id = searchParams.get('id') || undefined
-  return <CreateProductForm productId={id} />
+  return <CreateProductForm />
 }
 
 export default function Page() {
