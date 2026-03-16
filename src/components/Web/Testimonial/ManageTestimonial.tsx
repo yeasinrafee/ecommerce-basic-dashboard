@@ -73,13 +73,14 @@ export default function ManageTestimonial() {
         header: "Image",
         accessor: "image",
         cell: (row) => (
-          <div className="h-10 w-10 relative overflow-hidden rounded-full ring-2 ring-gray-100">
+          <div>
             {row.image ? (
               <Image 
                 src={row.image} 
                 alt={row.name} 
-                fill 
-                className="object-cover" 
+                width={100}
+                height={100}
+                className="object-cover size-[50px] rounded-sm" 
               />
             ) : (
               <div className="h-full w-full bg-gray-200 flex items-center justify-center text-[10px] text-gray-500">
