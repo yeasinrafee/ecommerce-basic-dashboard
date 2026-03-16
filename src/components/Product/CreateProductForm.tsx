@@ -572,8 +572,11 @@ export default function CreateProductForm({ productId }: { productId?: string })
     });
   }, [seoData, setValue]);
 
-  const handleAttributesChange = React.useCallback((data: AttributesData) => {
+  const [attributesPending, setAttributesPending] = React.useState<{ name?: string; value?: string } | null>(null);
+
+  const handleAttributesChange = React.useCallback((data: AttributesData, pending?: { name?: string; value?: string } | null) => {
     setAttributesData((prev) => ({ ...prev, attributes: data.attributes }));
+    setAttributesPending(pending ?? null);
   }, []);
 
   const handleAdditionalInfoChange = React.useCallback(
@@ -743,6 +746,11 @@ export default function CreateProductForm({ productId }: { productId?: string })
       return;
     }
 
+    if (attributesPending && attributesPending.name && (!attributesPending.value || attributesPending.value.trim() === "")) {
+      toast.error(`Please select a value for attribute "${attributesPending.name}"`);
+      return;
+    }
+
     if (isEditMode && productId) {
       const payload = buildUpdateFormData(values);
       updateProduct({ id: productId, payload }, { onSuccess: handleSuccess });
@@ -794,7 +802,11 @@ export default function CreateProductForm({ productId }: { productId?: string })
           key={attributesResetKey}
           galleryImages={rightGalleryPreview}
           onChange={handleAttributesChange}
-          initialAttributes={initialAttributes}
+          initialAttributes={
+            attributesData.attributes && attributesData.attributes.length > 0
+              ? attributesData.attributes
+              : initialAttributes
+          }
         />
       ),
     },
@@ -805,14 +817,28 @@ export default function CreateProductForm({ productId }: { productId?: string })
         <AdditionalInfo
           key={additionalResetKey}
           onChange={handleAdditionalInfoChange}
-          initialInfo={initialAdditionalInfo}
+          initialInfo={
+            attributesData.additionalInfo && attributesData.additionalInfo.length > 0
+              ? attributesData.additionalInfo
+              : initialAdditionalInfo
+          }
         />
       ),
     },
     {
       id: "seo",
       label: "SEO",
-      content: <Seo key={seoResetKey} onChange={setSeoData} initialData={initialSeoForForm} />,
+      content: (
+        <Seo
+          key={seoResetKey}
+          onChange={setSeoData}
+          initialData={
+            seoData && (seoData.metaTitle || seoData.metaDescription || seoData.seoKeywords.length > 0)
+              ? seoData
+              : initialSeoForForm
+          }
+        />
+      ),
     },
   ];
 

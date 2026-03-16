@@ -33,7 +33,7 @@ export interface PagedResult<T> {
 
 export const productKeys = {
 	all: ["products"] as const,
-	paginated: (page: number, limit: number) => [...productKeys.all, "paginated", page, limit] as const,
+	paginated: (page: number, limit: number, searchTerm?: string | null) => [...productKeys.all, "paginated", page, limit, searchTerm ?? null] as const,
 	list: () => [...productKeys.all, "list"] as const,
 	detail: (id: string) => [...productKeys.all, "detail", id] as const
 };
@@ -79,8 +79,10 @@ export const useCreateProduct = () => {
 	});
 };
 
-const fetchPaginatedProducts = async (page: number, limit: number) => {
-	const response = await apiClient.get<ApiResponse<Product[]>>(ProductRoutes.getAllPaginated, { params: { page, limit } });
+const fetchPaginatedProducts = async (page: number, limit: number, searchTerm?: string | null) => {
+	const params: Record<string, unknown> = { page, limit };
+	if (searchTerm) params.searchTerm = searchTerm;
+	const response = await apiClient.get<ApiResponse<Product[]>>(ProductRoutes.getAllPaginated, { params });
 	const products = ensurePayload(response.data, 'Failed to load products');
 	const meta = normalizeMeta(response.data.meta as Record<string, unknown>, page, limit, products.length);
 	return { data: products, meta } as PagedResult<Product>;
@@ -101,10 +103,10 @@ const deleteProductReq = async (id: string) => {
 	return ensurePayload(response.data, 'Failed to delete product');
 };
 
-export const usePaginatedProducts = (page: number, limit = 20) => {
+export const usePaginatedProducts = (page: number, limit = 20, searchTerm?: string | null) => {
 	return useQuery<PagedResult<Product>>({
-		queryKey: productKeys.paginated(page, limit),
-		queryFn: () => fetchPaginatedProducts(page, limit),
+		queryKey: productKeys.paginated(page, limit, searchTerm ?? null),
+		queryFn: () => fetchPaginatedProducts(page, limit, searchTerm ?? null),
 		placeholderData: keepPreviousData
 	});
 };

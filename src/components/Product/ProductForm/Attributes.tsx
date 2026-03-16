@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import CustomButton from "../../Common/CustomButton";
 import CustomInput from "../../FormFields/CustomInput";
 import CustomSelect from "../../FormFields/CustomSelect";
+import { useAllAttributes } from "@/hooks/attribute.api";
 
 export type AttributeRecord = {
   name: string;
@@ -20,7 +21,7 @@ export interface AttributesData {
 }
 
 interface AttributesProps {
-  onChange?: (data: AttributesData) => void;
+  onChange?: (data: AttributesData, pending?: { name: string; value?: string } | null) => void;
   galleryImages?: { id: string; name: string; url: string }[];
   initialAttributes?: AttributeRecord[];
 }
@@ -32,6 +33,8 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
   const [attributes, setAttributes] = React.useState<AttributeRecord[]>([]);
   const [selectedGalleryImageId, setSelectedGalleryImageId] = React.useState<string | null>(null);
 
+  const { data: attributesList } = useAllAttributes();
+
   // Seed initial attributes once when edit-mode data arrives
   const initializedRef = React.useRef(false);
   React.useEffect(() => {
@@ -41,14 +44,21 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
     }
   }, [initialAttributes]);
 
-  const { control } = useForm<{ attributeName: string }>({
-    defaultValues: { attributeName: "" },
+  const { control, setValue, reset } = useForm<{ attributeName: string; attributeValue: string }>({
+    defaultValues: { attributeName: "", attributeValue: "" },
   });
+
+  const [pendingError, setPendingError] = React.useState<string | null>(null);
 
   const addAttribute = () => {
     const name = attributeName.trim();
     const value = attributeValue.trim();
-    if (!name || !value) return;
+    if (!name || !value) {
+      setPendingError("Value is required for the selected attribute");
+      return;
+    }
+
+    setPendingError(null);
 
     const price = attributePrice.trim();
     setAttributes((prev) => {
@@ -75,7 +85,8 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
       ];
     });
 
-    setAttributeValue("");
+    setAttributeName("");
+    reset({ attributeName: "", attributeValue: "" });
     setAttributePrice("");
   };
 
@@ -93,12 +104,47 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
 
   React.useEffect(() => {
     if (onChange) {
-      onChange({ attributes, additionalInfo: [] });
+      const pending = attributeName ? { name: attributeName, value: attributeValue } : null;
+      onChange({ attributes, additionalInfo: [] }, pending);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attributes]);
+  }, [attributes, attributeName, attributeValue]);
 
   const selectedGalleryImage = galleryImages.find((img) => img.id === selectedGalleryImageId);
+
+  const attributeOptions = React.useMemo(() => {
+    const list = attributesList ?? [];
+    return list
+      .map((a) => {
+        const allValues: string[] = a.values ?? [];
+        const addedValues = attributes.find((ar) => ar.name === a.name)?.pairs.map((p) => p.value) ?? [];
+        const remaining = allValues.filter((v) => !addedValues.includes(v));
+        return { name: a.name, remainingCount: remaining.length };
+      })
+      .filter((x) => x.remainingCount > 0)
+      .map((x) => ({ label: x.name, value: x.name }));
+  }, [attributesList, attributes]);
+
+  React.useEffect(() => {
+    if (attributeName) {
+      const stillAvailable = attributeOptions.some((o) => o.value === attributeName);
+      if (!stillAvailable) {
+        setAttributeName("");
+        setAttributeValue("");
+        setValue("attributeName", "");
+        setValue("attributeValue", "");
+        setPendingError(null);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attributeOptions, attributeName]);
+
+  const valueOptions = React.useMemo(() => {
+    const attr = (attributesList ?? []).find((a) => a.name === attributeName);
+    const allValues: string[] = attr?.values ?? [];
+    const addedValues = attributes.find((a) => a.name === attributeName)?.pairs.map((p) => p.value) ?? [];
+    return allValues.filter((v) => !addedValues.includes(v)).map((v) => ({ label: v, value: v }));
+  }, [attributesList, attributeName, attributes]);
 
   return (
     <div className="space-y-6">
@@ -162,29 +208,38 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
             control={control}
             label="Name"
             placeholder="Select attribute"
-            options={[
-              { label: "Color", value: "Color" },
-              { label: "Size", value: "Size" },
-              { label: "Material", value: "Material" },
-              { label: "Style", value: "Style" },
-              { label: "Capacity", value: "Capacity" },
-            ]}
-            onChangeCallback={(v: string) => setAttributeName(v)}
+            options={attributeOptions}
+            disabled={attributeOptions.length === 0}
+            onChangeCallback={(v: string) => {
+              setAttributeName(v);
+              setAttributeValue("");
+              setValue("attributeValue", "");
+              setPendingError(null);
+            }}
+            className="w-full"
+            triggerClassName="w-full"
+          />
+          <CustomSelect
+            name="attributeValue"
+            control={control}
+            label="Value"
+            placeholder="Select value"
+            options={valueOptions}
+            onChangeCallback={(v: string) => {
+              setAttributeValue(v);
+              setPendingError(null);
+            }}
+            disabled={!attributeName}
             className="w-full"
             triggerClassName="w-full"
           />
           <CustomInput
-            label="Value"
-            placeholder="e.g. Red"
-            value={attributeValue}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => setAttributeValue(event.target.value)}
-          />
-          <CustomInput
-            label="Price (optional)"
-            placeholder="Extra price"
+            label="Base Price (optional)"
+            placeholder="Base price for this variant"
             type="number"
             value={attributePrice}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => setAttributePrice(event.target.value)}
+            disabled={!attributeValue}
           />
         </div>
         <CustomButton
@@ -195,6 +250,7 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
         >
           Add Attribute
         </CustomButton>
+        {pendingError ? <p className="text-xs text-destructive mt-1">{pendingError}</p> : null}
       </div>
 
       <div className="space-y-3">

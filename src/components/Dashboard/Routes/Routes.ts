@@ -134,7 +134,7 @@ export const routes: RouteItem[] = [
   {
     icon: LuUsers,
     label: "Manage Customers",
-    href: "/admin/users",
+    href: "/dashboard/customer/manage",
   },
   // --- Marketing ---
   {

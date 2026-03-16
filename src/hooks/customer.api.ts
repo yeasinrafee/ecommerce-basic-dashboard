@@ -60,6 +60,23 @@ export const useUpdateProfile = () => {
   });
 };
 
+export const useUpdateCustomerStatus = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const response = await apiClient.patch<ApiResponse<null>>(CustomerRoutes.bulkStatusUpdate, { ids: [id], status });
+      return response.data;
+    },
+    onSuccess: (res) => {
+      toast.success(res.message || "Status updated successfully");
+      queryClient.invalidateQueries({ queryKey: customerKeys.all });
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || err.message || "Status update failed");
+    }
+  });
+};
+
 export const useBulkUpdateCustomerStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({

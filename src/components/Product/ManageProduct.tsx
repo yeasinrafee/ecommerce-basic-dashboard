@@ -41,7 +41,7 @@ const ManageProduct: React.FC = () => {
     return () => clearTimeout(handle);
   }, [searchInput]);
 
-  const { data: paged, isLoading, isError } = usePaginatedProducts(page, limit);
+  const { data: paged, isLoading, isError } = usePaginatedProducts(page, limit, searchTerm);
   const patchMutation = usePatchProduct();
   const bulkPatchMutation = useBulkPatchProducts();
 
@@ -80,7 +80,7 @@ const ManageProduct: React.FC = () => {
   const deleteMutation = useDeleteProduct();
 
   const handleEdit = (item: any) => {
-    router.push(`/dashboard/product/create?id=${item.id}`);
+    router.push(`/dashboard/product/edit?id=${item.id}`);
   };
 
   const handleDelete = (item: any) => {
