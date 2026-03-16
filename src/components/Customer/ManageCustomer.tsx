@@ -232,7 +232,7 @@ export default function ManageCustomer() {
           pageSize={limit}
           serverSide
           currentPage={page}
-          totalItems={data?.meta?.total ?? 0}
+          totalItems={Number(data?.meta?.total ?? 0)}
           onPageChange={setPage}
         />
       )}
