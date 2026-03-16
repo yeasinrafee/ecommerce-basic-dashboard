@@ -41,7 +41,7 @@ const ManageProduct: React.FC = () => {
     return () => clearTimeout(handle);
   }, [searchInput]);
 
-  const { data: paged, isLoading, isError } = usePaginatedProducts(page, limit);
+  const { data: paged, isLoading, isError } = usePaginatedProducts(page, limit, searchTerm);
   const patchMutation = usePatchProduct();
   const bulkPatchMutation = useBulkPatchProducts();
 
