@@ -1,7 +1,7 @@
 const productBase = '/products';
 
 export const ProductRoutes = {
-  getAllPaginated: `${productBase}`,
+  getAllPaginated: `${productBase}/get-all`,
   getAll: `${productBase}/all`,
   getById: (id: string) => `${productBase}/${id}`,
   create: `${productBase}/create`,
