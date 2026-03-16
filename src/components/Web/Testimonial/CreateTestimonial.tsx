@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import CustomInput from "@/components/FormFields/CustomInput";
 import CustomTextArea from "@/components/FormFields/CustomTextArea";
-import CustomFileUpload from "@/components/FormFields/CustomFileUpload";
+import CustomFileUpload, { type CustomFileUploadFile } from "@/components/FormFields/CustomFileUpload";
 import Modal from "@/components/Common/Modal";
 import CustomButton from "@/components/Common/CustomButton";
 
@@ -16,6 +16,10 @@ const schema = z.object({
   rating: z.string()
     .min(1, "Rating is required")
     .refine((val) => !isNaN(parseFloat(val)), "Rating must be a number")
+    .refine((val) => {
+      const n = parseFloat(val);
+      return n >= 1 && n <= 5;
+    }, "Rating must be between 1 and 5")
     .transform((val) => parseFloat(val)),
   comment: z.string().min(1, "Comment is required"),
   image: z.any().optional(),
@@ -44,8 +48,9 @@ export default function CreateTestimonial({
     register,
     handleSubmit,
     reset,
-    setValue,
-    watch,
+    setError,
+    clearErrors,
+    
     formState: { errors, isSubmitting },
   } = useForm<any>({
     resolver: zodResolver(schema),
@@ -54,9 +59,11 @@ export default function CreateTestimonial({
       designation: defaultValues?.designation ?? "",
       rating: defaultValues?.rating?.toString() ?? "",
       comment: defaultValues?.comment ?? "",
-      image: defaultValues?.image ?? null,
     },
   });
+  const [uploadedFiles, setUploadedFiles] = React.useState<CustomFileUploadFile[]>([]);
+  const existingImage = defaultValues?.image;
+  const showExistingImage = isEdit && existingImage && uploadedFiles.length === 0;
 
   React.useEffect(() => {
     if (open) {
@@ -65,34 +72,48 @@ export default function CreateTestimonial({
         designation: defaultValues?.designation ?? "",
         rating: defaultValues?.rating?.toString() ?? "",
         comment: defaultValues?.comment ?? "",
-        image: defaultValues?.image ?? null,
       });
+      setUploadedFiles([]);
+      clearErrors("image");
     }
-  }, [defaultValues, reset, open]);
+  }, [defaultValues, reset, open, clearErrors]);
+
+  React.useEffect(() => {
+    if (uploadedFiles.length > 0) {
+      clearErrors("image");
+    }
+  }, [uploadedFiles, clearErrors]);
 
   const submit = async (data: any) => {
-    if (onSubmit) {
-      const formData = new FormData();
-      formData.append("name", data.name);
-      formData.append("designation", data.designation);
-      formData.append("rating", data.rating.toString());
-      formData.append("comment", data.comment);
-      
-      if (data.image instanceof File) {
-        formData.append("image", data.image);
-      } else if (typeof data.image === 'string') {
-        formData.append("image", data.image);
-      }
+    if (!onSubmit) return;
 
-      await onSubmit(formData);
+    if (!isEdit && uploadedFiles.length === 0) {
+      setError("image", { type: "manual", message: "Image is required" });
+      return;
     }
-  };
 
-  const imageValue = watch("image");
+    if (isEdit && uploadedFiles.length === 0 && !existingImage) {
+      setError("image", { type: "manual", message: "Image is required" });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("designation", data.designation);
+    formData.append("rating", data.rating.toString());
+    formData.append("comment", data.comment);
+
+    if (uploadedFiles && uploadedFiles.length > 0) {
+      formData.append("image", uploadedFiles[0].file);
+    }
+
+    await onSubmit(formData);
+  };
 
   return (
     <Modal
       open={open}
+      className="max-h-[90vh] overflow-y-auto mr-4 w-full md:max-w-[600px]"
       onOpenChange={(v) => {
         onOpenChange(v);
         if (!v) reset();
@@ -113,13 +134,19 @@ export default function CreateTestimonial({
     >
       <form onSubmit={handleSubmit(submit)}>
         <div className="space-y-4">
-          <CustomFileUpload
-            label="Image"
-            onFileSelect={(file) => setValue("image", file)}
-            value={imageValue}
-            error={errors.image?.message as string}
-            requiredMark
-          />
+          <div>
+            <label className="block mb-2 text-sm font-medium">Image</label>
+            {showExistingImage ? (
+              <div className="mb-2">
+                <img src={existingImage} alt="Existing" className="h-32 w-32 object-cover rounded-md" />
+                <p className="text-xs text-slate-500 mt-1">Existing image. Upload a new file below to replace.</p>
+              </div>
+            ) : null}
+            <CustomFileUpload maxFiles={1} onFilesChange={setUploadedFiles} requiredMark />
+            {errors.image?.message ? (
+              <p className="mt-2 text-xs font-medium text-destructive">{errors.image?.message}</p>
+            ) : null}
+          </div>
           <CustomInput
             label="Name"
             placeholder="e.g. John Doe"
@@ -136,8 +163,10 @@ export default function CreateTestimonial({
           />
           <CustomInput
             label="Rating"
-            type="number"
+            type="float"
             step="0.1"
+            min={1}
+            max={5}
             placeholder="e.g. 4.5"
             {...register("rating")}
             error={errors.rating?.message as string}
