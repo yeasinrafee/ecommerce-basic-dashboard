@@ -180,8 +180,8 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => setAttributeValue(event.target.value)}
           />
           <CustomInput
-            label="Price (optional)"
-            placeholder="Extra price"
+            label="Base Price (optional)"
+            placeholder="Base price for this variant"
             type="number"
             value={attributePrice}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => setAttributePrice(event.target.value)}
