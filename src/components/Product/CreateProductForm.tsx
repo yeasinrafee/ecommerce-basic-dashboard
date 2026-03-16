@@ -572,8 +572,11 @@ export default function CreateProductForm({ productId }: { productId?: string })
     });
   }, [seoData, setValue]);
 
-  const handleAttributesChange = React.useCallback((data: AttributesData) => {
+  const [attributesPending, setAttributesPending] = React.useState<{ name?: string; value?: string } | null>(null);
+
+  const handleAttributesChange = React.useCallback((data: AttributesData, pending?: { name?: string; value?: string } | null) => {
     setAttributesData((prev) => ({ ...prev, attributes: data.attributes }));
+    setAttributesPending(pending ?? null);
   }, []);
 
   const handleAdditionalInfoChange = React.useCallback(
@@ -740,6 +743,11 @@ export default function CreateProductForm({ productId }: { productId?: string })
   const onSubmit = (values: z.infer<typeof createProductSchema>) => {
     if (!hasMainImage) {
       toast.error("Main image is required");
+      return;
+    }
+
+    if (attributesPending && attributesPending.name && (!attributesPending.value || attributesPending.value.trim() === "")) {
+      toast.error(`Please select a value for attribute "${attributesPending.name}"`);
       return;
     }
 

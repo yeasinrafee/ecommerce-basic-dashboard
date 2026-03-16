@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import CustomButton from "../../Common/CustomButton";
 import CustomInput from "../../FormFields/CustomInput";
 import CustomSelect from "../../FormFields/CustomSelect";
+import { useAllAttributes } from "@/hooks/attribute.api";
 
 export type AttributeRecord = {
   name: string;
@@ -20,7 +21,7 @@ export interface AttributesData {
 }
 
 interface AttributesProps {
-  onChange?: (data: AttributesData) => void;
+  onChange?: (data: AttributesData, pending?: { name: string; value?: string } | null) => void;
   galleryImages?: { id: string; name: string; url: string }[];
   initialAttributes?: AttributeRecord[];
 }
@@ -32,6 +33,8 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
   const [attributes, setAttributes] = React.useState<AttributeRecord[]>([]);
   const [selectedGalleryImageId, setSelectedGalleryImageId] = React.useState<string | null>(null);
 
+  const { data: attributesList } = useAllAttributes();
+
   // Seed initial attributes once when edit-mode data arrives
   const initializedRef = React.useRef(false);
   React.useEffect(() => {
@@ -41,14 +44,21 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
     }
   }, [initialAttributes]);
 
-  const { control } = useForm<{ attributeName: string }>({
-    defaultValues: { attributeName: "" },
+  const { control, setValue, reset } = useForm<{ attributeName: string; attributeValue: string }>({
+    defaultValues: { attributeName: "", attributeValue: "" },
   });
+
+  const [pendingError, setPendingError] = React.useState<string | null>(null);
 
   const addAttribute = () => {
     const name = attributeName.trim();
     const value = attributeValue.trim();
-    if (!name || !value) return;
+    if (!name || !value) {
+      setPendingError("Value is required for the selected attribute");
+      return;
+    }
+
+    setPendingError(null);
 
     const price = attributePrice.trim();
     setAttributes((prev) => {
@@ -75,7 +85,8 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
       ];
     });
 
-    setAttributeValue("");
+    setAttributeName("");
+    reset({ attributeName: "", attributeValue: "" });
     setAttributePrice("");
   };
 
@@ -93,10 +104,11 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
 
   React.useEffect(() => {
     if (onChange) {
-      onChange({ attributes, additionalInfo: [] });
+      const pending = attributeName ? { name: attributeName, value: attributeValue } : null;
+      onChange({ attributes, additionalInfo: [] }, pending);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attributes]);
+  }, [attributes, attributeName, attributeValue]);
 
   const selectedGalleryImage = galleryImages.find((img) => img.id === selectedGalleryImageId);
 
@@ -162,22 +174,31 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
             control={control}
             label="Name"
             placeholder="Select attribute"
-            options={[
-              { label: "Color", value: "Color" },
-              { label: "Size", value: "Size" },
-              { label: "Material", value: "Material" },
-              { label: "Style", value: "Style" },
-              { label: "Capacity", value: "Capacity" },
-            ]}
-            onChangeCallback={(v: string) => setAttributeName(v)}
+            options={(attributesList ?? []).map((a) => ({ label: a.name, value: a.name }))}
+            onChangeCallback={(v: string) => {
+              setAttributeName(v);
+              setAttributeValue("");
+              setValue("attributeValue", "");
+              setPendingError(null);
+            }}
             className="w-full"
             triggerClassName="w-full"
           />
-          <CustomInput
+          <CustomSelect
+            name="attributeValue"
+            control={control}
             label="Value"
-            placeholder="e.g. Red"
-            value={attributeValue}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => setAttributeValue(event.target.value)}
+            placeholder="Select value"
+            options={
+              (attributesList?.find((a) => a.name === attributeName)?.values ?? []).map((v) => ({ label: v, value: v }))
+            }
+            onChangeCallback={(v: string) => {
+              setAttributeValue(v);
+              setPendingError(null);
+            }}
+            disabled={!attributeName}
+            className="w-full"
+            triggerClassName="w-full"
           />
           <CustomInput
             label="Base Price (optional)"
@@ -195,6 +216,7 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
         >
           Add Attribute
         </CustomButton>
+        {pendingError ? <p className="text-xs text-destructive mt-1">{pendingError}</p> : null}
       </div>
 
       <div className="space-y-3">
