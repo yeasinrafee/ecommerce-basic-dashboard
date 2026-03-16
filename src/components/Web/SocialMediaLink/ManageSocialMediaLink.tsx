@@ -87,17 +87,15 @@ export default function ManageSocialMediaLink() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">Manage Social Media Links</h2>
-        <CustomButton onClick={handleCreate}>Add Social Media</CustomButton>
-      </div>
+      <h2 className="text-lg font-medium">Manage Social Media Links</h2>
 
-      <div className="mb-4">
+      <div className="flex items-center justify-between mb-4">
         <SearchBar
           searchInput={searchInput}
           setSearchInput={setSearchInput}
           clearSearch={() => setSearchInput("")}
         />
+        <CustomButton onClick={handleCreate}>Add Social Media</CustomButton>
       </div>
 
       {isLoading ? (
