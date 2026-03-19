@@ -114,8 +114,23 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
                       <TableCell className="px-6">
                         <div className="space-y-1">
                           <p className="font-semibold text-sm line-clamp-1">{item.product?.name}</p>
+                          <div className="flex gap-2 items-center">
+                            {item.discountAmount > 0 ? (
+                               <span className="text-xs text-muted-foreground line-through">
+                                 ${item.Baseprice?.toFixed(2)}
+                               </span>
+                            ) : null}
+                            <span className="text-xs font-medium text-primary">
+                              ${item.finalPrice?.toFixed(2)}
+                            </span>
+                            {item.discountAmount > 0 && (
+                              <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 text-green-600 border-green-200 bg-green-50">
+                                -${item.discountAmount.toFixed(2)}
+                              </Badge>
+                            )}
+                          </div>
                           {item.variations?.length > 0 && (
-                            <div className="flex gap-1 flex-wrap">
+                            <div className="flex gap-1 flex-wrap mt-1">
                               {item.variations.map((v: any) => (
                                 <Badge key={v.id} variant="secondary" className="text-[10px] px-1 py-0 h-4 mr-1">
                                   {v.productVariation?.value}
@@ -192,18 +207,23 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
                   <span className="font-medium text-slate-900">{order.address.zone.name}</span>
                 </div>
               )}
-              {order.expectedDeliveryDate && (
-                <div className="flex flex-col">
-                  <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Expected Delivery</span>
-                  <span className="font-medium text-slate-900">{new Date(order.expectedDeliveryDate).toLocaleDateString()}</span>
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Expected Delivery</span>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span className="font-bold text-slate-900">
+                    {order.expectedDeliveryDate 
+                      ? new Date(order.expectedDeliveryDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+                      : "Calculating..."
+                    }
+                  </span>
                 </div>
-              )}
-              {order.expectedDeliveryDate && (
-                <div className="mt-2 pt-3 border-t border-slate-100 flex items-center gap-3 text-sm px-4">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground italic">Expected: {new Date(order.expectedDeliveryDate).toLocaleDateString()}</span>
-                </div>
-              )}
+                {!order.expectedDeliveryDate && order.address?.zone?.zonePolicies?.[0]?.zonePolicy?.deliveryTime && (
+                  <span className="text-[10px] text-muted-foreground mt-1">
+                    Estimated: {Math.ceil(order.address.zone.zonePolicies[0].zonePolicy.deliveryTime / 24)} days from order
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -217,6 +237,10 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
 }
 
 function PricingSummary({ order }: { order: any }) {
+  const itemTotalDiscount = order.orderItems?.reduce((acc: number, item: any) => {
+    return acc + (item.Baseprice - item.finalPrice) * item.quantity;
+  }, 0) || 0;
+
   return (
     <div className="border py-4 border-slate-200 rounded-lg shadow-sm overflow-hidden sticky top-6 bg-white">
       <div className="border-b border-slate-50 bg-slate-50/30 px-4">
@@ -227,14 +251,32 @@ function PricingSummary({ order }: { order: any }) {
       </div>
       <div className="pt-6 space-y-4 px-4">
         <div className="flex justify-between items-center text-sm">
-          <span className="text-muted-foreground">Subtotal</span>
-          <span className="font-medium">${order.baseAmount?.toFixed(2)}</span>
+          <span className="text-muted-foreground">Subtotal (Original)</span>
+          <span className="font-medium">${(order.baseAmount + itemTotalDiscount).toFixed(2)}</span>
         </div>
 
-        {order.discountAmount > 0 && (
-          <div className="flex justify-between items-center text-sm text-green-600">
-            <span className="flex items-center gap-1">Discount</span>
-            <span>-${order.discountAmount.toFixed(2)}</span>
+        {itemTotalDiscount > 0 && (
+          <div className="flex justify-between items-center text-sm text-green-600 font-medium">
+            <span className="flex items-center gap-1">Product Discounts</span>
+            <span>-${itemTotalDiscount.toFixed(2)}</span>
+          </div>
+        )}
+
+        {order.promo && (
+          <div className="flex justify-between items-center text-sm bg-blue-50/50 p-2.5 rounded-lg border border-blue-100">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-blue-100 rounded-md">
+                <Package className="h-4 w-4 text-blue-700" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Promo Code Used</span>
+                <span className="text-blue-800 font-black">{order.promo.code}</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] text-blue-600 font-bold uppercase block">Discount Received</span>
+              <span className="font-black text-blue-700">-${order.discountAmount.toFixed(2)}</span>
+            </div>
           </div>
         )}
 
@@ -243,13 +285,20 @@ function PricingSummary({ order }: { order: any }) {
             Shipping
             <Truck className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
           </span>
-          <span className="font-medium">${order.finalShippingCharge?.toFixed(2)}</span>
+          <div className="flex flex-col items-end">
+            <span className="font-medium">${order.finalShippingCharge?.toFixed(2)}</span>
+            {order.extraShippingCharge > 0 && (
+              <span className="text-[10px] text-muted-foreground">Incl. extra weight/vol fees</span>
+            )}
+          </div>
         </div>
 
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-muted-foreground">Tax</span>
-          <span className="font-medium">${order.tax?.toFixed(2)}</span>
-        </div>
+        {order.tax > 0 && (
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-muted-foreground">Tax</span>
+            <span className="font-medium">${order.tax?.toFixed(2)}</span>
+          </div>
+        )}
 
         <Separator className="my-2 bg-slate-100" />
 
