@@ -67,22 +67,22 @@ const ProfilePage = () => {
       <div className="bg-white rounded-xl border p-6 space-y-6">
         <div className="flex flex-col gap-4">
           <label className="text-sm font-medium">Avatar</label>
-          <div className="flex items-center gap-6">
-            <div className="h-24 w-24 rounded-full border bg-slate-50 overflow-hidden flex-shrink-0">
-              {uploadedFiles.length > 0 ? (
-                <img
-                  src={URL.createObjectURL(uploadedFiles[0].file)}
-                  alt="Avatar preview"
-                  className="h-full w-full object-cover"
-                />
-              ) : profile?.image ? (
-                <img src={profile.image} alt={profile.name} className="h-full w-full object-cover" />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-slate-300 text-xl font-bold">
-                  {profile?.name?.charAt(0)}
+          <div className="space-y-4">
+            {uploadedFiles.length === 0 && profile?.image && (
+              <div className="mb-2">
+                <div className="h-32 w-32 rounded-md border bg-slate-50 overflow-hidden">
+                  <img
+                    src={profile.image}
+                    alt={profile.name}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
-              )}
-            </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Existing avatar. Upload a new file below to replace.
+                </p>
+              </div>
+            )}
+
             <div className="flex-1">
               <CustomFileUpload
                 placeholder="Upload new avatar"
@@ -107,7 +107,7 @@ const ProfilePage = () => {
             placeholder="your@email.com"
           />
 
-          <div className="pt-4 flex justify-end">
+          <div className="pt-4 flex justify-center">
             <CustomButton
               type="submit"
               loading={updateMutation.isPending}
