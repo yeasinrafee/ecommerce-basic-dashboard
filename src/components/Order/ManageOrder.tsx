@@ -259,10 +259,6 @@ export default function ManageOrder() {
                   <Download className="h-4 w-4 text-slate-500" />
                   <span>Get Invoice</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer" onClick={() => window.print()}>
-                  <Printer className="h-4 w-4 text-slate-500" />
-                  <span>Print View</span>
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
