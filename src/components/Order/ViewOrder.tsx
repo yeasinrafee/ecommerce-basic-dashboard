@@ -4,7 +4,6 @@ import React from "react"
 import { useRouter } from "next/navigation"
 import { useOrder, type Order } from "@/hooks/order.api"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -81,14 +80,14 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <Card className="overflow-hidden border-slate-200 shadow-sm">
-            <CardHeader className="bg-slate-50/50">
+          <div className="overflow-hidden border border-slate-200 rounded-lg shadow-sm bg-white">
+            <div className="bg-slate-50/50 px-4 py-3 border-b border-slate-100 rounded-t-lg">
               <div className="flex items-center gap-2">
                 <Package className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Items for Order</CardTitle>
+                <h3 className="text-lg font-semibold">Items for Order</h3>
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
+            </div>
+            <div className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent bg-slate-50/30">
@@ -137,8 +136,8 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
                   ))}
                 </TableBody>
               </Table>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           <div className="lg:hidden">
             <PricingSummary order={order} />
@@ -146,14 +145,14 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
         </div>
 
         <div className="space-y-6">
-          <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="border-b border-slate-50 bg-slate-50/30 rounded-t-xl">
+          <div className="border py-4 border-slate-200 rounded-lg shadow-sm bg-white">
+            <div className="border-b border-slate-50 bg-slate-50/30 rounded-t-lg px-4">
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base uppercase tracking-wider font-bold">Customer Info</CardTitle>
+                <h4 className="text-base uppercase tracking-wider font-bold">Customer Info</h4>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            </div>
+            <div className="space-y-4 px-4 py-4">
               <div className="flex flex-col">
                 <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Full Name</span>
                 <span className="font-medium text-slate-900">{order.customerName}</span>
@@ -166,17 +165,17 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
                 <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Phone Number</span>
                 <span className="font-medium text-slate-900">{order.customerPhone || "N/A"}</span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30 rounded-t-xl">
+          <div className="border border-slate-200 rounded-lg shadow-sm bg-white py-4">
+            <div className="border-b border-slate-50 bg-slate-50/30 rounded-t-lg px-4">
               <div className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base uppercase tracking-wider font-bold">Delivery Address</CardTitle>
+                <h4 className="text-base uppercase tracking-wider font-bold">Delivery Address</h4>
               </div>
-            </CardHeader>
-            <CardContent className="pt-5 space-y-4">
+            </div>
+            <div className="pt-5 space-y-4 px-4">
               <div className="flex flex-col">
                 <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Street Address</span>
                 <span className="font-medium text-slate-900">
@@ -188,13 +187,13 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
                 <span className="font-medium text-slate-900">{order.address?.postCode}</span>
               </div>
               {order.expectedDeliveryDate && (
-                <div className="mt-2 pt-3 border-t border-slate-100 flex items-center gap-3 text-sm">
+                <div className="mt-2 pt-3 border-t border-slate-100 flex items-center gap-3 text-sm px-4">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground italic">Expected: {new Date(order.expectedDeliveryDate).toLocaleDateString()}</span>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           <div className="hidden lg:block">
             <PricingSummary order={order} />
@@ -207,24 +206,22 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
 
 function PricingSummary({ order }: { order: any }) {
   return (
-    <Card className="border-slate-200 shadow-sm overflow-hidden sticky top-6">
-      <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30">
+    <div className="border py-4 border-slate-200 rounded-lg shadow-sm overflow-hidden sticky top-6 bg-white">
+      <div className="border-b border-slate-50 bg-slate-50/30 px-4">
         <div className="flex items-center gap-2">
           <CreditCard className="h-5 w-5 text-primary" />
-          <CardTitle className="text-base uppercase tracking-wider font-bold text-slate-950">Order Summary</CardTitle>
+          <h4 className="text-base uppercase tracking-wider font-bold text-slate-950">Order Summary</h4>
         </div>
-      </CardHeader>
-      <CardContent className="pt-6 space-y-4 bg-white">
+      </div>
+      <div className="pt-6 space-y-4 px-4">
         <div className="flex justify-between items-center text-sm">
           <span className="text-muted-foreground">Subtotal</span>
           <span className="font-medium">${order.baseAmount?.toFixed(2)}</span>
         </div>
-        
+
         {order.discountAmount > 0 && (
           <div className="flex justify-between items-center text-sm text-green-600">
-            <span className="flex items-center gap-1">
-              Discount
-            </span>
+            <span className="flex items-center gap-1">Discount</span>
             <span>-${order.discountAmount.toFixed(2)}</span>
           </div>
         )}
@@ -252,7 +249,7 @@ function PricingSummary({ order }: { order: any }) {
         <div className="mt-6 pt-4 border-t border-slate-50 text-[10px] text-center text-muted-foreground italic">
           Placed on {new Date(order.createdAt).toLocaleString()}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
