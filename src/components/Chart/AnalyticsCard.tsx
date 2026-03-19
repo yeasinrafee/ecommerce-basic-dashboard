@@ -13,10 +13,7 @@ const AnalyticsCard = ({ title, amount, count, icon: Icon, color }: AnalyticsCar
   return (
     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-xl ${color} bg-opacity-10`}>
-          <Icon className={`w-6 h-6 ${color.replace('bg-', 'text-')}`} />
-        </div>
-        <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">{title}</span>
+        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">{title}</span>
       </div>
       <div>
         <h3 className="text-2xl font-bold text-gray-900">${amount}</h3>

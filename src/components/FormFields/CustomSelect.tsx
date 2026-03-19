@@ -85,7 +85,7 @@ export default function CustomSelect<T extends FieldValues>({
               value={selectValue}
               disabled={disabled}
             >
-              <SelectTrigger id={`select-${String(name)}`} className={cn("w-full", triggerClassName)}>
+              <SelectTrigger id={`select-${String(name)}`} className={cn("w-full bg-white", triggerClassName)}>
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
               <SelectContent position="popper" className={cn(contentClassName)}>

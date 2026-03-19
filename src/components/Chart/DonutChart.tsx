@@ -44,7 +44,7 @@ const DonutChart = ({ type }: DonutChartProps) => {
             nameKey="name"
             innerRadius={60}
             outerRadius={80}
-            paddingAngle={5}
+            paddingAngle={0}
           >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.fill} />
