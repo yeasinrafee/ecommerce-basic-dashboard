@@ -234,7 +234,7 @@ const Attributes: React.FC<AttributesProps> = ({ onChange, galleryImages = [], i
             triggerClassName="w-full"
           />
           <CustomInput
-            label="Base Price (optional)"
+            label="Variant Price (optional)"
             placeholder="Base price for this variant"
             type="number"
             value={attributePrice}

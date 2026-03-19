@@ -1,158 +1,164 @@
-'use client';
+import React, { useState } from "react";
+import { DollarSign, ShoppingCart, Clock, CheckCircle2 } from "lucide-react";
+import CustomDatePicker from "../../FormFields/CustomDatePicker";
+import CustomSelect from "../../FormFields/CustomSelect";
+import AnalyticsCard from "../../Chart/AnalyticsCard";
+import AreaChart from "../../Chart/AreaChart";
+import DonutChart from "../../Chart/DonutChart";
+import { dashboardApis } from "@/hooks/dashboard.api"; 
+import Loader from "../../Common/Loader";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart3 } from "lucide-react";
-// import { TrendingUp } from "lucide-react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
-import {
-    ChartConfig,
-    ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form";
 
-const HomePage = () => {
+const Home = () => {
+  const { control, watch } = useForm({
+    defaultValues: {
+      month: (new Date().getMonth() + 1).toString(),
+      year: new Date().getFullYear().toString(),
+    },
+  });
 
-    const chartData = [
-        { month: "January", desktop: 186 },
-        { month: "February", desktop: 305 },
-        { month: "March", desktop: 237 },
-        { month: "April", desktop: 73 },
-        { month: "May", desktop: 209 },
-        { month: "June", desktop: 214 },
-    ]
-    const chartConfig = {
-        desktop: {
-            label: "Desktop",
-            color: "var(--chart-1)",
-        },
-    } satisfies ChartConfig
+  const selectedMonth = watch("month");
+  const selectedYear = watch("year");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
-    const dashboardStats = [
-        {
-            title: "Total Revenue",
-            value: "$45,231.89",
-            change: "+20.1% from last month",
-            trend: "up",
-        },
-        {
-            title: "Active Users",
-            value: "2,350",
-            change: "+180.1% from last month",
-            trend: "up",
-        },
-        {
-            title: "Sales",
-            value: "12,234",
-            change: "+19% from last month",
-            trend: "up",
-        },
-        {
-            title: "Conversion Rate",
-            value: "3.2%",
-            change: "+4.75% from last month",
-            trend: "up",
-        },
-    ]
+  const { data: analyticsRes, isLoading } = dashboardApis.useGetAnalytics({
+    month: selectedMonth,
+    year: selectedYear,
+    ...(startDate && endDate ? { startDate: startDate.toISOString(), endDate: endDate.toISOString() } : {}),
+  });
 
-    return (
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-            <div className="grid gap-4 pt-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                        <p className="text-muted-foreground">Welcome back! Here&apos;s what&apos;s happening with your business today.</p>
-                    </div>
-                    <Button>Download Report</Button>
-                </div>
+  const analytics = analyticsRes?.data;
+  
+  const months = [
+    { label: "January", value: "1" },
+    { label: "February", value: "2" },
+    { label: "March", value: "3" },
+    { label: "April", value: "4" },
+    { label: "May", value: "5" },
+    { label: "June", value: "6" },
+    { label: "July", value: "7" },
+    { label: "August", value: "8" },
+    { label: "September", value: "9" },
+    { label: "October", value: "10" },
+    { label: "November", value: "11" },
+    { label: "December", value: "12" },
+  ];
 
-                {/* Stats Cards */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    {dashboardStats.map((stat, index) => (
-                        <Card key={index}>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{stat.value}</div>
-                                <p className="text-xs text-muted-foreground">{stat.change}</p>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 11 }, (_, i) => {
+    const year = currentYear - 5 + i;
+    return { label: year.toString(), value: year.toString() };
+  });
 
-                {/* Content Grid */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                    <Card className="col-span-4">
-                        <CardHeader>
-                            <CardTitle>Overview</CardTitle>
-                            <CardDescription>Your revenue and sales performance over time.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="pl-2">
-                            {/* <div className="h-[300px] flex items-center justify-center bg-muted/50 rounded-lg">
-                                <p className="text-muted-foreground">Chart placeholder</p>
-                            </div> */}
-                            <ChartContainer config={chartConfig}>
-                                <AreaChart
-                                    accessibilityLayer
-                                    data={chartData}
-                                    margin={{
-                                        left: 12,
-                                        right: 12,
-                                    }}
-                                >
-                                    <CartesianGrid vertical={false} />
-                                    <XAxis
-                                        dataKey="month"
-                                        tickLine={false}
-                                        axisLine={false}
-                                        tickMargin={8}
-                                        tickFormatter={(value) => value.slice(0, 3)}
-                                    />
-                                    <ChartTooltip
-                                        cursor={false}
-                                        content={<ChartTooltipContent indicator="line" />}
-                                    />
-                                    <Area
-                                        dataKey="desktop"
-                                        type="natural"
-                                        fill="var(--color-desktop)"
-                                        fillOpacity={0.4}
-                                        stroke="var(--color-desktop)"
-                                    />
-                                </AreaChart>
-                            </ChartContainer>
-                        </CardContent>
-                    </Card>
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-gray-800">
+          Analytics Dashboard
+        </h1>
+      </div>
 
-                    <Card className="col-span-3">
-                        <CardHeader>
-                            <CardTitle>Recent Activity</CardTitle>
-                            <CardDescription>Latest updates and notifications.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {[1, 2, 3, 4].map((item) => (
-                                    <div key={item} className="flex items-center space-x-4">
-                                        <Avatar className="h-9 w-9">
-                                            <AvatarFallback>U{item}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="space-y-1">
-                                            <p className="text-sm font-medium leading-none">User {item} completed action</p>
-                                            <p className="text-sm text-muted-foreground">{item} minutes ago</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
+      <div className="flex justify-end flex-wrap items-end gap-3 font-medium">
+        <div className="w-56">
+          <CustomDatePicker
+            label="Start Date"
+            value={startDate ?? null}
+            onChange={(date) => setStartDate(date ?? undefined)}
+          />
         </div>
-    );
-}
+        <div className="w-56">
+          <CustomDatePicker
+            label="End Date"
+            value={endDate ?? null}
+            onChange={(date) => setEndDate(date ?? undefined)}
+          />
+        </div>
+        <div className="w-40">
+          <CustomSelect
+            triggerClassName="bg-white"
+            name="month"
+            control={control}
+            label="Month"
+            options={months}
+            placeholder="Select Month"
+          />
+        </div>
+        <div className="w-32">
+          <CustomSelect
+            triggerClassName="bg-white"
+            name="year"
+            control={control}
+            label="Year"
+            options={years}
+            placeholder="Select Year"
+          />
+        </div>
+      </div>
 
-export default HomePage;
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <AnalyticsCard
+          title="Total Revenue"
+          amount={analytics?.cards?.totalRevenue?.toFixed(2) || "0"}
+          count={analytics?.cards?.totalOrders || 0}
+          icon={DollarSign}
+          color="bg-blue-500"
+        />
+        <AnalyticsCard
+          title="Pending Orders"
+          amount={analytics?.cards?.pendingOrdersRevenue?.toFixed(2) || "0"}
+          count={analytics?.cards?.pendingOrdersCount || 0}
+          icon={Clock}
+          color="bg-orange-500"
+        />
+        <AnalyticsCard
+          title="Confirmed Orders"
+          amount={analytics?.cards?.confirmedOrdersRevenue?.toFixed(2) || "0"}
+          count={analytics?.cards?.confirmedOrdersCount || 0}
+          icon={ShoppingCart}
+          color="bg-purple-500"
+        />
+        <AnalyticsCard
+          title="Delivered Orders"
+          amount={analytics?.cards?.deliveredOrdersRevenue?.toFixed(2) || "0"}
+          count={analytics?.cards?.deliveredOrdersCount || 0}
+          icon={CheckCircle2}
+          color="bg-green-500"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800 font-sans">
+            Revenue Overview
+          </h2>
+          <div className="w-full h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px]">
+            {isLoading ? <Loader /> : <AreaChart data={analytics?.areaChartData || []} />}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800 font-sans">
+            Orders by Category
+          </h2>
+          <div className="w-full flex-grow min-h-[300px]">
+            {isLoading ? <Loader /> : <DonutChart type="category" data={analytics?.categoryData || []} />}
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800 font-sans">
+            Orders by Brand
+          </h2>
+          <div className="w-full flex-grow min-h-[300px]">
+            {isLoading ? <Loader /> : <DonutChart type="brand" data={analytics?.brandData || []} />}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Home;

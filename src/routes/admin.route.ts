@@ -1,6 +1,8 @@
 const adminBase = '/admins';
 
 export const AdminRoutes = {
+  getProfile: `${adminBase}/profile`,
+  updateProfile: `${adminBase}/profile/update`,
   getAllPaginated: `${adminBase}/get-all-paginated`,
   getAll: `${adminBase}/get-all`,
   getById: (id: string) => `${adminBase}/get/${id}`,

@@ -41,6 +41,7 @@ export const WebRoutes = {
     getAll: `${webBase}/slider/get-all`,
     getById: (id: string) => `${webBase}/slider/get/${id}`,
     create: `${webBase}/slider/create`,
+    reorder: `${webBase}/slider/reorder`,
     update: (id: string) => `${webBase}/slider/update/${id}`,
     delete: (id: string) => `${webBase}/slider/delete/${id}`,
   },

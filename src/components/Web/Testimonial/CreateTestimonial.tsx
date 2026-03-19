@@ -144,7 +144,7 @@ export default function CreateTestimonial({
             ) : null}
             <CustomFileUpload maxFiles={1} onFilesChange={setUploadedFiles} requiredMark />
             {errors.image?.message ? (
-              <p className="mt-2 text-xs font-medium text-destructive">{errors.image?.message}</p>
+              <p className="mt-2 text-xs font-medium text-destructive">{String(errors.image?.message)}</p>
             ) : null}
           </div>
           <CustomInput

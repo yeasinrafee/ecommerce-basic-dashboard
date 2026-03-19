@@ -44,6 +44,8 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useAuthStore } from "@/store/useAuthStore";
 import { apiClient } from "@/lib/api";
 import { AuthRoutes } from "@/routes/auth.route";
+import { useNotifications, useMarkNotificationsSeen } from "@/hooks/notification.api";
+import { formatDistanceToNow } from "date-fns";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -67,7 +69,10 @@ const Header = ({
 }: HeaderProps) => {
   const [internalCollapsed, setInternalCollapsed] = useState(collapsed);
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const [notificationCount, setNotificationCount] = useState(3);
+
+  const { data: notificationData } = useNotifications();
+  const { mutate: markSeen } = useMarkNotificationsSeen();
+
   const router = useRouter();
   const clearUser = useAuthStore((state) => state.clearUser);
   const user = useAuthStore((state) => state.user);
@@ -103,14 +108,14 @@ const Header = ({
     }
   };
 
-//   const toggleTheme = () => {
-//     setTheme(theme === "dark" ? "light" : "light");
-//   };
-
-//   const handleLogout = () => {
-//     Cookies.remove("skhToken");
-//     router.push("/");
-//   };
+  const handleNotificationOpen = (open: boolean) => {
+    if (open && notificationData?.data && notificationData.data.some(n => !n.seen)) {
+      const unseenIds = notificationData.data.filter((n) => !n.seen).map((n) => n.id);
+      setTimeout(() => {
+        markSeen(unseenIds);
+      }, 500);
+    }
+  };
 
   return (
     <header
@@ -166,7 +171,7 @@ const Header = ({
       </div>
 
       <div className="flex items-center gap-4">
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={handleNotificationOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
@@ -174,34 +179,41 @@ const Header = ({
               className="relative bg-gray-100 cursor-pointer"
             >
               <Bell className="h-5 w-5" />
-              {notificationCount > 0 && (
+              {notificationData?.unseenCount !== undefined && notificationData.unseenCount > 0 && (
                 <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white">
-                  {notificationCount}
+                  {notificationData.unseenCount}
                 </Badge>
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
+          <DropdownMenuContent align="end" className="w-80 max-h-[320px] overflow-y-auto">
             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {[...Array(3)].map((_, i) => (
-              <DropdownMenuItem
-                key={i}
-                className="flex flex-col items-start py-2"
-              >
-                <div className="font-medium">New order received</div>
-                <div className="text-xs text-muted-foreground">
-                  Order #{1000 + i} has been placed
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {i + 1} hour{i !== 0 ? "s" : ""} ago
-                </div>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="justify-center font-medium">
-              View all notifications
-            </DropdownMenuItem>
+            {notificationData?.data && notificationData.data.length > 0 ? (
+              notificationData.data.map((notification) => (
+                <DropdownMenuItem
+                  key={notification.id}
+                  className={cn(
+                    "flex flex-col items-start py-2",
+                    !notification.seen && "bg-slate-50 font-medium"
+                  )}
+                >
+                  <div className="font-semibold">{notification.title}</div>
+                  <div className="text-xs text-muted-foreground line-clamp-2">
+                    {notification.message}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground mt-1">
+                    {formatDistanceToNow(new Date(notification.createdAt), {
+                      addSuffix: true,
+                    })}
+                  </div>
+                </DropdownMenuItem>
+              ))
+            ) : (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                No notifications
+              </div>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -254,7 +266,7 @@ const Header = ({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <Link href={"/admin/profile"} className=" flex items-center gap-2">
+              <Link href={"/dashboard/profile"} className=" flex items-center gap-2">
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </Link>

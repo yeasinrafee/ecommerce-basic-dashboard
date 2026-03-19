@@ -72,8 +72,38 @@ const fetchAllAdmins = async (): Promise<Admin[]> => {
 
 export const adminKeys = {
   all: ["admins"] as const,
+  profile: ["admins", "profile"] as const,
   paginated: (page: number, limit: number, searchTerm?: string, status?: string) => [...adminKeys.all, "paginated", page, limit, searchTerm, status] as const,
   list: () => [...adminKeys.all, "list"] as const
+};
+
+export const useAdminProfile = () => {
+  return useQuery<Admin>({
+    queryKey: adminKeys.profile,
+    queryFn: async () => {
+      const response = await apiClient.get<ApiResponse<Admin>>(AdminRoutes.getProfile);
+      return ensurePayload(response.data, "Failed to load profile");
+    }
+  });
+};
+
+export const useUpdateAdminProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: FormData) => {
+      const response = await apiClient.patch<ApiResponse<Admin>>(AdminRoutes.updateProfile, payload);
+      return ensurePayload(response.data, "Failed to update profile");
+    },
+    onSuccess: (data) => {
+      toast.success("Profile updated successfully");
+      queryClient.setQueryData(adminKeys.profile, data);
+      queryClient.invalidateQueries({ queryKey: adminKeys.all });
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to update profile");
+    }
+  });
 };
 
 export const usePaginatedAdmins = (page: number, limit = 10, searchTerm?: string, status?: string) => {

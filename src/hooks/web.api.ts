@@ -40,6 +40,7 @@ export interface Slider {
   id: string;
   image: string;
   link?: string | null;
+  serial: number;
 }
 
 export interface Testimonial {
@@ -366,6 +367,25 @@ export const useUpdateSlider = () => {
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || err?.message || "Failed to update slider");
+    },
+  });
+};
+
+export const useReorderSliders = ({ showToast = false }: { showToast?: boolean } = {}) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Array<{ id: string; serial: number }>) => {
+      const response = await apiClient.patch<ApiResponse<Slider[]>>(WebRoutes.slider.reorder, payload);
+      return ensurePayload(response.data, "Failed to reorder sliders");
+    },
+    onSuccess: () => {
+      if (showToast) {
+        toast.success("Slider order updated successfully");
+      }
+      queryClient.invalidateQueries({ queryKey: webKeys.slider });
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to reorder sliders");
     },
   });
 };
