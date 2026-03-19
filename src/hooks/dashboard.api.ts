@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { API } from "@/lib/api";
+import { apiClient } from "@/lib/api";
+import type { ApiResponse } from "@/types/auth";
 
 type DashboardQuery = {
   startDate?: string;
@@ -10,10 +11,10 @@ type DashboardQuery = {
 
 export const dashboardApis = {
   useGetAnalytics: (query: DashboardQuery) => {
-    return useQuery({
+    return useQuery<ApiResponse<any>>({
       queryKey: ["dashboard-analytics", query],
       queryFn: async () => {
-        const response = await API.get("/dashboard/analytics", { params: query });
+        const response = await apiClient.get<ApiResponse<any>>("/dashboard/analytics", { params: query });
         return response.data;
       },
     });
