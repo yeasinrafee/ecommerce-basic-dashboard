@@ -51,7 +51,7 @@ export default function ManageOrder() {
 
   const selectAllOnPage = () => {
     const newSel: Record<string, boolean> = { ...selected }
-    items.forEach((it) => {
+    items.forEach((it: { id: string }) => {
       newSel[it.id] = true
     })
     setSelected(newSel)
@@ -60,7 +60,7 @@ export default function ManageOrder() {
   const clearSelection = () => setSelected({})
 
   const handleInlineStatusChange = (id: string, status: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED") => {
-    const prev = items.find((it) => it.id === id)?.orderStatus
+    const prev = items.find((it: { id: string; orderStatus?: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED" }) => it.id === id)?.orderStatus
     setOptimisticStatus((s) => ({ ...s, [id]: status }))
 
     updateStatusMutation.mutate({ id, status }, {
