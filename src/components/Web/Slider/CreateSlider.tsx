@@ -11,7 +11,16 @@ import CustomButton from "@/components/Common/CustomButton";
 import { type Slider } from "@/hooks/web.api";
 
 const schema = z.object({
-  link: z.string().trim().optional(),
+  link: z
+    .string()
+    .trim()
+    .optional()
+    .refine((value) => {
+      if (!value) return true;
+      return z.string().url().safeParse(value).success;
+    }, {
+      message: "Link must be a valid URL (e.g. https://example.com)",
+    }),
 });
 
 type FormSchema = z.infer<typeof schema>;

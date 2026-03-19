@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { toast } from "react-hot-toast";
 import CreateSlider from "./CreateSlider";
 import SliderTable from "./SliderTable";
 import CustomButton from "@/components/Common/CustomButton";
@@ -15,7 +16,7 @@ const ManageSlider = () => {
   const createMutation = useCreateSlider();
   const updateMutation = useUpdateSlider();
   const deleteMutation = useDeleteSlider();
-  const reorderMutation = useReorderSliders({ showToast: false });
+  const reorderMutation = useReorderSliders({ showToast: true });
 
   const [sliders, setSliders] = React.useState<Slider[]>([]);
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -24,6 +25,7 @@ const ManageSlider = () => {
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
 
   const slidersRef = React.useRef<Slider[]>([]);
+  const previousSlidersRef = React.useRef<Slider[]>([]);
   const lastSavedSignatureRef = React.useRef("");
   const saveInFlightRef = React.useRef(false);
 
@@ -32,6 +34,7 @@ const ManageSlider = () => {
     const normalized = sortBySerial(sliderData);
     setSliders(normalized);
     slidersRef.current = normalized;
+    previousSlidersRef.current = normalized;
     lastSavedSignatureRef.current = buildSignature(normalized);
   }, [sliderData]);
 
@@ -46,10 +49,20 @@ const ManageSlider = () => {
     const currentSignature = buildSignature(currentSnapshot);
     if (currentSignature === lastSavedSignatureRef.current) return;
 
+    previousSlidersRef.current = currentSnapshot;
     saveInFlightRef.current = true;
+
     try {
       await reorderMutation.mutateAsync(
         currentSnapshot.map((item) => ({ id: item.id, serial: item.serial })),
+        {
+          onError: (err) => {
+            setSliders(previousSlidersRef.current);
+            slidersRef.current = previousSlidersRef.current;
+            lastSavedSignatureRef.current = buildSignature(previousSlidersRef.current);
+            toast.error(err?.response?.data?.message || err?.message || "Failed to reorder sliders");
+          },
+        },
       );
       lastSavedSignatureRef.current = currentSignature;
     } finally {
