@@ -14,10 +14,8 @@ export type UploadedImage = CustomFileUploadFile;
 
 export type RightSectionData = {
   mainImage: UploadedImage | null;
-  /** Existing Cloudinary URL to keep when no new main image is uploaded */
   mainImageExistingUrl: string | null;
   galleryImages: UploadedImage[];
-  /** Existing Cloudinary gallery URLs that should be retained */
   existingGalleryUrls: string[];
   categories: string[];
   tags: string[];
