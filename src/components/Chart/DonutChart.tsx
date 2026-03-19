@@ -4,22 +4,6 @@ import React from "react";
 import { Pie, PieChart, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "../../components/ui/chart";
 
-const categoryData = [
-  { name: "Electronics", value: 400, fill: "#3b82f6" },
-  { name: "Clothing", value: 300, fill: "#8b5cf6" },
-  { name: "Home & Garden", value: 300, fill: "#ec4899" },
-  { name: "Beauty", value: 200, fill: "#f43f5e" },
-  { name: "Sports", value: 100, fill: "#f59e0b" },
-];
-
-const brandData = [
-  { name: "Nike", value: 500, fill: "#10b981" },
-  { name: "Adidas", value: 400, fill: "#0ea5e9" },
-  { name: "Apple", value: 300, fill: "#6366f1" },
-  { name: "Samsung", value: 200, fill: "#d946ef" },
-  { name: "Sony", value: 150, fill: "#f97316" },
-];
-
 const chartConfig = {
   value: {
     label: "Orders",
@@ -28,11 +12,10 @@ const chartConfig = {
 
 interface DonutChartProps {
   type: "category" | "brand";
+  data: { name: string; value: number; fill: string }[];
 }
 
-const DonutChart = ({ type }: DonutChartProps) => {
-  const data = type === "category" ? categoryData : brandData;
-
+const DonutChart = ({ type, data }: DonutChartProps) => {
   return (
     <ChartContainer config={chartConfig} className="w-full h-full min-h-[300px]">
       <ResponsiveContainer width="100%" height="100%">

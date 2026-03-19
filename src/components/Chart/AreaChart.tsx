@@ -4,21 +4,6 @@ import React from "react";
 import { Area, AreaChart as RechartsAreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "../../components/ui/chart";
 
-const chartData = [
-  { month: "January", revenue: 186, orders: 80 },
-  { month: "February", revenue: 305, orders: 200 },
-  { month: "March", revenue: 237, orders: 120 },
-  { month: "April", revenue: 73, orders: 190 },
-  { month: "May", revenue: 209, orders: 130 },
-  { month: "June", revenue: 214, orders: 140 },
-  { month: "July", revenue: 350, orders: 250 },
-  { month: "August", revenue: 280, orders: 210 },
-  { month: "September", revenue: 310, orders: 180 },
-  { month: "October", revenue: 400, orders: 300 },
-  { month: "November", revenue: 380, orders: 280 },
-  { month: "December", revenue: 450, orders: 350 },
-];
-
 const chartConfig = {
   revenue: {
     label: "Revenue",
@@ -30,12 +15,16 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const AreaChart = () => {
+interface AreaChartProps {
+  data: { name: string; revenue: number; orders: number }[];
+}
+
+const AreaChart = ({ data }: AreaChartProps) => {
   return (
     <ChartContainer config={chartConfig} className="w-full h-full text-sans min-h-[300px]">
       <ResponsiveContainer width="100%" height="100%">
         <RechartsAreaChart
-          data={chartData}
+          data={data}
           margin={{
             left: 12,
             right: 12,
@@ -45,11 +34,11 @@ const AreaChart = () => {
         >
           <CartesianGrid vertical={false} />
           <XAxis
-            dataKey="month"
+            dataKey="name"
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tickFormatter={(value) => value.slice(0, 3)}
+            tickFormatter={(value) => value.length > 5 ? value.slice(0, 5) + '..' : value}
           />
           <YAxis
             tickLine={false}

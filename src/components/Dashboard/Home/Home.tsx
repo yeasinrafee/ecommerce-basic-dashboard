@@ -5,13 +5,15 @@ import CustomSelect from "../../FormFields/CustomSelect";
 import AnalyticsCard from "../../Chart/AnalyticsCard";
 import AreaChart from "../../Chart/AreaChart";
 import DonutChart from "../../Chart/DonutChart";
+import { dashboardApis } from "@/hooks/dashboard.api"; 
+import Loader from "../../Common/Loader";
 
 import { useForm } from "react-hook-form";
 
 const Home = () => {
   const { control, watch } = useForm({
     defaultValues: {
-      month: "",
+      month: (new Date().getMonth() + 1).toString(),
       year: new Date().getFullYear().toString(),
     },
   });
@@ -21,6 +23,14 @@ const Home = () => {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
+  const { data: analyticsRes, isLoading } = dashboardApis.useGetAnalytics({
+    month: selectedMonth,
+    year: selectedYear,
+    ...(startDate && endDate ? { startDate: startDate.toISOString(), endDate: endDate.toISOString() } : {}),
+  });
+
+  const analytics = analyticsRes?.data;
+  
   const months = [
     { label: "January", value: "1" },
     { label: "February", value: "2" },
@@ -90,29 +100,29 @@ const Home = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <AnalyticsCard
           title="Total Revenue"
-          amount="125,430"
-          count={1450}
+          amount={analytics?.cards?.totalRevenue?.toFixed(2) || "0"}
+          count={analytics?.cards?.totalOrders || 0}
           icon={DollarSign}
           color="bg-blue-500"
         />
         <AnalyticsCard
           title="Pending Orders"
-          amount="12,200"
-          count={85}
+          amount={analytics?.cards?.pendingOrdersRevenue?.toFixed(2) || "0"}
+          count={analytics?.cards?.pendingOrdersCount || 0}
           icon={Clock}
           color="bg-orange-500"
         />
         <AnalyticsCard
           title="Confirmed Orders"
-          amount="45,800"
-          count={320}
+          amount={analytics?.cards?.confirmedOrdersRevenue?.toFixed(2) || "0"}
+          count={analytics?.cards?.confirmedOrdersCount || 0}
           icon={ShoppingCart}
           color="bg-purple-500"
         />
         <AnalyticsCard
           title="Delivered Orders"
-          amount="67,430"
-          count={1045}
+          amount={analytics?.cards?.deliveredOrdersRevenue?.toFixed(2) || "0"}
+          count={analytics?.cards?.deliveredOrdersCount || 0}
           icon={CheckCircle2}
           color="bg-green-500"
         />
@@ -124,7 +134,7 @@ const Home = () => {
             Revenue Overview
           </h2>
           <div className="w-full h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px]">
-            <AreaChart />
+            {isLoading ? <Loader /> : <AreaChart data={analytics?.areaChartData || []} />}
           </div>
         </div>
       </div>
@@ -135,7 +145,7 @@ const Home = () => {
             Orders by Category
           </h2>
           <div className="w-full flex-grow min-h-[300px]">
-            <DonutChart type="category" />
+            {isLoading ? <Loader /> : <DonutChart type="category" data={analytics?.categoryData || []} />}
           </div>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
@@ -143,7 +153,7 @@ const Home = () => {
             Orders by Brand
           </h2>
           <div className="w-full flex-grow min-h-[300px]">
-            <DonutChart type="brand" />
+            {isLoading ? <Loader /> : <DonutChart type="brand" data={analytics?.brandData || []} />}
           </div>
         </div>
       </div>
