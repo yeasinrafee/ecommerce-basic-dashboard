@@ -207,22 +207,39 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
                   <span className="font-medium text-slate-900">{order.address.zone.name}</span>
                 </div>
               )}
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Expected Delivery</span>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  <span className="font-bold text-slate-900">
-                    {order.expectedDeliveryDate 
-                      ? new Date(order.expectedDeliveryDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-                      : "Calculating..."
-                    }
-                  </span>
+              <div className="flex flex-col space-y-4">
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Order Placed</span>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span className="font-semibold text-slate-900">
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}
+                    </span>
+                  </div>
                 </div>
-                {!order.expectedDeliveryDate && order.address?.zone?.zonePolicies?.[0]?.zonePolicy?.deliveryTime && (
-                  <span className="text-[10px] text-muted-foreground mt-1">
-                    Estimated: {Math.ceil(order.address.zone.zonePolicies[0].zonePolicy.deliveryTime / 24)} days from order
-                  </span>
-                )}
+
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Expected Delivery</span>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    {order.expectedDeliveryDate ? (
+                      <span className="font-semibold text-slate-900">
+                        {new Date(order.expectedDeliveryDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                      </span>
+                    ) : order.address?.zone?.zonePolicies?.[0]?.zonePolicy?.deliveryTime ? (
+                      (() => {
+                          const days = order.address.zone.zonePolicies[0].zonePolicy.deliveryTime;
+                          const est = new Date(order.createdAt);
+                          est.setDate(est.getDate() + Math.ceil(days || 0));
+                          return (
+                            <span className="font-semibold text-slate-900">Estimated: {est.toLocaleDateString('en-US')} ({Math.ceil(days || 0)} days from order)</span>
+                          );
+                        })()
+                    ) : (
+                      <span className="font-medium text-muted-foreground">Calculating...</span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -269,12 +286,12 @@ function PricingSummary({ order }: { order: any }) {
                 <Package className="h-4 w-4 text-blue-700" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Promo Code Used</span>
+                <span className="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">Promo Code Used</span>
                 <span className="text-blue-800 font-black">{order.promo.code}</span>
               </div>
             </div>
             <div className="text-right">
-              <span className="text-[10px] text-blue-600 font-bold uppercase block">Discount Received</span>
+              <span className="text-[10px] text-blue-600 font-semibold uppercase block">Discount Received</span>
               <span className="font-black text-blue-700">-${order.discountAmount.toFixed(2)}</span>
             </div>
           </div>
@@ -303,8 +320,8 @@ function PricingSummary({ order }: { order: any }) {
         <Separator className="my-2 bg-slate-100" />
 
         <div className="flex justify-between items-center">
-          <span className="text-base font-bold text-slate-950">Total Amount</span>
-          <span className="text-xl font-black text-primary">${order.finalAmount?.toFixed(2)}</span>
+          <span className="text-base font-semibold text-slate-950">Total Amount</span>
+          <span className="text-xl font-semibold">${order.finalAmount?.toFixed(2)}</span>
         </div>
 
         <div className="mt-6 pt-4 border-t border-slate-50 text-[10px] text-center text-muted-foreground italic">
