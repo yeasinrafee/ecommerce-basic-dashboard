@@ -57,14 +57,14 @@ const AreaChart = ({ data }: AreaChartProps) => {
               <stop offset="95%" stopColor="#10b981" stopOpacity={0.1} />
             </linearGradient>
           </defs>
-          <Area
+          {/* <Area
             dataKey="orders"
             type="natural"
             fill="url(#fillOrders)"
             fillOpacity={0.4}
             stroke="#10b981"
             stackId="a"
-          />
+          /> */}
           <Area
             dataKey="revenue"
             type="natural"
