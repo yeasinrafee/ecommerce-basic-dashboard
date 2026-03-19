@@ -67,7 +67,7 @@ const AreaChart = ({ data }: AreaChartProps) => {
           /> */}
           <Area
             dataKey="revenue"
-            type="natural"
+            type="monotone"
             fill="url(#fillRevenue)"
             fillOpacity={0.4}
             stroke="#3b82f6"
