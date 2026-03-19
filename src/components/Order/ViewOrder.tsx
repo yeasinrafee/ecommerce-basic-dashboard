@@ -186,6 +186,18 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
                 <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Post Code / City</span>
                 <span className="font-medium text-slate-900">{order.address?.postCode}</span>
               </div>
+              {order.address?.zone?.name && (
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Zone</span>
+                  <span className="font-medium text-slate-900">{order.address.zone.name}</span>
+                </div>
+              )}
+              {order.expectedDeliveryDate && (
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Expected Delivery</span>
+                  <span className="font-medium text-slate-900">{new Date(order.expectedDeliveryDate).toLocaleDateString()}</span>
+                </div>
+              )}
               {order.expectedDeliveryDate && (
                 <div className="mt-2 pt-3 border-t border-slate-100 flex items-center gap-3 text-sm px-4">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
