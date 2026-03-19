@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Button } from "@/components/ui/button"
+import CustomButton from "@/components/Common/CustomButton"
 import { ChevronLeft, Download, Package, Truck, User, MapPin, Calendar, CreditCard } from "lucide-react"
 import Image from "next/image"
 
@@ -37,9 +37,9 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
       <div className="p-8 text-center bg-background rounded-lg border border-destructive/20 border-dashed">
         <h2 className="text-xl font-semibold text-destructive">Error Loading Order</h2>
         <p className="text-muted-foreground mt-2">Could not find the requested order or there was a network error.</p>
-        <Button onClick={() => router.back()} className="mt-4" variant="outline">
+        <CustomButton onClick={() => router.back()} className="mt-4" variant="outline">
           <ChevronLeft className="mr-2 h-4 w-4" /> Go Back
-        </Button>
+        </CustomButton>
       </div>
     )
   }
@@ -60,9 +60,9 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => router.back()} className="-ml-2">
+            <CustomButton variant="ghost" size="sm" onClick={() => router.back()} className="-ml-2">
               <ChevronLeft className="h-4 w-4" />
-            </Button>
+            </CustomButton>
             <h1 className="text-2xl font-bold tracking-tight">Order Details</h1>
           </div>
           <p className="text-sm text-muted-foreground flex items-center gap-2 ml-7">
@@ -73,9 +73,9 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
           <Badge className={`px-3 py-1 text-sm font-semibold border ${getStatusColor(order.orderStatus)}`}>
             {order.orderStatus}
           </Badge>
-          <Button variant="outline" size="sm" className="hidden sm:flex" onClick={() => window.print()}>
+          <CustomButton variant="outline" size="sm" className="hidden sm:flex" onClick={() => window.print()}>
             <Download className="mr-2 h-4 w-4" /> Invoice
-          </Button>
+          </CustomButton>
         </div>
       </div>
 
@@ -92,17 +92,17 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent bg-slate-50/30">
-                    <TableHead className="w-[80px]">Image</TableHead>
-                    <TableHead>Product</TableHead>
-                    <TableHead className="text-center">Qty</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="w-[80px] px-6">Image</TableHead>
+                    <TableHead className="px-6">Product</TableHead>
+                    <TableHead className="px-6 text-center">Qty</TableHead>
+                    <TableHead className="px-6 text-right">Price</TableHead>
+                    <TableHead className="px-6 text-right">Total</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {order.orderItems?.map((item: any) => (
                     <TableRow key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                      <TableCell>
+                      <TableCell className="px-6">
                         <div className="relative aspect-square w-14 h-14 rounded-lg overflow-hidden border border-slate-100 bg-slate-50">
                           <Image
                             src={item.product?.image || "/images/placeholder.svg"}
@@ -112,7 +112,7 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
                           />
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="px-6">
                         <div className="space-y-1">
                           <p className="font-semibold text-sm line-clamp-1">{item.product?.name}</p>
                           {item.variations?.length > 0 && (
@@ -126,11 +126,11 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-center font-medium">{item.quantity}</TableCell>
-                      <TableCell className="text-right text-sm">
+                      <TableCell className="px-6 text-center font-medium">{item.quantity}</TableCell>
+                      <TableCell className="px-6 text-right text-sm">
                         ${item.finalPrice?.toFixed(2)}
                       </TableCell>
-                      <TableCell className="text-right font-semibold">
+                      <TableCell className="px-6 text-right font-semibold">
                         ${(item.finalPrice * item.quantity).toFixed(2)}
                       </TableCell>
                     </TableRow>
@@ -147,13 +147,13 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
 
         <div className="space-y-6">
           <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30 rounded-t-xl">
+            <CardHeader className="border-b border-slate-50 bg-slate-50/30 rounded-t-xl">
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5 text-primary" />
                 <CardTitle className="text-base uppercase tracking-wider font-bold">Customer Info</CardTitle>
               </div>
             </CardHeader>
-            <CardContent className="pt-5 space-y-4">
+            <CardContent className="space-y-4">
               <div className="flex flex-col">
                 <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Full Name</span>
                 <span className="font-medium text-slate-900">{order.customerName}</span>
