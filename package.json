@@ -40,6 +40,8 @@
     "next": "16.1.6",
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.2",
     "react-hot-toast": "^2.6.0",
