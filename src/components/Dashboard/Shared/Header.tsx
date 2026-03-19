@@ -198,10 +198,7 @@ const Header = ({
                 </div>
               </DropdownMenuItem>
             ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="justify-center font-medium">
-              View all notifications
-            </DropdownMenuItem>
+            {/* 'View all notifications' removed per request */}
           </DropdownMenuContent>
         </DropdownMenu>
 
