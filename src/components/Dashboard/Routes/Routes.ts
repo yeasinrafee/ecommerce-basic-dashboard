@@ -55,7 +55,7 @@ export const routes: RouteItem[] = [
   {
     icon: LuShoppingCart,
     label: "Manage Orders",
-    href: "/admin/orders",
+    href: "/dashboard/orders",
   },
   // --- Categories ---
   {
