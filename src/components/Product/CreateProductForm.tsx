@@ -403,8 +403,9 @@ export default function CreateProductForm({ productId }: { productId?: string })
       if (!grouped.has(attrName)) grouped.set(attrName, { name: attrName, pairs: [] });
       grouped.get(attrName)!.pairs.push({
         value: v.attributeValue ?? "",
-        price: String(v.price ?? 0),
+        price: v.basePrice != null ? String(v.basePrice) : "",
         imageId: v.galleryImage ? `__existing__${v.galleryImage}` : null,
+        existingImageUrl: v.galleryImage ?? null,
       });
     }
     return Array.from(grouped.values());
@@ -607,9 +608,8 @@ export default function CreateProductForm({ productId }: { productId?: string })
     attributesData.attributes.map((attribute) => ({
       name: attribute.name.trim(),
       pairs: attribute.pairs.map((pair) => {
-        const trimmedPrice = pair.price?.trim() ?? "";
+        const trimmedPrice = String(pair.price ?? "").trim();
         const rawImageId = pair.imageId ?? null;
-        // Resolve __existing__ prefix (edit mode) → existingImageUrl
         let imageId: string | null = null;
         let existingImageUrl: string | null = null;
         if (rawImageId?.startsWith("__existing__")) {

@@ -1,9 +1,10 @@
 import React from 'react'
+import ManageFaq from '@/components/Web/Faq/ManageFaq'
 
 export default function Page() {
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-semibold">Create FAQ</h1>
+    <div>
+      <ManageFaq />
     </div>
   )
 }
