@@ -186,7 +186,7 @@ const Header = ({
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
+          <DropdownMenuContent align="end" className="w-80 max-h-[320px] overflow-y-auto">
             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {notificationData?.data && notificationData.data.length > 0 ? (
