@@ -1,0 +1,258 @@
+"use client"
+
+import React from "react"
+import { useRouter } from "next/navigation"
+import { useOrder, type Order } from "@/hooks/order.api"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
+import { ChevronLeft, Download, Package, Truck, User, MapPin, Calendar, CreditCard } from "lucide-react"
+import Image from "next/image"
+
+interface ViewOrderProps {
+  orderId: string
+}
+
+export default function ViewOrder({ orderId }: ViewOrderProps) {
+  const router = useRouter()
+  const { data: order, isLoading, error } = useOrder(orderId)
+
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-4 max-w-7xl mx-auto">
+        <Skeleton className="h-10 w-40" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Skeleton className="h-64 md:col-span-2" />
+          <Skeleton className="h-64" />
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !order) {
+    return (
+      <div className="p-8 text-center bg-background rounded-lg border border-destructive/20 border-dashed">
+        <h2 className="text-xl font-semibold text-destructive">Error Loading Order</h2>
+        <p className="text-muted-foreground mt-2">Could not find the requested order or there was a network error.</p>
+        <Button onClick={() => router.back()} className="mt-4" variant="outline">
+          <ChevronLeft className="mr-2 h-4 w-4" /> Go Back
+        </Button>
+      </div>
+    )
+  }
+
+  const getStatusColor = (status: Order["orderStatus"]) => {
+    switch (status) {
+      case "PENDING": return "bg-yellow-100 text-yellow-800 border-yellow-200"
+      case "CONFIRMED": return "bg-blue-100 text-blue-800 border-blue-200"
+      case "SHIPPED": return "bg-purple-100 text-purple-800 border-purple-200"
+      case "DELIVERED": return "bg-green-100 text-green-800 border-green-200"
+      case "CANCELLED": return "bg-red-100 text-red-800 border-red-200"
+      default: return "bg-slate-100 text-slate-800 border-slate-200"
+    }
+  }
+
+  return (
+    <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => router.back()} className="-ml-2">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-2xl font-bold tracking-tight">Order Details</h1>
+          </div>
+          <p className="text-sm text-muted-foreground flex items-center gap-2 ml-7">
+            Order ID: <span className="font-mono font-medium text-foreground">{order.id}</span>
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge className={`px-3 py-1 text-sm font-semibold border ${getStatusColor(order.orderStatus)}`}>
+            {order.orderStatus}
+          </Badge>
+          <Button variant="outline" size="sm" className="hidden sm:flex" onClick={() => window.print()}>
+            <Download className="mr-2 h-4 w-4" /> Invoice
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <Card className="overflow-hidden border-slate-200 shadow-sm">
+            <CardHeader className="bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Items for Order</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent bg-slate-50/30">
+                    <TableHead className="w-[80px]">Image</TableHead>
+                    <TableHead>Product</TableHead>
+                    <TableHead className="text-center">Qty</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {order.orderItems?.map((item: any) => (
+                    <TableRow key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                      <TableCell>
+                        <div className="relative aspect-square w-14 h-14 rounded-lg overflow-hidden border border-slate-100 bg-slate-50">
+                          <Image
+                            src={item.product?.image || "/images/placeholder.svg"}
+                            alt={item.product?.name || "Product"}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <p className="font-semibold text-sm line-clamp-1">{item.product?.name}</p>
+                          {item.variations?.length > 0 && (
+                            <div className="flex gap-1 flex-wrap">
+                              {item.variations.map((v: any) => (
+                                <Badge key={v.id} variant="secondary" className="text-[10px] px-1 py-0 h-4 mr-1">
+                                  {v.productVariation?.value}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center font-medium">{item.quantity}</TableCell>
+                      <TableCell className="text-right text-sm">
+                        ${item.finalPrice?.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        ${(item.finalPrice * item.quantity).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <div className="lg:hidden">
+            <PricingSummary order={order} />
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                <CardTitle className="text-base uppercase tracking-wider font-bold">Customer Info</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-5 space-y-4">
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Full Name</span>
+                <span className="font-medium text-slate-900">{order.customerName}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Email Address</span>
+                <span className="font-medium text-slate-900 break-all">{order.customerEmail || "N/A"}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Phone Number</span>
+                <span className="font-medium text-slate-900">{order.customerPhone || "N/A"}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-primary" />
+                <CardTitle className="text-base uppercase tracking-wider font-bold">Delivery Address</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-5 space-y-4">
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Street Address</span>
+                <span className="font-medium text-slate-900">
+                  {order.address?.streetAddress} {order.address?.flatNumber ? `, Flat ${order.address.flatNumber}` : ""}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground mb-1 uppercase tracking-tighter">Post Code / City</span>
+                <span className="font-medium text-slate-900">{order.address?.postCode}</span>
+              </div>
+              {order.expectedDeliveryDate && (
+                <div className="mt-2 pt-3 border-t border-slate-100 flex items-center gap-3 text-sm">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground italic">Expected: {new Date(order.expectedDeliveryDate).toLocaleDateString()}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="hidden lg:block">
+            <PricingSummary order={order} />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PricingSummary({ order }: { order: any }) {
+  return (
+    <Card className="border-slate-200 shadow-sm overflow-hidden sticky top-6">
+      <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30">
+        <div className="flex items-center gap-2">
+          <CreditCard className="h-5 w-5 text-primary" />
+          <CardTitle className="text-base uppercase tracking-wider font-bold text-slate-950">Order Summary</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-6 space-y-4 bg-white">
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-muted-foreground">Subtotal</span>
+          <span className="font-medium">${order.baseAmount?.toFixed(2)}</span>
+        </div>
+        
+        {order.discountAmount > 0 && (
+          <div className="flex justify-between items-center text-sm text-green-600">
+            <span className="flex items-center gap-1">
+              Discount
+            </span>
+            <span>-${order.discountAmount.toFixed(2)}</span>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center text-sm">
+          <span className="flex items-center gap-1 group">
+            Shipping
+            <Truck className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+          </span>
+          <span className="font-medium">${order.finalShippingCharge?.toFixed(2)}</span>
+        </div>
+
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-muted-foreground">Tax</span>
+          <span className="font-medium">${order.tax?.toFixed(2)}</span>
+        </div>
+
+        <Separator className="my-2 bg-slate-100" />
+
+        <div className="flex justify-between items-center">
+          <span className="text-base font-bold text-slate-950">Total Amount</span>
+          <span className="text-xl font-black text-primary">${order.finalAmount?.toFixed(2)}</span>
+        </div>
+
+        <div className="mt-6 pt-4 border-t border-slate-50 text-[10px] text-center text-muted-foreground italic">
+          Placed on {new Date(order.createdAt).toLocaleString()}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}

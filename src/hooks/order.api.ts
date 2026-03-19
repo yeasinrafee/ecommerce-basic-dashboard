@@ -22,7 +22,8 @@ export interface Order {
 
 export const orderKeys = {
   all: ["orders"] as const,
-  paginated: (params: any) => [...orderKeys.all, "paginated", params] as const
+  paginated: (params: any) => [...orderKeys.all, "paginated", params] as const,
+  detail: (id: string) => [...orderKeys.all, "detail", id] as const
 };
 
 const ensurePayload = <T>(response: ApiResponse<T>, fallbackMessage: string) => {
@@ -42,6 +43,17 @@ export const useOrders = (params: { page?: number; limit?: number; searchTerm?: 
         meta: (response.data as any).meta
       };
     }
+  });
+};
+
+export const useOrder = (id: string) => {
+  return useQuery({
+    queryKey: orderKeys.detail(id),
+    queryFn: async () => {
+      const response = await apiClient.get<ApiResponse<Order>>(OrderRoutes.getById(id));
+      return ensurePayload(response.data, "Failed to fetch order details");
+    },
+    enabled: !!id
   });
 };
 
