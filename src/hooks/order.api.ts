@@ -17,7 +17,21 @@ export interface Order {
   finalAmount: number;
   orderStatus: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
   createdAt: string;
+  expectedDeliveryDate?: string | null;
   orderItems?: any[];
+  address?: {
+    streetAddress?: string;
+    flatNumber?: string;
+    postCode?: string;
+    zone?: {
+      name?: string;
+      zonePolicies?: Array<{
+        zonePolicy?: {
+          deliveryTime?: number | null;
+        } | null;
+      }>;
+    };
+  };
 }
 
 export const orderKeys = {

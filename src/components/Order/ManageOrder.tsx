@@ -93,7 +93,7 @@ export default function ManageOrder() {
     if (selectedIds.length === 0) return
     const prev: Record<string, any> = {}
     selectedIds.forEach((id) => {
-      prev[id] = optimisticStatus[id] ?? items.find((it) => it.id === id)?.orderStatus
+      prev[id] = optimisticStatus[id] ?? items.find((it: Order) => it.id === id)?.orderStatus
     })
 
     setOptimisticStatus((s) => {
@@ -139,7 +139,7 @@ export default function ManageOrder() {
         header: (
           <div className="flex items-center justify-center gap-2">
             <CustomCheckbox
-              checked={items.length > 0 && items.every((it) => selected[it.id])}
+              checked={items.length > 0 && items.every((it: Order) => selected[it.id])}
               onCheckedChange={(v) => {
                 if (v) selectAllOnPage()
                 else clearSelection()

@@ -85,7 +85,7 @@ const ProfilePage = () => {
 
             <div className="flex-1">
               <CustomFileUpload
-                placeholder="Upload new avatar"
+                label="Upload new avatar"
                 maxFiles={1}
                 onFilesChange={setUploadedFiles}
               />

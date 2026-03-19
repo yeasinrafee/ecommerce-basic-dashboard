@@ -35,14 +35,14 @@ interface SortableRowProps {
 const SortableRow = ({ slider, index, moveRow, onEdit, onDelete, savingOrder }: SortableRowProps) => {
   const ref = useRef<HTMLTableRowElement>(null);
 
-  const [{ handlerId }, drop] = useDrop({
+  const [{ handlerId }, drop] = useDrop<{ id: string; index: number }, void, { handlerId: string | symbol | null }>({
     accept: ItemType,
     collect(monitor) {
       return {
         handlerId: monitor.getHandlerId(),
       };
     },
-    hover(item: { index: number }, monitor) {
+    hover(item, monitor) {
       if (!ref.current) return;
       const dragIndex = item.index;
       const hoverIndex = index;
