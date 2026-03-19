@@ -136,12 +136,4 @@ export default function CreateSlider({
       </form>
     </Modal>
   );
-}import React from 'react'
-
-const CreateSlider = () => {
-  return (
-    <div>CreateSlider</div>
-  )
 }
-
-export default CreateSlider

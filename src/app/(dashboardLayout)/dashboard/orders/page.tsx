@@ -1,4 +1,4 @@
-import ManageOrder from '@/components/ManageOrder'
+import ManageOrder from '@/components/Order/ManageOrder'
 import React from 'react'
 
 const page = () => {

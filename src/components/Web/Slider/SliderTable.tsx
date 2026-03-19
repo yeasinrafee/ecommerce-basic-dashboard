@@ -190,5 +190,3 @@ const SliderTable = ({ sliders, onEdit, onDelete, onOrderChange, savingOrder = f
 };
 
 export default SliderTable;
-
-export default SliderTable;
