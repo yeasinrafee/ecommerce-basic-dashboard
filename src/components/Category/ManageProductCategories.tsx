@@ -3,6 +3,7 @@
 import React from "react"
 import Image from "next/image"
 import Table, { type Column } from "@/components/Common/Table"
+import TableSkeleton from "@/components/Common/TableSkeleton";
 import CustomButton from "@/components/Common/CustomButton"
 import CreateCategory from "./CreateCategory"
 import DeleteModal from "@/components/Common/DeleteModal"
@@ -163,7 +164,7 @@ export default function ManageProductCategories() {
       </div>
 
       {isLoading ? (
-        <p>Loading...</p>
+        <TableSkeleton />
       ) : error ? (
         <p className="text-red-500">Failed to load categories</p>
       ) : (

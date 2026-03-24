@@ -3,6 +3,7 @@
 import React from "react"
 import Image from "next/image"
 import Table, { type Column } from "@/components/Common/Table"
+import TableSkeleton from "@/components/Common/TableSkeleton";
 import CustomButton from "@/components/Common/CustomButton"
 import CreateSubcategory from "./CreateSubcategory"
 import DeleteModal from "@/components/Common/DeleteModal"

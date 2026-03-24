@@ -4,6 +4,7 @@ import React from "react"
 import { useForm } from "react-hook-form"
 import { useRouter } from 'next/navigation'
 import Table, { type Column } from "@/components/Common/Table"
+import TableSkeleton from "@/components/Common/TableSkeleton";
 import CustomButton from "@/components/Common/CustomButton"
 import CreateZonePolicy from "./CreateZonePolicy"
 import DeleteModal from "@/components/Common/DeleteModal"
@@ -198,7 +199,7 @@ export default function ManageZonePolicy() {
       </div>
 
       {isLoading ? (
-        <p>Loading...</p>
+        <TableSkeleton />
       ) : error ? (
         <p className="text-red-500">Failed to load zone policies</p>
       ) : (
