@@ -321,7 +321,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
 
         {formInner}
 
-        <div className="flex gap-2 mt-6">
+        <div className="flex w-full justify-center gap-2 mt-6">
           <CustomButton
             loading={isSaving}
             disabled={

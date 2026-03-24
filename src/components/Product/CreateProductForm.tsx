@@ -851,7 +851,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
       )}
       {(!isEditMode || !productLoading) && (
       <>
-      <div className="mx-auto w-full max-w-full px-4 grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <div className="mx-auto w-full max-w-full grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="left-section space-y-6 col-span-7">
           <MainInformation
             productName={productName}

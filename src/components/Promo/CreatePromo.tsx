@@ -133,87 +133,85 @@ export default function CreatePromo({
 
   const form = (
     <form onSubmit={handleSubmit(submit)}>
-      <div className="grid grid-cols-1 md:grid-cols-1 gap-10">
-        <div className="space-y-4">
-          <CustomInput
-            label="Promo Code"
-            {...register("code")}
-            error={errors.code?.message}
-            requiredMark
-          />
-          <CustomSelect
-            name="discountType"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CustomInput
+          label="Promo Code"
+          {...register("code")}
+          error={errors.code?.message}
+          requiredMark
+        />
+        <CustomSelect
+          name="discountType"
+          control={control}
+          label="Discount Type"
+          requiredMark
+          options={[
+            { label: "Percentage Discount", value: "PERCENTAGE_DISCOUNT" },
+            { label: "Flat Discount", value: "FLAT_DISCOUNT" },
+          ]}
+        />
+        <CustomInput
+          label="Discount Value"
+          type="number"
+          {...register("discountValue")}
+          error={errors.discountValue?.message}
+          requiredMark
+        />
+        <CustomInput
+          label="Number of Uses"
+          type="number"
+          {...register("numberOfUses")}
+          error={errors.numberOfUses?.message}
+          requiredMark
+        />
+        <div>
+          <Controller
+            name="startDate"
             control={control}
-            label="Discount Type"
-            requiredMark
-            options={[
-              { label: "Percentage Discount", value: "PERCENTAGE_DISCOUNT" },
-              { label: "Flat Discount", value: "FLAT_DISCOUNT" },
-            ]}
+            render={({ field }) => (
+              <div>
+                <CustomDatePicker
+                  id="startDate"
+                  label="Start Date"
+                  value={field.value ? new Date(field.value) : null}
+                  onChange={(d) =>
+                    field.onChange(d ? d.toISOString().slice(0, 10) : "")
+                  }
+                  requiredMark
+                />
+                {errors.startDate?.message && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.startDate?.message}
+                  </p>
+                )}
+              </div>
+            )}
           />
-          <CustomInput
-            label="Discount Value"
-            type="number"
-            {...register("discountValue")}
-            error={errors.discountValue?.message}
-            requiredMark
-          />
-          <CustomInput
-            label="Number of Uses"
-            type="number"
-            {...register("numberOfUses")}
-            error={errors.numberOfUses?.message}
-            requiredMark
-          />
-          <div>
-            <Controller
-              name="startDate"
-              control={control}
-              render={({ field }) => (
-                <div>
-                  <CustomDatePicker
-                    id="startDate"
-                    label="Start Date"
-                    value={field.value ? new Date(field.value) : null}
-                    onChange={(d) =>
-                      field.onChange(d ? d.toISOString().slice(0, 10) : "")
-                    }
-                    requiredMark
-                  />
-                  {errors.startDate?.message && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.startDate?.message}
-                    </p>
-                  )}
-                </div>
-              )}
-            />
-          </div>
+        </div>
 
-          <div>
-            <Controller
-              name="endDate"
-              control={control}
-              render={({ field }) => (
-                <div>
-                  <CustomDatePicker
-                    id="endDate"
-                    label="End Date"
-                    value={field.value ? new Date(field.value) : null}
-                    onChange={(d) =>
-                      field.onChange(d ? d.toISOString().slice(0, 10) : "")
-                    }
-                    requiredMark
-                  />
-                  {errors.endDate?.message && (
-                    <p className="text-sm text-destructive mt-1">
-                      {errors.endDate?.message}
-                    </p>
-                  )}
-                </div>
-              )}
-            />
-          </div>
+        <div>
+          <Controller
+            name="endDate"
+            control={control}
+            render={({ field }) => (
+              <div>
+                <CustomDatePicker
+                  id="endDate"
+                  label="End Date"
+                  value={field.value ? new Date(field.value) : null}
+                  onChange={(d) =>
+                    field.onChange(d ? d.toISOString().slice(0, 10) : "")
+                  }
+                  requiredMark
+                />
+                {errors.endDate?.message && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.endDate?.message}
+                  </p>
+                )}
+              </div>
+            )}
+          />
         </div>
       </div>
     </form>
@@ -250,7 +248,7 @@ export default function CreatePromo({
       description={
         isEdit ? "Edit promo details" : "Create a new promotional code"
       }
-      className="w-full lg:max-w-[500px]"
+      className="w-full lg:max-w-[700px]"
       footer={
         <div className="flex gap-2 justify-center w-full">
           <CustomButton
