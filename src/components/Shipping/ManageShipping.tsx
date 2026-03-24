@@ -8,7 +8,7 @@ import CustomInput from "@/components/FormFields/CustomInput";
 import CustomButton from "@/components/Common/CustomButton";
 import DeleteModal from "@/components/Common/DeleteModal";
 import * as api from "@/hooks/shipping.api";
-import Loader from "../Common/Loader";
+import WebFormSkeleton from "../Common/WebFormSkeleton";
 
 const schema = z
   .object({
@@ -18,72 +18,56 @@ const schema = z
     tax: z.coerce.number().min(0, "Tax is required"),
     maximumWeight: z.preprocess(
       (v) =>
-        v === "" ||
-        v === null ||
-        (typeof v === "number" && Number.isNaN(v))
+        v === "" || v === null || (typeof v === "number" && Number.isNaN(v))
           ? undefined
           : v,
       z.coerce.number().optional(),
     ),
     length: z.preprocess(
       (v) =>
-        v === "" ||
-        v === null ||
-        (typeof v === "number" && Number.isNaN(v))
+        v === "" || v === null || (typeof v === "number" && Number.isNaN(v))
           ? undefined
           : v,
       z.coerce.number().optional(),
     ),
     width: z.preprocess(
       (v) =>
-        v === "" ||
-        v === null ||
-        (typeof v === "number" && Number.isNaN(v))
+        v === "" || v === null || (typeof v === "number" && Number.isNaN(v))
           ? undefined
           : v,
       z.coerce.number().optional(),
     ),
     height: z.preprocess(
       (v) =>
-        v === "" ||
-        v === null ||
-        (typeof v === "number" && Number.isNaN(v))
+        v === "" || v === null || (typeof v === "number" && Number.isNaN(v))
           ? undefined
           : v,
       z.coerce.number().optional(),
     ),
     chargePerWeight: z.preprocess(
       (v) =>
-        v === "" ||
-        v === null ||
-        (typeof v === "number" && Number.isNaN(v))
+        v === "" || v === null || (typeof v === "number" && Number.isNaN(v))
           ? undefined
           : v,
       z.coerce.number().optional(),
     ),
     chargePerVolume: z.preprocess(
       (v) =>
-        v === "" ||
-        v === null ||
-        (typeof v === "number" && Number.isNaN(v))
+        v === "" || v === null || (typeof v === "number" && Number.isNaN(v))
           ? undefined
           : v,
       z.coerce.number().optional(),
     ),
     weightUnit: z.preprocess(
       (v) =>
-        v === "" ||
-        v === null ||
-        (typeof v === "number" && Number.isNaN(v))
+        v === "" || v === null || (typeof v === "number" && Number.isNaN(v))
           ? undefined
           : v,
       z.coerce.number().optional(),
     ),
     volumeUnit: z.preprocess(
       (v) =>
-        v === "" ||
-        v === null ||
-        (typeof v === "number" && Number.isNaN(v))
+        v === "" || v === null || (typeof v === "number" && Number.isNaN(v))
           ? undefined
           : v,
       z.coerce.number().optional(),
@@ -270,7 +254,11 @@ export default function ManageShipping() {
 
   return (
     <>
-      {isLoading && <Loader size="lg" label="Loading shipping settings..." />}
+      {isLoading && (
+        <div className="w-full max-w-3xl mx-auto">
+          <WebFormSkeleton fields={6} hasBanner={false} />
+        </div>
+      )}
 
       {!isLoading && (
         <div className="max-w-3xl bg-background border border-slate-200 rounded-md p-6 relative">
