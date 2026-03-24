@@ -25,7 +25,7 @@ export default function ClientCreateBlog() {
     : undefined;
 
   return (
-    <div className="p-4 bg-background">
+    <div className="rounded-md border border-slate-200 shadow-sm bg-background">
       <CreateBlog asPage defaultValues={defaultValues} />
     </div>
   );
