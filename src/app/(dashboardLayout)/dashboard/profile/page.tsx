@@ -6,41 +6,51 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import CustomInput from "@/components/FormFields/CustomInput";
 import CustomPasswordInput from "@/components/FormFields/CustomPasswordInput";
-import CustomFileUpload, { type CustomFileUploadFile } from "@/components/FormFields/CustomFileUpload";
+import CustomFileUpload, {
+  type CustomFileUploadFile,
+} from "@/components/FormFields/CustomFileUpload";
 import CustomButton from "@/components/Common/CustomButton";
 import { useAdminProfile, useUpdateAdminProfile } from "@/hooks/admin.api";
 import WebFormSkeleton from "@/components/Common/WebFormSkeleton";
 
-const schema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-  oldPassword: z.string().optional().or(z.literal("")).refine(
-    (v) => v === "" || v.length >= 8,
-    { message: "Old password must be at least 8 characters" },
-  ),
-  newPassword: z.string().optional().or(z.literal("")).refine(
-    (v) => v === "" || v.length >= 8,
-    { message: "New password must be at least 8 characters" },
-  ),
-  confirmPassword: z.string().optional().or(z.literal("")),
-}).superRefine((data, ctx) => {
-  if (data.newPassword && data.newPassword.length > 0) {
-    if (!data.oldPassword || data.oldPassword.length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Old password is required to set a new password",
-        path: ["oldPassword"],
-      });
+const schema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Invalid email address"),
+    oldPassword: z
+      .string()
+      .optional()
+      .or(z.literal(""))
+      .refine((v) => v === "" || v.length >= 8, {
+        message: "Old password must be at least 8 characters",
+      }),
+    newPassword: z
+      .string()
+      .optional()
+      .or(z.literal(""))
+      .refine((v) => v === "" || v.length >= 8, {
+        message: "New password must be at least 8 characters",
+      }),
+    confirmPassword: z.string().optional().or(z.literal("")),
+  })
+  .superRefine((data, ctx) => {
+    if (data.newPassword && data.newPassword.length > 0) {
+      if (!data.oldPassword || data.oldPassword.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Old password is required to set a new password",
+          path: ["oldPassword"],
+        });
+      }
+      if (data.newPassword !== data.confirmPassword) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Passwords do not match",
+          path: ["confirmPassword"],
+        });
+      }
     }
-    if (data.newPassword !== data.confirmPassword) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Passwords do not match",
-        path: ["confirmPassword"],
-      });
-    }
-  }
-});
+  });
 
 type FormSchema = z.infer<typeof schema>;
 
@@ -59,7 +69,9 @@ const ProfilePage = () => {
     mode: "onChange",
   });
 
-  const [uploadedFiles, setUploadedFiles] = React.useState<CustomFileUploadFile[]>([]);
+  const [uploadedFiles, setUploadedFiles] = React.useState<
+    CustomFileUploadFile[]
+  >([]);
 
   React.useEffect(() => {
     if (profile) {
@@ -98,7 +110,10 @@ const ProfilePage = () => {
       if (error?.response?.data?.errors) {
         error.response.data.errors.forEach((err: any) => {
           if (err.field) {
-            setError(err.field as any, { type: "server", message: err.message });
+            setError(err.field as any, {
+              type: "server",
+              message: err.message,
+            });
           }
         });
       }
@@ -117,7 +132,9 @@ const ProfilePage = () => {
     <div className="max-w-2xl mx-auto p-6 space-y-8 bg-white rounded-xl border">
       <div>
         <h1 className="text-2xl font-bold">Profile Settings</h1>
-        <p className="text-slate-500 text-sm">Update your account information</p>
+        <p className="text-slate-500 text-sm">
+          Update your account information
+        </p>
       </div>
 
       <div className="space-y-6">
@@ -164,7 +181,9 @@ const ProfilePage = () => {
           />
 
           <div className="pt-4 border-t mt-4 mb-2">
-            <h3 className="text-md font-semibold text-slate-800 mb-4">Change Password</h3>
+            <h3 className="text-md font-semibold text-slate-800 mb-4">
+              Change Password
+            </h3>
             <div className="space-y-4">
               <CustomPasswordInput
                 label="Old Password"

@@ -83,7 +83,10 @@ export const useAdminProfile = () => {
     queryFn: async () => {
       const response = await apiClient.get<ApiResponse<Admin>>(AdminRoutes.getProfile);
       return ensurePayload(response.data, "Failed to load profile");
-    }
+    },
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
   });
 };
 
