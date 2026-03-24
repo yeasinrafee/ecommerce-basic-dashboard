@@ -157,7 +157,7 @@ export default function ManageProductSubcategories() {
       ) : null}
 
       {allQuery.isLoading ? (
-        <p>Loading...</p>
+        <TableSkeleton />
       ) : allQuery.isError ? (
         <p className="text-red-500">Failed to load categories</p>
       ) : (
