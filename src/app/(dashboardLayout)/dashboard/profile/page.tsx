@@ -58,13 +58,13 @@ const ProfilePage = () => {
   if (isLoading) return <div className="p-6 text-center">Loading profile...</div>;
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-8">
+    <div className="max-w-2xl mx-auto p-6 space-y-8 bg-white rounded-xl border">
       <div>
         <h1 className="text-2xl font-bold">Profile Settings</h1>
         <p className="text-slate-500 text-sm">Update your account information</p>
       </div>
 
-      <div className="bg-white rounded-xl border p-6 space-y-6">
+      <div className="space-y-6">
         <div className="flex flex-col gap-4">
           <label className="text-sm font-medium">Avatar</label>
           <div className="space-y-4">
