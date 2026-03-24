@@ -273,7 +273,7 @@ export default function ManageShipping() {
       {isLoading && <Loader size="lg" label="Loading shipping settings..." />}
 
       {!isLoading && (
-        <div className="max-w-3xl bg-background border border-slate-200 rounded-md p-6">
+        <div className="max-w-3xl bg-background border border-slate-200 rounded-md p-6 relative">
           <div className="flex justify-between lg:flex-row flex-col-reverse gap-y-4 lg:gap-y-0 lg:items-start">
             <div>
               <h2 className="mb-2 text-lg font-medium">Shipping Settings</h2>
@@ -282,19 +282,6 @@ export default function ManageShipping() {
                 allowed.
               </p>
             </div>
-
-            {shipping && (shipping as any).id && (
-              <CustomButton
-                variant="primary"
-                size="md"
-                className="bg-red-500 text-white text-nowrap"
-                loading={resetMutation.isPending}
-                type="button"
-                onClick={() => setOpenDeleteModal(true)}
-              >
-                Reset all
-              </CustomButton>
-            )}
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -409,7 +396,7 @@ export default function ManageShipping() {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-center gap-x-4">
+            <div className="mt-6 flex flex-col lg:flex-row justify-center items-center gap-4">
               <CustomButton
                 loading={
                   isSubmitting ||
@@ -422,9 +409,23 @@ export default function ManageShipping() {
                   updateMutation.isPending
                 }
                 type="submit"
+                className="w-full lg:w-auto"
               >
                 {shipping ? "Update shipping" : "Create shipping"}
               </CustomButton>
+
+              {shipping && (shipping as any).id && (
+                <CustomButton
+                  variant="primary"
+                  size="md"
+                  className="bg-red-500 text-white text-nowrap w-full lg:w-auto lg:absolute lg:top-6 lg:right-6"
+                  loading={resetMutation.isPending}
+                  type="button"
+                  onClick={() => setOpenDeleteModal(true)}
+                >
+                  Reset all
+                </CustomButton>
+              )}
             </div>
 
             <DeleteModal
