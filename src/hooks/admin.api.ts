@@ -98,7 +98,7 @@ export const useUpdateAdminProfile = () => {
     onSuccess: (data) => {
       toast.success("Profile updated successfully");
       queryClient.setQueryData(adminKeys.profile, data);
-      queryClient.invalidateQueries({ queryKey: adminKeys.all });
+      queryClient.invalidateQueries({ queryKey: adminKeys.profile });
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || err?.message || "Failed to update profile");
