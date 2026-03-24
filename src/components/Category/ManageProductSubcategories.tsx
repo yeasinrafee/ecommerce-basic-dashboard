@@ -3,6 +3,7 @@
 import React from "react"
 import Image from "next/image"
 import Table, { type Column } from "@/components/Common/Table"
+import TableSkeleton from "@/components/Common/TableSkeleton";
 import CustomButton from "@/components/Common/CustomButton"
 import CreateSubcategory from "./CreateSubcategory"
 import DeleteModal from "@/components/Common/DeleteModal"
@@ -156,7 +157,7 @@ export default function ManageProductSubcategories() {
       ) : null}
 
       {allQuery.isLoading ? (
-        <p>Loading...</p>
+        <TableSkeleton />
       ) : allQuery.isError ? (
         <p className="text-red-500">Failed to load categories</p>
       ) : (

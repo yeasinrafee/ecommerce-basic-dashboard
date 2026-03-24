@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Table, { type Column } from "@/components/Common/Table";
+import TableSkeleton from "@/components/Common/TableSkeleton";
 import CustomButton from "@/components/Common/CustomButton";
 import SearchBar from "@/components/FormFields/SearchBar";
 import { useForm } from "react-hook-form";
@@ -221,7 +222,7 @@ export default function ManageCustomer() {
       </div>
 
       {isLoading ? (
-        <p>Loading...</p>
+        <TableSkeleton />
       ) : error ? (
         <p className="text-red-500">Failed to load customers</p>
       ) : (

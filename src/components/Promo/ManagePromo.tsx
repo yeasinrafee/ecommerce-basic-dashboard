@@ -2,6 +2,7 @@
 
 import React from "react";
 import Table, { type Column } from "@/components/Common/Table";
+import TableSkeleton from "@/components/Common/TableSkeleton";
 import CreatePromo from "./CreatePromo";
 import DeleteModal from "@/components/Common/DeleteModal";
 import SearchBar from "@/components/FormFields/SearchBar";

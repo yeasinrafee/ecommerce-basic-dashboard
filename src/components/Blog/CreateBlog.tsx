@@ -249,12 +249,12 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
     }
   }
   const formInner = (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-4">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-4">
           <CustomTab tabs={tabItems} className="space-y-4" tabListClassName="justify-start" />
         </div>
 
-      <div className="md:col-span-1 space-y-4">
+      <div className="lg:col-span-1 space-y-4">
         <div>
           <label className="block text-sm font-medium mb-2">
             Feature Image
@@ -321,7 +321,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
 
         {formInner}
 
-        <div className="flex gap-2 mt-6">
+        <div className="flex w-full justify-center gap-2 mt-6">
           <CustomButton
             loading={isSaving}
             disabled={

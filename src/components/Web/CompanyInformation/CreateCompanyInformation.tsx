@@ -7,6 +7,7 @@ import CustomFileUpload, { CustomFileUploadFile } from "@/components/FormFields/
 import CustomButton from "@/components/Common/CustomButton"
 import { useCompanyInformation, useCreateCompanyInformation, useUpdateCompanyInformation } from "@/hooks/web.api"
 import { X } from "lucide-react"
+import WebFormSkeleton from "@/components/Common/WebFormSkeleton"
 
 const CreateCompanyInformation = () => {
   const { data: companyInfo, isLoading: isFetching } = useCompanyInformation()
@@ -80,13 +81,13 @@ const CreateCompanyInformation = () => {
   }
 
   if (isFetching) {
-    return <div className="p-6 text-center">Loading company information...</div>
+    return <WebFormSkeleton fields={4} hasBanner={true} />
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8 bg-background rounded-xl shadow-sm border border-slate-200">
       <div className="space-y-1">
-        <h2 className="text-2xl font-bold text-slate-900">Company Information</h2>
+        <h2 className="lg:text-2xl font-bold text-slate-900">Company Information</h2>
         <p className="text-sm text-slate-500">Manage your site's basic details and branding.</p>
       </div>
 

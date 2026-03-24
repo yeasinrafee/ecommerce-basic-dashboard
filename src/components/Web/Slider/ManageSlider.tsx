@@ -6,6 +6,7 @@ import CreateSlider from "./CreateSlider";
 import SliderTable from "./SliderTable";
 import CustomButton from "@/components/Common/CustomButton";
 import DeleteModal from "@/components/Common/DeleteModal";
+import TableSkeleton from "@/components/Common/TableSkeleton";
 import { type Slider, useAllSliders, useCreateSlider, useDeleteSlider, useReorderSliders, useUpdateSlider } from "@/hooks/web.api";
 
 const sortBySerial = (items: Slider[]) => [...items].sort((a, b) => a.serial - b.serial);
@@ -115,7 +116,18 @@ const ManageSlider = () => {
   };
 
   if (isLoading) {
-    return <div className="p-6 text-center">Loading sliders...</div>;
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-medium">Manage Sliders</h2>
+            <p className="text-sm text-slate-500">Drag and drop rows to reorder homepage sliders.</p>
+          </div>
+          <CustomButton onClick={handleCreate}>Create new Slider</CustomButton>
+        </div>
+        <TableSkeleton />
+      </div>
+    );
   }
 
   if (error) {

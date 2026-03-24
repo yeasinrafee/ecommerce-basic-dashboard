@@ -86,7 +86,7 @@ export default function CreateAttribute({ open, onOpenChange, defaultValues, onS
       title={isEdit ? "Update Attribute" : "Create Attribute"}
       description={isEdit ? "Edit attribute details" : "Create a new attribute"}
       footer={
-        <div className="flex gap-2">
+        <div className="flex justify-center w-full gap-2">
           <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
             {isEdit ? "Update Attribute" : "Create Attribute"}
           </CustomButton>

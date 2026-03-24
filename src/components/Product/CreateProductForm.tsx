@@ -843,7 +843,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10">
+    <div className="min-h-screen bg-slate-50">
       {isEditMode && productLoading && (
         <div className="flex items-center justify-center py-20 text-slate-500">
           <span>Loading product data…</span>
@@ -851,8 +851,8 @@ export default function CreateProductForm({ productId }: { productId?: string })
       )}
       {(!isEditMode || !productLoading) && (
       <>
-      <div className="mx-auto w-full max-w-full px-4 grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="left-section space-y-6 col-span-7">
+      <div className="mx-auto w-full max-w-full grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="left-section space-y-6 col-span-6 lg:col-span-7">
           <MainInformation
             productName={productName}
             setProductName={updateMainInformation}
@@ -875,7 +875,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
           </div>
         </div>
 
-        <div className="col-span-5">
+        <div className="col-span-6 lg:col-span-5">
           <RightSection
             key={rightResetKey}
             categoriesList={categoriesList}

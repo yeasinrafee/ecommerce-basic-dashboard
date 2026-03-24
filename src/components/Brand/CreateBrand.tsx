@@ -75,9 +75,9 @@ export default function CreateBrand({
       title={isEdit ? "Update Brand" : "Create Brand"}
       description={isEdit ? "Edit brand details" : "Create a new brand"}
       footer={
-        <div className="flex gap-2">
+        <div className="flex w-full justify-center gap-2">
           <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
-            {isEdit ? "Update" : "Create"}
+            {isEdit ? "Update brand details" : "Save brand details"}
           </CustomButton>
         </div>
       }

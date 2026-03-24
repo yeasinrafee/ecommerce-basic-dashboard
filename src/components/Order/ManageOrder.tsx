@@ -3,6 +3,7 @@
 import React from "react"
 import { useRouter } from "next/navigation"
 import Table, { type Column } from "@/components/Common/Table"
+import TableSkeleton from "@/components/Common/TableSkeleton"
 import CustomButton from "@/components/Common/CustomButton"
 import SearchBar from "@/components/FormFields/SearchBar"
 import { useForm } from "react-hook-form"
@@ -225,9 +226,7 @@ export default function ManageOrder() {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-            <span className="animate-spin h-8 w-8 border-b-2 border-primary rounded-full"></span>
-        </div>
+        <TableSkeleton columns={5} showIndex={false} />
       ) : error ? (
         <div className="text-center py-20 bg-destructive/5 rounded-xl border border-destructive/20 border-dashed">
             <p className="text-destructive font-semibold">Failed to load orders</p>

@@ -2,6 +2,7 @@
 
 import React from "react"
 import Table, { type Column } from "@/components/Common/Table"
+import TableSkeleton from "@/components/Common/TableSkeleton";
 import CustomButton from "@/components/Common/CustomButton"
 import CreateSocialMedia from "./CreateSocialMedia"
 import DeleteModal from "@/components/Common/DeleteModal"
@@ -99,7 +100,7 @@ export default function ManageSocialMediaLink() {
       </div>
 
       {isLoading ? (
-        <p>Loading...</p>
+        <TableSkeleton />
       ) : error ? (
         <p className="text-red-500">Failed to load social media links</p>
       ) : (
