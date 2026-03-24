@@ -21,14 +21,14 @@ const schema = z
       .string()
       .optional()
       .or(z.literal(""))
-      .refine((v) => v === "" || v.length >= 8, {
+      .refine((v) => v === "" || (typeof v === "string" && v.length >= 8), {
         message: "Old password must be at least 8 characters",
       }),
     newPassword: z
       .string()
       .optional()
       .or(z.literal(""))
-      .refine((v) => v === "" || v.length >= 8, {
+      .refine((v) => v === "" || (typeof v === "string" && v.length >= 8), {
         message: "New password must be at least 8 characters",
       }),
     confirmPassword: z.string().optional().or(z.literal("")),
