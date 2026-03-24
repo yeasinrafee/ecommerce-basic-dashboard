@@ -79,7 +79,7 @@ const CompanyPolicy = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8 bg-background rounded-xl shadow-sm border border-slate-200">
       <div className="space-y-1">
-        <h2 className="text-2xl font-bold text-slate-900">Company Policies</h2>
+        <h2 className="lg:text-2xl font-bold text-slate-900">Company Policies</h2>
         <p className="text-sm text-slate-500">Manage legal documents and store policies.</p>
       </div>
 
