@@ -186,9 +186,9 @@ const Sidebar = ({
                   <AvatarImage src={currentUser.image ?? undefined} alt={currentUser.name} />
                   <AvatarFallback>{(currentUser as any).fallback ?? getInitials(currentUser.name)}</AvatarFallback>
                 </Avatar>
-                <div>
-                  <p className="text-sm font-medium">{currentUser.name}</p>
-                  <p className="text-xs text-slate-400">{currentUser.email}</p>
+                <div className="w-full overflow-hidden">
+                  <p className="text-sm font-medium w-full overflow-hidden truncate">{currentUser.name}</p>
+                  <p className="text-xs text-slate-400 w-full overflow-hidden truncate">{currentUser.email}</p>
                 </div>
               </div>
             )}
