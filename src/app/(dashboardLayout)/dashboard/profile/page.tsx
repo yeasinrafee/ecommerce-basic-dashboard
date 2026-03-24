@@ -5,13 +5,41 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import CustomInput from "@/components/FormFields/CustomInput";
+import CustomPasswordInput from "@/components/FormFields/CustomPasswordInput";
 import CustomFileUpload, { type CustomFileUploadFile } from "@/components/FormFields/CustomFileUpload";
 import CustomButton from "@/components/Common/CustomButton";
 import { useAdminProfile, useUpdateAdminProfile } from "@/hooks/admin.api";
+import WebFormSkeleton from "@/components/Common/WebFormSkeleton";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
+  oldPassword: z.string().optional().or(z.literal("")).refine(
+    (v) => v === "" || v.length >= 8,
+    { message: "Old password must be at least 8 characters" },
+  ),
+  newPassword: z.string().optional().or(z.literal("")).refine(
+    (v) => v === "" || v.length >= 8,
+    { message: "New password must be at least 8 characters" },
+  ),
+  confirmPassword: z.string().optional().or(z.literal("")),
+}).superRefine((data, ctx) => {
+  if (data.newPassword && data.newPassword.length > 0) {
+    if (!data.oldPassword || data.oldPassword.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Old password is required to set a new password",
+        path: ["oldPassword"],
+      });
+    }
+    if (data.newPassword !== data.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+      });
+    }
+  }
 });
 
 type FormSchema = z.infer<typeof schema>;
@@ -24,9 +52,11 @@ const ProfilePage = () => {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isDirty },
+    setError,
+    formState: { errors, isValid, isDirty },
   } = useForm<FormSchema>({
     resolver: zodResolver(schema),
+    mode: "onChange",
   });
 
   const [uploadedFiles, setUploadedFiles] = React.useState<CustomFileUploadFile[]>([]);
@@ -36,6 +66,9 @@ const ProfilePage = () => {
       reset({
         name: profile.name,
         email: profile.user?.email || "",
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
     }
   }, [profile, reset]);
@@ -44,6 +77,9 @@ const ProfilePage = () => {
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("email", data.email);
+    if (data.oldPassword) formData.append("oldPassword", data.oldPassword);
+    if (data.newPassword) formData.append("newPassword", data.newPassword);
+
     if (uploadedFiles.length > 0) {
       formData.append("image", uploadedFiles[0].file);
     }
@@ -51,11 +87,31 @@ const ProfilePage = () => {
     try {
       await updateMutation.mutateAsync(formData);
       setUploadedFiles([]);
-    } catch (error) {
+      reset({
+        name: data.name,
+        email: data.email,
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error: any) {
+      if (error?.response?.data?.errors) {
+        error.response.data.errors.forEach((err: any) => {
+          if (err.field) {
+            setError(err.field as any, { type: "server", message: err.message });
+          }
+        });
+      }
     }
   };
 
-  if (isLoading) return <div className="p-6 text-center">Loading profile...</div>;
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-3xl mx-auto">
+        <WebFormSkeleton fields={2} hasBanner={true} />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-8 bg-white rounded-xl border">
@@ -107,11 +163,35 @@ const ProfilePage = () => {
             placeholder="your@email.com"
           />
 
+          <div className="pt-4 border-t mt-4 mb-2">
+            <h3 className="text-md font-semibold text-slate-800 mb-4">Change Password</h3>
+            <div className="space-y-4">
+              <CustomPasswordInput
+                label="Old Password"
+                {...register("oldPassword")}
+                error={errors.oldPassword?.message}
+                placeholder="Enter current password"
+              />
+              <CustomPasswordInput
+                label="New Password"
+                {...register("newPassword")}
+                error={errors.newPassword?.message}
+                placeholder="Enter new password"
+              />
+              <CustomPasswordInput
+                label="Confirm New Password"
+                {...register("confirmPassword")}
+                error={errors.confirmPassword?.message}
+                placeholder="Confirm new password"
+              />
+            </div>
+          </div>
+
           <div className="pt-4 flex justify-center">
             <CustomButton
               type="submit"
               loading={updateMutation.isPending}
-              disabled={!isDirty && uploadedFiles.length === 0}
+              disabled={(!isDirty && uploadedFiles.length === 0) || !isValid}
             >
               Save Changes
             </CustomButton>
