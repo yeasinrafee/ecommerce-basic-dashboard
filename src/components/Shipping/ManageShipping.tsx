@@ -274,7 +274,7 @@ export default function ManageShipping() {
 
       {!isLoading && (
         <div className="max-w-3xl bg-background border border-slate-200 rounded-md p-6">
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between lg:flex-row flex-col-reverse gap-y-4 lg:gap-y-0 lg:items-start">
             <div>
               <h2 className="mb-2 text-lg font-medium">Shipping Settings</h2>
               <p className="text-sm text-muted-foreground mb-4">
@@ -287,7 +287,7 @@ export default function ManageShipping() {
               <CustomButton
                 variant="primary"
                 size="md"
-                className="bg-red-500 text-white"
+                className="bg-red-500 text-white text-nowrap"
                 loading={resetMutation.isPending}
                 type="button"
                 onClick={() => setOpenDeleteModal(true)}
