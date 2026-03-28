@@ -12,6 +12,7 @@ export interface CompanyInformation {
   shortDescription?: string;
   workingHours?: string;
   logo?: string | null;
+  footerLogo?: string | null;
 }
 
 export interface CompanyPolicy {
