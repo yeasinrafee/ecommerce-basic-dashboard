@@ -11,7 +11,7 @@ import CustomButton from "@/components/Common/CustomButton"
 import CustomCheckbox from "@/components/FormFields/CustomCheckbox"
 import { useAvailableZones } from '@/hooks/zone.api'
 
-// Format names like "MATTHEW_BANKS" -> "Matthew Banks"
+
 const formatUpperUnderscore = (input?: string) => {
   if (!input) return ""
   const s = input.replace(/_+/g, " ").toLowerCase()

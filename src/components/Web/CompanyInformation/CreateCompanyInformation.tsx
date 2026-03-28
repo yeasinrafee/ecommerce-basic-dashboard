@@ -20,7 +20,9 @@ const CreateCompanyInformation = () => {
   const [shortDescription, setShortDescription] = React.useState("")
   const [workingHours, setWorkingHours] = React.useState("")
   const [imageFiles, setImageFiles] = React.useState<CustomFileUploadFile[]>([])
+  const [footerLogoFiles, setFooterLogoFiles] = React.useState<CustomFileUploadFile[]>([])
   const [removedExistingLogo, setRemovedExistingLogo] = React.useState(false)
+  const [removedExistingFooterLogo, setRemovedExistingFooterLogo] = React.useState(false)
 
   React.useEffect(() => {
     if (companyInfo) {
@@ -30,6 +32,7 @@ const CreateCompanyInformation = () => {
       setShortDescription(companyInfo.shortDescription ?? "")
       setWorkingHours(companyInfo.workingHours ?? "")
       setRemovedExistingLogo(false)
+      setRemovedExistingFooterLogo(false)
     }
   }, [companyInfo])
 
@@ -45,6 +48,7 @@ const CreateCompanyInformation = () => {
     const shortDescriptionChanged = (companyInfo.shortDescription ?? "") !== shortDescription
     const workingHoursChanged = (companyInfo.workingHours ?? "") !== workingHours
     const logoChanged = removedExistingLogo || imageFiles.length > 0
+    const footerLogoChanged = removedExistingFooterLogo || footerLogoFiles.length > 0
 
     return (
       emailChanged ||
@@ -52,9 +56,10 @@ const CreateCompanyInformation = () => {
       phoneChanged ||
       shortDescriptionChanged ||
       workingHoursChanged ||
-      logoChanged
+      logoChanged ||
+      footerLogoChanged
     )
-  }, [isEdit, companyInfo, email, address, phone, shortDescription, workingHours, imageFiles.length, removedExistingLogo])
+  }, [isEdit, companyInfo, email, address, phone, shortDescription, workingHours, imageFiles.length, footerLogoFiles.length, removedExistingLogo, removedExistingFooterLogo])
 
   const handleSave = async () => {
     const fd = new FormData()
@@ -68,6 +73,12 @@ const CreateCompanyInformation = () => {
       fd.append("logo", imageFiles[0].file)
     } else if (removedExistingLogo) {
       fd.append("logo", "") 
+    }
+
+    if (footerLogoFiles.length > 0) {
+      fd.append("footerLogo", footerLogoFiles[0].file)
+    } else if (removedExistingFooterLogo) {
+      fd.append("footerLogo", "")
     }
 
     try {
@@ -94,12 +105,12 @@ const CreateCompanyInformation = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4 md:col-span-2">
           <label className="block text-sm font-medium text-slate-700">
-            Company Banner
+            Company Logo
           </label>
           <CustomFileUpload 
             maxFiles={1} 
             onFilesChange={(files) => setImageFiles(files)} 
-            description="Upload your company banner (PNG, JPG, JPEG, or WEBP)"
+            description="Upload your company logo (PNG, JPG, JPEG, or WEBP)"
           />
           {companyInfo?.logo && imageFiles.length === 0 && !removedExistingLogo && (
             <div className="mt-3 relative inline-block">
@@ -112,6 +123,33 @@ const CreateCompanyInformation = () => {
                 type="button"
                 className="absolute -top-2 -right-2 bg-white text-slate-500 p-1 rounded-full shadow-md border border-slate-100 hover:text-destructive transition-colors"
                 onClick={() => setRemovedExistingLogo(true)}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4 md:col-span-2">
+          <label className="block text-sm font-medium text-slate-700">
+            Footer Logo
+          </label>
+          <CustomFileUpload 
+            maxFiles={1} 
+            onFilesChange={(files) => setFooterLogoFiles(files)} 
+            description="Upload your footer logo (PNG, JPG, JPEG, or WEBP)"
+          />
+          {companyInfo?.footerLogo && footerLogoFiles.length === 0 && !removedExistingFooterLogo && (
+            <div className="mt-3 relative inline-block">
+              <img 
+                src={companyInfo.footerLogo} 
+                alt="Footer Logo preview" 
+                className="h-24 w-auto object-contain rounded-lg border border-slate-200 p-2" 
+              />
+              <button
+                type="button"
+                className="absolute -top-2 -right-2 bg-white text-slate-500 p-1 rounded-full shadow-md border border-slate-100 hover:text-destructive transition-colors"
+                onClick={() => setRemovedExistingFooterLogo(true)}
               >
                 <X size={14} />
               </button>

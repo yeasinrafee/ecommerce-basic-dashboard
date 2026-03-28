@@ -234,6 +234,13 @@ const initialSeoState: SeoData = {
   seoKeywords: [],
 };
 
+const normalizeStringArray = (items: string[]) => [...new Set(items)].sort();
+
+const isSameStringArray = (a: string[], b: string[]) => {
+  if (a.length !== b.length) return false;
+  return a.every((value, index) => value === b[index]);
+};
+
 export default function CreateProductForm({ productId }: { productId?: string }) {
   const isEditMode = !!productId;
   const router = useRouter();
@@ -251,7 +258,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
     setValue,
     watch,
     reset,
-    formState: { isValid, isSubmitting },
+    formState: { isValid, isSubmitting, isDirty },
   } = useForm<z.infer<typeof createProductSchema>>({
     resolver: zodResolver(createProductSchema) as Resolver<
       z.infer<typeof createProductSchema>
@@ -275,6 +282,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
   const [heightCm, setHeightCm] = React.useState<number | null>(null);
 
   const [rightData, setRightData] = React.useState(initialRightSectionState);
+  const [rightSectionReady, setRightSectionReady] = React.useState(false);
   const [rightResetKey, setRightResetKey] = React.useState(0);
   const [attributesData, setAttributesData] = React.useState(
     initialAttributesState,
@@ -323,6 +331,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
   React.useEffect(() => {
     if (!isEditMode || !productData || editPrefillDoneRef.current) return;
     editPrefillDoneRef.current = true;
+    setRightSectionReady(false);
 
     const p = productData as any;
 
@@ -526,6 +535,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
 
   const handleRightSectionChange = React.useCallback(
     (data: RightSectionData) => {
+      setRightSectionReady(true);
       setRightData(data);
       const galleryMeta = data.galleryImages.map((image) => ({
         id: image.id,
@@ -592,6 +602,39 @@ export default function CreateProductForm({ productId }: { productId?: string })
     [allGalleryForAttributes],
   );
 
+  const initialMainImageUrl = React.useMemo(
+    () => (isEditMode ? ((productData as any)?.image ?? null) : null),
+    [isEditMode, productData],
+  );
+
+  const initialGalleryUrls = React.useMemo(
+    () => normalizeStringArray((((productData as any)?.galleryImages ?? []) as string[])),
+    [productData],
+  );
+
+  const currentMainImageExistingUrl = rightSectionReady
+    ? rightData.mainImageExistingUrl
+    : initialMainImageUrl;
+
+  const currentGalleryUrls = React.useMemo(
+    () =>
+      normalizeStringArray(
+        ((rightSectionReady
+          ? rightData.existingGalleryUrls
+          : ((productData as any)?.galleryImages ?? [])) as string[]),
+      ),
+    [rightSectionReady, rightData.existingGalleryUrls, productData],
+  );
+
+  const hasMediaChanges =
+    isEditMode &&
+    (Boolean(rightData.mainImage) ||
+      rightData.galleryImages.length > 0 ||
+      currentMainImageExistingUrl !== initialMainImageUrl ||
+      !isSameStringArray(currentGalleryUrls, initialGalleryUrls));
+
+  const hasActualChanges = !isEditMode || isDirty || hasMediaChanges;
+
   const mutationPending = Boolean(
     (createProductMutation as any).isPending ||
     (createProductMutation as any).isLoading ||
@@ -600,9 +643,14 @@ export default function CreateProductForm({ productId }: { productId?: string })
   );
 
   // In edit mode, existing main image counts as having a main image
-  const hasMainImage = !!rightData.mainImage || !!rightData.mainImageExistingUrl;
+  const hasMainImage = !!rightData.mainImage || !!currentMainImageExistingUrl;
   const submitDisabled =
-    !isValid || !hasMainImage || mutationPending || isSubmitting || isEditorProcessing;
+    !isValid ||
+    !hasMainImage ||
+    !hasActualChanges ||
+    mutationPending ||
+    isSubmitting ||
+    isEditorProcessing;
 
   const normalizeAttributesForSubmit = () =>
     attributesData.attributes.map((attribute) => ({
