@@ -94,12 +94,12 @@ const CreateCompanyInformation = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4 md:col-span-2">
           <label className="block text-sm font-medium text-slate-700">
-            Company Banner
+            Company Logo
           </label>
           <CustomFileUpload 
             maxFiles={1} 
             onFilesChange={(files) => setImageFiles(files)} 
-            description="Upload your company banner (PNG, JPG, JPEG, or WEBP)"
+            description="Upload your company logo (PNG, JPG, JPEG, or WEBP)"
           />
           {companyInfo?.logo && imageFiles.length === 0 && !removedExistingLogo && (
             <div className="mt-3 relative inline-block">
