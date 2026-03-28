@@ -193,8 +193,9 @@ const Header = ({
               notificationData.data.map((notification) => (
                 <DropdownMenuItem
                   key={notification.id}
+                  onClick={() => router.push('/dashboard/orders')}
                   className={cn(
-                    "flex flex-col items-start py-2",
+                    "flex flex-col items-start py-2 cursor-pointer",
                     !notification.seen && "bg-slate-50 font-medium"
                   )}
                 >
