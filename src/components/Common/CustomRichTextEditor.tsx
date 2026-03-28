@@ -74,8 +74,7 @@ export default function CustomRichTextEditor({ value, onChange, onProcessingChan
     >
   >({});
   const pendingDeletionsRef = React.useRef<Record<string, Promise<any>>>({});
-  const processingStateRef = React.useRef(false);
-  const reportProcessingState = React.useCallback(() => {
+  const processingStateRef = React.useRef(false);  const isSettingContentRef = React.useRef(false);  const reportProcessingState = React.useCallback(() => {
     const hasPending =
       Object.keys(pendingUploadsRef.current).length > 0 ||
       Object.keys(pendingDeletionsRef.current).length > 0;
@@ -140,33 +139,35 @@ export default function CustomRichTextEditor({ value, onChange, onProcessingChan
 
         // detect removed images and delete their cloud asset (publicId or URL)
         const prev = prevImageSrcsRef.current;
-        for (const s of prev) {
-          if (!currentSrcs.has(s)) {
-            // skip local preview URLs created via URL.createObjectURL / data URIs
-            if (typeof s === "string" && (s.startsWith("blob:") || s.startsWith("data:"))) {
-              if (srcToPublicIdRef.current.has(s)) {
-                srcToPublicIdRef.current.delete(s);
+        if (!isSettingContentRef.current) {
+          for (const s of prev) {
+            if (!currentSrcs.has(s)) {
+              // skip local preview URLs created via URL.createObjectURL / data URIs
+              if (typeof s === "string" && (s.startsWith("blob:") || s.startsWith("data:"))) {
+                if (srcToPublicIdRef.current.has(s)) {
+                  srcToPublicIdRef.current.delete(s);
+                }
+                continue;
               }
-              continue;
-            }
 
-            const pid = srcToPublicIdRef.current.get(s);
-            // track deletion so callers can know editor is processing
-            try {
-              const deleteKey = `del:${pid ?? s}`;
-              const delPromise = deleteUploadedImage(pid ?? s)
-                .catch((err) => console.warn("Failed to cleanup removed editor image", err))
-                .finally(() => {
-                  delete pendingDeletionsRef.current[deleteKey];
-                  reportProcessingState();
-                });
-              pendingDeletionsRef.current[deleteKey] = delPromise;
-              reportProcessingState();
-            } catch (err) {
-              console.warn("Failed to initiate deletion for removed editor image", err);
-            }
+              const pid = srcToPublicIdRef.current.get(s);
+              // track deletion so callers can know editor is processing
+              try {
+                const deleteKey = `del:${pid ?? s}`;
+                const delPromise = deleteUploadedImage(pid ?? s)
+                  .catch((err) => console.warn("Failed to cleanup removed editor image", err))
+                  .finally(() => {
+                    delete pendingDeletionsRef.current[deleteKey];
+                    reportProcessingState();
+                  });
+                pendingDeletionsRef.current[deleteKey] = delPromise;
+                reportProcessingState();
+              } catch (err) {
+                console.warn("Failed to initiate deletion for removed editor image", err);
+              }
 
-            if (pid) srcToPublicIdRef.current.delete(s);
+              if (pid) srcToPublicIdRef.current.delete(s);
+            }
           }
         }
 
@@ -191,7 +192,9 @@ export default function CustomRichTextEditor({ value, onChange, onProcessingChan
       const incoming = value ?? "";
       if (incoming !== currentHtml) {
         // update editor content without forcing an update if identical
+        isSettingContentRef.current = true;
         editor.commands.setContent(incoming);
+        isSettingContentRef.current = false;
         // notify parent of the change so state stays consistent
         onChange(editor.getHTML());
       }

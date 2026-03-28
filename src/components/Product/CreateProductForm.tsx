@@ -251,7 +251,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
     setValue,
     watch,
     reset,
-    formState: { isValid, isSubmitting },
+    formState: { isValid, isSubmitting, isDirty },
   } = useForm<z.infer<typeof createProductSchema>>({
     resolver: zodResolver(createProductSchema) as Resolver<
       z.infer<typeof createProductSchema>
