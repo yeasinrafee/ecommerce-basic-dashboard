@@ -20,6 +20,23 @@ import {
 import { MoreHorizontal, Eye, Download, Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+type SelectedAttribute = {
+  attributeName: string
+  attributeValue: string
+}
+
+const getSelectedAttributes = (order: Order): SelectedAttribute[] => {
+  const orderItems = Array.isArray(order.orderItems) ? order.orderItems : []
+
+  return orderItems.flatMap((item: any) => {
+    if (Array.isArray(item.selectedAttributes) && item.selectedAttributes.length > 0) {
+      return item.selectedAttributes as SelectedAttribute[]
+    }
+
+    return []
+  })
+}
+
 export default function ManageOrder() {
   const router = useRouter()
   const [page, setPage] = React.useState(1)
@@ -168,6 +185,30 @@ export default function ManageOrder() {
         ),
       },
       {
+        header: "Attribute",
+        cell: (row) => {
+          const selectedAttributes = getSelectedAttributes(row)
+
+          if (selectedAttributes.length === 0) {
+            return <span className="text-xs text-muted-foreground">N/A</span>
+          }
+
+          return (
+            <div className="flex flex-wrap gap-1 justify-center">
+              {selectedAttributes.map((attribute) => (
+                <span
+                  key={`${row.id}-${attribute.attributeName}-${attribute.attributeValue}`}
+                  className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm font-medium text-slate-600"
+                >
+                  {attribute.attributeName}: {attribute.attributeValue}
+                </span>
+              ))}
+            </div>
+          )
+        },
+        align: "center"
+      },
+      {
         header: "Total Amount",
         cell: (row) => (
           <span className="font-semibold text-primary underline decoration-slate-200 underline-offset-4 decoration-dotted">${row.finalAmount.toFixed(2)}</span>
@@ -226,7 +267,7 @@ export default function ManageOrder() {
       </div>
 
       {isLoading ? (
-        <TableSkeleton columns={5} showIndex={false} />
+        <TableSkeleton columns={6} showIndex={false} />
       ) : error ? (
         <div className="text-center py-20 bg-destructive/5 rounded-xl border border-destructive/20 border-dashed">
             <p className="text-destructive font-semibold">Failed to load orders</p>

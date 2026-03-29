@@ -31,6 +31,32 @@ interface ViewOrderProps {
   orderId: string;
 }
 
+type SelectedAttribute = {
+  attributeName: string;
+  attributeValue: string;
+}
+
+const getSelectedAttributes = (item: any): SelectedAttribute[] => {
+  if (Array.isArray(item.selectedAttributes) && item.selectedAttributes.length > 0) {
+    return item.selectedAttributes as SelectedAttribute[]
+  }
+
+  return Array.isArray(item.variations)
+    ? item.variations
+        .map((variation: any) => {
+          const attributeName = variation.productVariation?.attribute?.name
+          const attributeValue = variation.productVariation?.attributeValue
+
+          if (!attributeName || !attributeValue) {
+            return null
+          }
+
+          return { attributeName, attributeValue }
+        })
+        .filter(Boolean)
+    : []
+}
+
 export default function ViewOrder({ orderId }: ViewOrderProps) {
   const router = useRouter();
   const { data: order, isLoading, error } = useOrder(orderId);
@@ -140,8 +166,9 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent bg-slate-50/30">
-                    <TableHead className="w-[80px] px-6">Image</TableHead>
+                    <TableHead className="w-20 px-6">Image</TableHead>
                     <TableHead className="px-6">Product</TableHead>
+                    <TableHead className="px-6 text-center">Attribute</TableHead>
                     <TableHead className="px-6 text-center">Qty</TableHead>
                     <TableHead className="px-6 text-right">Price</TableHead>
                     <TableHead className="px-6 text-right">Total</TableHead>
@@ -188,20 +215,24 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
                               </Badge>
                             )}
                           </div>
-                          {item.variations?.length > 0 && (
-                            <div className="flex gap-1 flex-wrap mt-1">
-                              {item.variations.map((v: any) => (
-                                <Badge
-                                  key={v.id}
-                                  variant="secondary"
-                                  className="text-[10px] px-1 py-0 h-4 mr-1"
-                                >
-                                  {v.productVariation?.value}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
                         </div>
+                      </TableCell>
+                      <TableCell className="px-6 text-center">
+                        {getSelectedAttributes(item).length > 0 ? (
+                          <div className="flex gap-1 flex-wrap justify-center">
+                            {getSelectedAttributes(item).map((attribute) => (
+                              <Badge
+                                key={`${item.id}-${attribute.attributeName}-${attribute.attributeValue}`}
+                                variant="secondary"
+                                className="text-sm p-2 h-4 mr-1"
+                              >
+                                {attribute.attributeName}: {attribute.attributeValue}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">N/A</span>
+                        )}
                       </TableCell>
                       <TableCell className="px-6 text-center font-medium">
                         {item.quantity}
