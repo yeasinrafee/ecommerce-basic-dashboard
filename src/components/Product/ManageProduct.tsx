@@ -89,14 +89,14 @@ const ManageProduct: React.FC = () => {
     setDeleteModalOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteTarget) return;
-    deleteMutation.mutate(deleteTarget.id, {
-      onSuccess: () => {
-        setDeleteModalOpen(false);
-        setDeleteTarget(null);
-      }
-    });
+    try {
+      await deleteMutation.mutateAsync(deleteTarget.id);
+      setDeleteModalOpen(false);
+      setDeleteTarget(null);
+    } catch {
+    }
   };
 
   const handleInlineStatusChange = (id: string, status: string) => {

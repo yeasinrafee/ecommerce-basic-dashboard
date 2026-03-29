@@ -151,8 +151,13 @@ export const useDeleteProduct = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: deleteProductReq,
-		onSuccess: async () => {
+		onSuccess: async (message: string) => {
+			toast.success(message || 'Product deleted successfully');
 			await queryClient.invalidateQueries({ queryKey: productKeys.all });
+		},
+		onError: (err: any) => {
+			const message = err?.response?.data?.message || err?.message || 'Failed to delete product';
+			toast.error(message);
 		}
 	});
 };
