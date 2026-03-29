@@ -20,23 +20,6 @@ import {
 import { MoreHorizontal, Eye, Download, Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-type SelectedAttribute = {
-  attributeName: string
-  attributeValue: string
-}
-
-const getSelectedAttributes = (order: Order): SelectedAttribute[] => {
-  const orderItems = Array.isArray(order.orderItems) ? order.orderItems : []
-
-  return orderItems.flatMap((item: any) => {
-    if (Array.isArray(item.selectedAttributes) && item.selectedAttributes.length > 0) {
-      return item.selectedAttributes as SelectedAttribute[]
-    }
-
-    return []
-  })
-}
-
 export default function ManageOrder() {
   const router = useRouter()
   const [page, setPage] = React.useState(1)
@@ -175,38 +158,37 @@ export default function ManageOrder() {
         className: "w-12 text-center"
       },
       {
-        header: "Order Information",
+        header: "Order #",
+        cell: (row) => <span className="font-medium text-sm">{row.id.slice(0, 8)}</span>,
+      },
+      {
+        header: "Name",
+        accessor: "customerName",
+        cell: (row) => <span className="text-xs font-semibold">{row.customerName}</span>,
+      },
+      {
+        header: "Email",
         cell: (row) => (
-          <div className="flex flex-col text-left">
-            <span className="font-medium text-sm">Order #{row.id.slice(0, 8)}</span>
-            <span className="text-xs text-muted-foreground font-semibold">{row.customerName}</span>
-            <span className="text-[10px] text-muted-foreground">{row.customerEmail || row.customerPhone}</span>
-          </div>
+          <span className="text-xs text-muted-foreground">
+            {row.customerEmail ?? "N/A"}
+          </span>
         ),
       },
       {
-        header: "Attribute",
-        cell: (row) => {
-          const selectedAttributes = getSelectedAttributes(row)
-
-          if (selectedAttributes.length === 0) {
-            return <span className="text-xs text-muted-foreground">N/A</span>
-          }
-
-          return (
-            <div className="flex flex-wrap gap-1 justify-center">
-              {selectedAttributes.map((attribute) => (
-                <span
-                  key={`${row.id}-${attribute.attributeName}-${attribute.attributeValue}`}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-sm font-medium text-slate-600"
-                >
-                  {attribute.attributeName}: {attribute.attributeValue}
-                </span>
-              ))}
-            </div>
-          )
-        },
-        align: "center"
+        header: "Zone",
+        cell: (row) => (
+          <span className="text-xs text-muted-foreground">
+            {row.address?.zone?.name ?? "N/A"}
+          </span>
+        ),
+      },
+      {
+        header: "Delivery Time",
+        cell: (row) => (
+          <span className="text-xs font-medium">
+            {row.deliveryTime != null ? `${row.deliveryTime} days` : "N/A"}
+          </span>
+        ),
       },
       {
         header: "Total Amount",

@@ -18,6 +18,7 @@ export interface Order {
   orderStatus: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
   createdAt: string;
   expectedDeliveryDate?: string | null;
+  deliveryTime?: number;
   orderItems?: any[];
   address?: {
     streetAddress?: string;
