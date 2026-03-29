@@ -397,7 +397,7 @@ const Login = () => {
       className="space-y-6 border shadow-sm border-slate-200 rounded p-4 w-full max-w-sm md:max-w-100"
     >
       {companyInfo?.logo ? (
-        <div className="mx-auto mb-4">
+        <div className="mx-auto mb-10">
           <Image
             src={companyInfo.logo}
             alt={companyInfo?.shortDescription || "Company logo"}
