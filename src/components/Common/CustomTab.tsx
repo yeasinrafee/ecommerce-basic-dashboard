@@ -40,7 +40,12 @@ const CustomTab = ({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className={cn("flex flex-wrap", tabListClassName)}>
+      <div
+        className={cn(
+          "flex flex-nowrap overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden lg:flex-wrap lg:overflow-visible",
+          tabListClassName,
+        )}
+      >
         {tabs.map((tab) => {
           const isActive = tab.id === current.id;
           return (
@@ -49,7 +54,7 @@ const CustomTab = ({
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "px-4 py-2 text-sm font-semibold transition-colors",
+                "shrink-0 whitespace-nowrap px-4 py-2 text-sm font-semibold transition-colors",
                 isActive
                   ? "bg-brand-primary text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200",
