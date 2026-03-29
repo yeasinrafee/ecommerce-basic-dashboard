@@ -60,7 +60,7 @@ const Home = () => {
         </h1>
       </div>
 
-      <div className="grid grid-cols-2 lg:flex lg:justify-end gap-3 font-medium items-end">
+      <div className="grid grid-cols-2 lg:flex lg:justify-start gap-3 font-medium items-end">
         <div className="w-full lg:w-56">
           <CustomDatePicker
             label="Start Date"

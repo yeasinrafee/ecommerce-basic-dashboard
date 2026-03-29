@@ -158,13 +158,36 @@ export default function ManageOrder() {
         className: "w-12 text-center"
       },
       {
-        header: "Order Information",
+        header: "Order #",
+        cell: (row) => <span className="font-medium text-sm">{row.id.slice(0, 8)}</span>,
+      },
+      {
+        header: "Name",
+        accessor: "customerName",
+        cell: (row) => <span className="text-xs font-semibold">{row.customerName}</span>,
+      },
+      {
+        header: "Email",
         cell: (row) => (
-          <div className="flex flex-col text-left">
-            <span className="font-medium text-sm">Order #{row.id.slice(0, 8)}</span>
-            <span className="text-xs text-muted-foreground font-semibold">{row.customerName}</span>
-            <span className="text-[10px] text-muted-foreground">{row.customerEmail || row.customerPhone}</span>
-          </div>
+          <span className="text-xs text-muted-foreground">
+            {row.customerEmail ?? "N/A"}
+          </span>
+        ),
+      },
+      {
+        header: "Zone",
+        cell: (row) => (
+          <span className="text-xs text-muted-foreground">
+            {row.address?.zone?.name ?? "N/A"}
+          </span>
+        ),
+      },
+      {
+        header: "Delivery Time",
+        cell: (row) => (
+          <span className="text-xs font-medium">
+            {row.deliveryTime != null ? `${row.deliveryTime} days` : "N/A"}
+          </span>
         ),
       },
       {
@@ -189,11 +212,34 @@ export default function ManageOrder() {
       {
         header: "Placed At",
         accessor: "createdAt",
-        cell: (row) => new Date(row.createdAt).toLocaleDateString()
+        cell: (row) => formatFriendlyDate(row.createdAt)
       }
     ],
     [items, selected, optimisticStatus]
   )
+
+  const getOrdinalDay = (day: number) => {
+    if (day > 3 && day < 21) return `${day}th`
+    switch (day % 10) {
+      case 1:
+        return `${day}st`
+      case 2:
+        return `${day}nd`
+      case 3:
+        return `${day}rd`
+      default:
+        return `${day}th`
+    }
+  }
+
+  const formatFriendlyDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    if (Number.isNaN(date.getTime())) return "Invalid date"
+    const month = date.toLocaleString("default", { month: "short" })
+    const day = getOrdinalDay(date.getDate())
+    const year = date.getFullYear()
+    return `${day} ${month} ${year}`
+  }
 
   const handleView = (id: string) => {
     router.push(`/dashboard/orders/${id}`)
@@ -226,7 +272,7 @@ export default function ManageOrder() {
       </div>
 
       {isLoading ? (
-        <TableSkeleton columns={5} showIndex={false} />
+        <TableSkeleton columns={6} showIndex={false} />
       ) : error ? (
         <div className="text-center py-20 bg-destructive/5 rounded-xl border border-destructive/20 border-dashed">
             <p className="text-destructive font-semibold">Failed to load orders</p>
