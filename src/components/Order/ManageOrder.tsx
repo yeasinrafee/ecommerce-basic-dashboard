@@ -433,7 +433,7 @@ function InlineStatusSelect({
       valueToField={(v: string) => v}
       onChangeCallback={handleChange}
       placeholder="Status"
-      triggerClassName="w-32 border-none shadow-none focus:ring-0 h-8"
+      triggerClassName="w-32 border border-slate-300 h-8"
     />
   );
 }
