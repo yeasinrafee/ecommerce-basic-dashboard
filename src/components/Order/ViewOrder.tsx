@@ -26,6 +26,8 @@ import {
   CreditCard,
 } from "lucide-react";
 import Image from "next/image";
+import { generateInvoice } from "@/utils/generateInvoice";
+import { useCompanyInformation } from "@/hooks/web.api";
 
 interface ViewOrderProps {
   orderId: string;
@@ -34,32 +36,43 @@ interface ViewOrderProps {
 type SelectedAttribute = {
   attributeName: string;
   attributeValue: string;
-}
+};
 
 const getSelectedAttributes = (item: any): SelectedAttribute[] => {
-  if (Array.isArray(item.selectedAttributes) && item.selectedAttributes.length > 0) {
-    return item.selectedAttributes as SelectedAttribute[]
+  if (
+    Array.isArray(item.selectedAttributes) &&
+    item.selectedAttributes.length > 0
+  ) {
+    return item.selectedAttributes as SelectedAttribute[];
   }
 
   return Array.isArray(item.variations)
     ? item.variations
         .map((variation: any) => {
-          const attributeName = variation.productVariation?.attribute?.name
-          const attributeValue = variation.productVariation?.attributeValue
+          const attributeName = variation.productVariation?.attribute?.name;
+          const attributeValue = variation.productVariation?.attributeValue;
 
           if (!attributeName || !attributeValue) {
-            return null
+            return null;
           }
 
-          return { attributeName, attributeValue }
+          return { attributeName, attributeValue };
         })
         .filter(Boolean)
-    : []
-}
+    : [];
+};
 
 export default function ViewOrder({ orderId }: ViewOrderProps) {
   const router = useRouter();
   const { data: order, isLoading, error } = useOrder(orderId);
+
+  const { data: companyInfo } = useCompanyInformation();
+
+  const handleDownloadInvoice = (row: Order, e: React.MouseEvent) => {
+    e.stopPropagation();
+    generateInvoice(row, { download: true }, companyInfo);
+    // console.log("Generating invoice for:", order.id);
+  };
 
   if (isLoading) {
     return (
@@ -139,7 +152,7 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
               variant="primary"
               size="sm"
               className="hidden sm:flex py-2"
-              onClick={() => window.print()}
+              onClick={(e) => handleDownloadInvoice(order, e)}
             >
               <Download className="mr-2 h-4 w-4" /> Invoice
             </CustomButton>
@@ -168,7 +181,9 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
                   <TableRow className="hover:bg-transparent bg-slate-50/30">
                     <TableHead className="w-20 px-6">Image</TableHead>
                     <TableHead className="px-6">Product</TableHead>
-                    <TableHead className="px-6 text-center">Attribute</TableHead>
+                    <TableHead className="px-6 text-center">
+                      Attribute
+                    </TableHead>
                     <TableHead className="px-6 text-center">Qty</TableHead>
                     <TableHead className="px-6 text-right">Price</TableHead>
                     <TableHead className="px-6 text-right">Total</TableHead>
@@ -226,12 +241,15 @@ export default function ViewOrder({ orderId }: ViewOrderProps) {
                                 variant="secondary"
                                 className="text-sm p-2 h-4 mr-1"
                               >
-                                {attribute.attributeName}: {attribute.attributeValue}
+                                {attribute.attributeName}:{" "}
+                                {attribute.attributeValue}
                               </Badge>
                             ))}
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground">N/A</span>
+                          <span className="text-xs text-muted-foreground">
+                            N/A
+                          </span>
                         )}
                       </TableCell>
                       <TableCell className="px-6 text-center font-medium">
