@@ -11,6 +11,8 @@ import CustomButton from "@/components/Common/CustomButton";
 import { apiClient } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { AuthRoutes } from "@/routes/auth.route";
+import { useCompanyInformation } from "@/hooks/web.api";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { ApiResponse, AuthData, LoginCredentials } from "@/types/auth";
 import {
@@ -35,14 +37,12 @@ const resolveErrorMessage = (error: unknown) => {
   return ERROR_MESSAGE;
 };
 
-type ViewState =
-  | "login"
-  | "forgot-password-otp"
-  | "reset-password";
+type ViewState = "login" | "forgot-password-otp" | "reset-password";
 
 const Login = () => {
   const router = useRouter();
   const setUser = useAuthStore((state) => state.setUser);
+  const { data: companyInfo } = useCompanyInformation();
 
   const [view, setView] = useState<ViewState>("login");
   const [email, setEmail] = useState<string>("");
@@ -57,7 +57,6 @@ const Login = () => {
   const [otpExpiry, setOtpExpiry] = useState<string | null>(null);
   const [otpSecondsLeft, setOtpSecondsLeft] = useState<number>(0);
   const otpTimerRef = useRef<number | null>(null);
-  
 
   const sendOtpMutation = useForgotPasswordSendOtp();
   const verifyOtpMutation = useForgotPasswordVerifyOtp();
@@ -142,7 +141,7 @@ const Login = () => {
       // Set user in store before navigation so dashboard has the auth state available
       setUser(stored);
       setPassword("");
-      toast.success(`Welcome, ${user.name || 'User'}!`);
+      toast.success(`Welcome, ${user.name || "User"}!`);
       router.push("/dashboard");
     } catch (err: unknown) {
       const message = resolveErrorMessage(err);
@@ -288,7 +287,7 @@ const Login = () => {
     return (
       <form
         onSubmit={handleVerifyOtp}
-        className="space-y-6 border shadow-sm p-6 rounded-md border-slate-200 w-full max-w-sm md:max-w-[600px]"
+        className="space-y-6 border shadow-sm p-6 rounded-md border-slate-200 w-full max-w-sm md:max-w-150"
       >
         <div className="flex flex-col gap-1">
           <span className="text-lg font-semibold text-slate-900">
@@ -311,13 +310,13 @@ const Login = () => {
             onClick={handleResendOtp}
             disabled={sendOtpMutation.isPending || otpSecondsLeft > 0}
             aria-disabled={sendOtpMutation.isPending || otpSecondsLeft > 0}
-            className={`text-sm font-medium ${sendOtpMutation.isPending || otpSecondsLeft > 0 ? 'opacity-50 cursor-not-allowed' : 'hover:cursor-pointer'}`}
+            className={`text-sm font-medium ${sendOtpMutation.isPending || otpSecondsLeft > 0 ? "opacity-50 cursor-not-allowed" : "hover:cursor-pointer"}`}
           >
             {sendOtpMutation.isPending
-              ? 'Sending...'
+              ? "Sending..."
               : otpSecondsLeft > 0
-              ? `Resend OTP (${formatTime(otpSecondsLeft)})`
-              : 'Resend OTP'}
+                ? `Resend OTP (${formatTime(otpSecondsLeft)})`
+                : "Resend OTP"}
           </button>
         </div>
         <div className="flex gap-2 mt-4">
@@ -338,7 +337,7 @@ const Login = () => {
     return (
       <form
         onSubmit={handleSubmit(onSubmitReset)}
-        className="space-y-6 border shadow-sm border-slate-200 rounded p-4 w-full max-w-sm md:max-w-[400px]"
+        className="space-y-6 border shadow-sm border-slate-200 rounded p-4 w-full max-w-sm md:max-w-100"
       >
         <div className="flex flex-col gap-1">
           <span className="text-lg font-semibold text-slate-900">
@@ -395,8 +394,22 @@ const Login = () => {
   return (
     <form
       onSubmit={handleLoginSubmit}
-      className="space-y-6 border shadow-sm border-slate-200 rounded p-4 w-full max-w-sm md:max-w-[400px]"
+      className="space-y-6 border shadow-sm border-slate-200 rounded p-4 w-full max-w-sm md:max-w-100"
     >
+      {companyInfo?.logo ? (
+        <div className="mx-auto mb-4">
+          <Image
+            src={companyInfo.logo}
+            alt={companyInfo?.shortDescription || "Company logo"}
+            width={800}
+            height={800}
+            className="lg:w-[600px] object-contain"
+          />
+        </div>
+      ) : null}
+      {/* <h2 className="text-center text-xl font-bold text-slate-900 mb-2">
+        Login
+      </h2> */}
       <CustomInput
         label="Email"
         type="email"
@@ -423,9 +436,9 @@ const Login = () => {
           onClick={handleForgotPasswordFromLogin}
           disabled={sendOtpMutation.isPending}
           aria-disabled={sendOtpMutation.isPending}
-          className={`text-sm font-medium ${sendOtpMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'hover:cursor-pointer'}`}
+          className={`text-sm font-medium ${sendOtpMutation.isPending ? "opacity-50 cursor-not-allowed" : "hover:cursor-pointer"}`}
         >
-          {sendOtpMutation.isPending ? 'Sending...' : 'Forgot password?'}
+          {sendOtpMutation.isPending ? "Sending..." : "Forgot password?"}
         </button>
       </div>
     </form>
