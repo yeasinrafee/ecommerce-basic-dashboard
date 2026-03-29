@@ -25,11 +25,14 @@ interface Props {
 
 export default function CreateAttribute({ open, onOpenChange, defaultValues, onSubmit, submitting = false }: Props) {
   const isEdit = Boolean(defaultValues && defaultValues.name)
+  const initialValuesRef = React.useRef<string[]>(defaultValues?.values ?? [])
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormSchema>({
+  const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<FormSchema>({
     resolver: zodResolver(schema),
     defaultValues: { name: defaultValues?.name ?? "" }
   })
+
+  const nameValue = watch("name")
 
   const [tags, setTags] = React.useState<string[]>(defaultValues?.values ?? [])
   const [tagInput, setTagInput] = React.useState<string>("")
@@ -38,6 +41,7 @@ export default function CreateAttribute({ open, onOpenChange, defaultValues, onS
     reset({ name: defaultValues?.name ?? "" })
     setTags(defaultValues?.values ?? [])
     setTagInput("")
+    initialValuesRef.current = defaultValues?.values ?? []
   }, [defaultValues, reset])
 
   const addTagsFromInput = () => {
@@ -66,8 +70,22 @@ export default function CreateAttribute({ open, onOpenChange, defaultValues, onS
   }
 
   const removeTag = (idx: number) => {
+    if (isEdit && initialValuesRef.current.includes(tags[idx])) {
+      return
+    }
+
     setTags((prev) => prev.filter((_, i) => i !== idx))
   }
+
+  const initialName = defaultValues?.name ?? ""
+  const hasName = Boolean(nameValue?.trim())
+  const hasAtLeastOneValue = tags.length > 0
+  const hasEditedName = nameValue.trim() !== initialName.trim()
+  const hasEditedValues = tags.length !== initialValuesRef.current.length
+    || tags.some((tag, index) => tag !== initialValuesRef.current[index])
+
+  const isCreateDisabled = !hasName || !hasAtLeastOneValue
+  const isEditDisabled = !(hasEditedName || hasEditedValues)
 
   const submit = async (data: FormSchema) => {
     if (onSubmit) {
@@ -87,7 +105,12 @@ export default function CreateAttribute({ open, onOpenChange, defaultValues, onS
       description={isEdit ? "Edit attribute details" : "Create a new attribute"}
       footer={
         <div className="flex justify-center w-full gap-2">
-          <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
+          <CustomButton
+            loading={isSubmitting || submitting}
+            disabled={isEdit ? isEditDisabled : isCreateDisabled}
+            type="button"
+            onClick={handleSubmit(submit)}
+          >
             {isEdit ? "Update Attribute" : "Create Attribute"}
           </CustomButton>
         </div>
@@ -115,9 +138,11 @@ export default function CreateAttribute({ open, onOpenChange, defaultValues, onS
               {tags.map((t, i) => (
                 <div key={t + i} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm">
                   <span>{t}</span>
-                  <button type="button" onClick={() => removeTag(i)} className="p-1 rounded-full hover:bg-muted/50">
-                    <X size={14} />
-                  </button>
+                  {!(isEdit && initialValuesRef.current.includes(t)) ? (
+                    <button type="button" onClick={() => removeTag(i)} className="p-1 rounded-full hover:bg-muted/50">
+                      <X size={14} />
+                    </button>
+                  ) : null}
                 </div>
               ))}
             </div>
