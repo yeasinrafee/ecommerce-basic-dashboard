@@ -100,7 +100,10 @@ const fetchProductById = async (id: string): Promise<Product> => {
 
 const deleteProductReq = async (id: string) => {
 	const response = await apiClient.delete<ApiResponse<null>>(ProductRoutes.delete(id));
-	return ensurePayload(response.data, 'Failed to delete product');
+	if (!response.data.success) {
+		throw new Error(response.data.message || 'Failed to delete product');
+	}
+	return response.data;
 };
 
 export const usePaginatedProducts = (page: number, limit = 20, searchTerm?: string | null) => {
@@ -151,8 +154,13 @@ export const useDeleteProduct = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: deleteProductReq,
-		onSuccess: async () => {
+		onSuccess: async (data: any) => {
+			toast.success(data?.message || 'Product deleted successfully');
 			await queryClient.invalidateQueries({ queryKey: productKeys.all });
+		},
+		onError: (err: any) => {
+			const message = err?.response?.data?.message || err?.message || 'Failed to delete product';
+			toast.error(message);
 		}
 	});
 };

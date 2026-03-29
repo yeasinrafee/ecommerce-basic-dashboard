@@ -124,12 +124,12 @@ export default function ManageAttributes() {
                 <DropdownMenuItem onClick={() => handleEdit(attr)}>
                   Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem
+                {/* <DropdownMenuItem
                   variant="destructive"
                   onClick={() => handleDelete(attr)}
                 >
                   Delete
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
