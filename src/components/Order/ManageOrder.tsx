@@ -212,11 +212,34 @@ export default function ManageOrder() {
       {
         header: "Placed At",
         accessor: "createdAt",
-        cell: (row) => new Date(row.createdAt).toLocaleDateString()
+        cell: (row) => formatFriendlyDate(row.createdAt)
       }
     ],
     [items, selected, optimisticStatus]
   )
+
+  const getOrdinalDay = (day: number) => {
+    if (day > 3 && day < 21) return `${day}th`
+    switch (day % 10) {
+      case 1:
+        return `${day}st`
+      case 2:
+        return `${day}nd`
+      case 3:
+        return `${day}rd`
+      default:
+        return `${day}th`
+    }
+  }
+
+  const formatFriendlyDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    if (Number.isNaN(date.getTime())) return "Invalid date"
+    const month = date.toLocaleString("default", { month: "short" })
+    const day = getOrdinalDay(date.getDate())
+    const year = date.getFullYear()
+    return `${day} ${month} ${year}`
+  }
 
   const handleView = (id: string) => {
     router.push(`/dashboard/orders/${id}`)
