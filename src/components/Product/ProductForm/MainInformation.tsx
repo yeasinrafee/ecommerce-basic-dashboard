@@ -57,7 +57,6 @@ const MainInformation: React.FC<MainInformationProps> = ({
             name="brand"
             control={control}
             label="Product Brand"
-            requiredMark
             options={brandOptions}
           />
         </div>

@@ -92,7 +92,12 @@ const createProductSchema = z
     length: nullablePositiveNumberSchema,
     width: nullablePositiveNumberSchema,
     height: nullablePositiveNumberSchema,
-    brand: z.string().trim().min(1, "Brand is required"),
+    brand: z.preprocess((value) => {
+      if (value === "" || value === null || value === undefined) {
+        return undefined;
+      }
+      return String(value).trim();
+    }, z.string().optional()),
     status: z.enum(["ACTIVE", "INACTIVE"]),
     stockStatus: z.enum(["IN_STOCK", "LOW_STOCK", "OUT_OF_STOCK"]),
     categories: z
@@ -292,7 +297,6 @@ export default function CreateProductForm({ productId }: { productId?: string })
   const [isEditorProcessing, setIsEditorProcessing] = React.useState(false);
 
   const selectedDiscountType = watch("discountType");
-  const brandValue = watch("brand");
   const stockStatusValue = watch("stockStatus");
   const productStatusValue = watch("status");
 
@@ -308,15 +312,6 @@ export default function CreateProductForm({ productId }: { productId?: string })
       })),
     [allBrands],
   );
-
-  React.useEffect(() => {
-    if (!brandValue && brandOptions.length > 0) {
-      setValue("brand", brandOptions[0].value, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-    }
-  }, [brandOptions, brandValue, setValue]);
 
   const categoriesList = React.useMemo(
     () => productCategories ?? [],
@@ -694,7 +689,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
     payload.append("length", values.length == null ? "" : String(values.length));
     payload.append("width", values.width == null ? "" : String(values.width));
     payload.append("height", values.height == null ? "" : String(values.height));
-    payload.append("brandId", values.brand);
+    if (values.brand) payload.append("brandId", values.brand);
     payload.append("status", values.status);
     payload.append("stockStatus", values.stockStatus);
     payload.append("categories", JSON.stringify(values.categories));
@@ -730,7 +725,7 @@ export default function CreateProductForm({ productId }: { productId?: string })
     payload.append("length", values.length == null ? "" : String(values.length));
     payload.append("width", values.width == null ? "" : String(values.width));
     payload.append("height", values.height == null ? "" : String(values.height));
-    payload.append("brandId", values.brand);
+    if (values.brand) payload.append("brandId", values.brand);
     payload.append("status", values.status);
     payload.append("stockStatus", values.stockStatus);
     payload.append("categories", JSON.stringify(values.categories));
