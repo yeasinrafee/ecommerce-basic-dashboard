@@ -30,11 +30,6 @@ export const routes: RouteItem[] = [
     label: "Dashboard",
     href: "/dashboard",
   },
-  {
-    icon: LuLayoutDashboard,
-    label: "Manage Admin",
-    href: "/dashboard/admin",
-  },
   // --- Products ---
   {
     icon: LuBox,
@@ -74,6 +69,21 @@ export const routes: RouteItem[] = [
       {
         label: "Blog Categories",
         href: "/dashboard/categories/blog-categories/manage",
+      },
+    ],
+  },
+  {
+    icon: LuUsers,
+    label: "User Management",
+    href: "",
+    subItems: [
+      {
+        label: "Manage Admin",
+        href: "/dashboard/admin",
+      },
+      {
+        label: "Manage Customers",
+        href: "/dashboard/customer/manage",
       },
     ],
   },
@@ -131,12 +141,6 @@ export const routes: RouteItem[] = [
     href: "/dashboard/attributes/manage",
   },
   // --- Users ---
-  {
-    icon: LuUsers,
-    label: "Manage Customers",
-    href: "/dashboard/customer/manage",
-  },
-  // --- Marketing ---
   {
     icon: LuTicketPercent,
     label: "Promos",
