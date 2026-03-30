@@ -216,7 +216,7 @@ const ManageProduct: React.FC = () => {
             onClick={applyBulkUpdate}
             loading={bulkPatchMutation.isPending}
           >
-            Update
+            Update Status
           </CustomButton>
         </div>
       </div>

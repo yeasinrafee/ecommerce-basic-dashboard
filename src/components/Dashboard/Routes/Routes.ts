@@ -30,11 +30,6 @@ export const routes: RouteItem[] = [
     label: "Dashboard",
     href: "/dashboard",
   },
-  {
-    icon: LuLayoutDashboard,
-    label: "Manage Admin",
-    href: "/dashboard/admin",
-  },
   // --- Products ---
   {
     icon: LuBox,
@@ -49,6 +44,26 @@ export const routes: RouteItem[] = [
         label: "Manage Products", 
         href: "/dashboard/product/manage", 
       },
+      {
+        label: "Product Categories",
+        href: "/dashboard/categories/product-categories/manage",
+      },
+      {
+        label: "Product Sub-Categories",
+        href: "/dashboard/categories/product-subcategories/manage",
+      },
+      {
+        label: "Product Tags",
+        href: "/dashboard/tags/product-tags/manage",
+      },
+      {
+        label: "Manage Attributes",
+        href: "/dashboard/attributes/manage",
+      },
+      {
+        label: "Manage Brands",
+        href: "/dashboard/brands/manage",
+      },
     ],
   },
   // --- Orders ---
@@ -57,62 +72,41 @@ export const routes: RouteItem[] = [
     label: "Manage Orders",
     href: "/dashboard/orders",
   },
-  // --- Categories ---
   {
-    icon: LuLayers,
-    label: "Manage Categories",
+    icon: LuUsers,
+    label: "User Management",
     href: "",
     subItems: [
       {
-        label: "Product Categories",
-        href: "/dashboard/categories/product-categories/manage",
+        label: "Manage Admin",
+        href: "/dashboard/admin",
       },
-        {
-          label: "Product Sub-Categories",
-          href: "/dashboard/categories/product-subcategories/manage",
-        },
       {
-        label: "Blog Categories",
-        href: "/dashboard/categories/blog-categories/manage",
+        label: "Manage Customers",
+        href: "/dashboard/customer/manage",
       },
     ],
-  },
-  {
-    icon: LuList,
-    label: "Manage Brands",
-    href: "/dashboard/brands/manage",
-  },
-  {
-    icon: LuGlobe,
-    label: "Manage Zones",
-    href: "/dashboard/zones/manage",
   },
   {
     icon: LuTruck,
-    label: "Shipping",
+    label: "Shipping Management",
     href: "/dashboard/shipping/manage",
-  },
-  {
-    icon: LuTicketPercent,
-    label: "Zone Policies",
-    href: "/dashboard/zone-policies",
-    subItems: [
-      { label: "Create Zone Policy", href: "/dashboard/zone-policies/create" },
-      { label: "Manage Zone Policies", href: "/dashboard/zone-policies/manage" },
-    ],
-  },
-  {
-    icon: LuTicketPercent,
-    label: "Manage Tags",
-    href: "/dashboard/tags",
     subItems: [
       {
-        label: "Product Tags",
-        href: "/dashboard/tags/product-tags/manage",
+        label: "Manage Zones",
+        href: "/dashboard/zones/manage",
       },
       {
-        label: "Blog Tags",
-        href: "/dashboard/tags/blog-tags/manage",
+        label: "Shipping",
+        href: "/dashboard/shipping/manage",
+      },
+      {
+        label: "Create Zone Policy",
+        href: "/dashboard/zone-policies/create",
+      },
+      {
+        label: "Manage Zone Policies",
+        href: "/dashboard/zone-policies/manage",
       },
     ],
   },
@@ -123,23 +117,14 @@ export const routes: RouteItem[] = [
     subItems: [
       { label: "Create Blog", href: "/dashboard/blog/create" },
       { label: "Manage Blogs", href: "/dashboard/blog/manage" },
+      { label: "Blog Categories", href: "/dashboard/categories/blog-categories/manage" },
+      { label: "Blog Tags", href: "/dashboard/tags/blog-tags/manage" },
     ],
-  },
-  {
-    icon: LuList,
-    label: "Manage Attributes",
-    href: "/dashboard/attributes/manage",
   },
   // --- Users ---
   {
-    icon: LuUsers,
-    label: "Manage Customers",
-    href: "/dashboard/customer/manage",
-  },
-  // --- Marketing ---
-  {
     icon: LuTicketPercent,
-    label: "Promos",
+    label: "Promo & Offers",
     href: "/admin/promos",
     subItems: [
       { 
