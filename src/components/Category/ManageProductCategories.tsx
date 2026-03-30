@@ -185,9 +185,9 @@ export default function ManageProductCategories() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleCreateSubcategory(cat)}>
+                {/* <DropdownMenuItem onClick={() => handleCreateSubcategory(cat)}>
                   Create Subcategory
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 <DropdownMenuItem onClick={() => handleEdit(cat)}>
                   Edit
                 </DropdownMenuItem>

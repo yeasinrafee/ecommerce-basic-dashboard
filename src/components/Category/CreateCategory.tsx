@@ -81,9 +81,9 @@ export default function CreateCategory({
       title={isEdit ? "Update Category" : "Create Category"}
       description={isEdit ? "Edit category details" : "Create a new category"}
       footer={
-        <div className="flex gap-2">
+        <div className="flex justify-center w-full gap-2">
           <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
-            {isEdit ? "Update" : "Create"}
+            {isEdit ? "Update Category" : "Create Category"}
           </CustomButton>
         </div>
       }
