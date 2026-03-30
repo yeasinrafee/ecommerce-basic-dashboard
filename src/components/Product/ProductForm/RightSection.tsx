@@ -232,7 +232,6 @@ const RightSection: React.FC<RightSectionProps> = ({
       <div className="rounded-2xl border border-slate-200 bg-background px-4 py-4 shadow-sm">
         <h3 className="text-lg font-semibold text-slate-900">
           Product Tags
-          <span className="ml-1 text-destructive">*</span>
         </h3>
         <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
           {tagList.map((tag) => (
