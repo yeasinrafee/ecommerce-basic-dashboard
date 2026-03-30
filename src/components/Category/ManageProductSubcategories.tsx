@@ -181,12 +181,12 @@ export default function ManageProductSubcategories() {
                 <DropdownMenuItem onClick={() => handleEdit(cat)}>
                   Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem
+                {/* <DropdownMenuItem
                   variant="destructive"
                   onClick={() => handleDelete(cat)}
                 >
                   Delete
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
