@@ -1,10 +1,12 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000/api").replace(/\/$/, "");
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL
+  ?? (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : undefined)
+  ?? "http://localhost:5000/api"
+).replace(/\/$/, "");
 const FORBIDDEN_FORWARD_HEADERS = new Set([
   "host",
-  "cookie",
   "content-length",
   "content-encoding",
   "transfer-encoding",
@@ -28,7 +30,7 @@ const methodAllowsBody = (method: string) => {
   return verb !== "GET" && verb !== "HEAD" && verb !== "OPTIONS";
 };
 
-const resolveForwardHeaders = (req: Request, accessToken?: string) => {
+const resolveForwardHeaders = (req: Request) => {
   const forwardHeaders = new Headers();
 
   req.headers.forEach((value, key) => {
@@ -43,9 +45,17 @@ const resolveForwardHeaders = (req: Request, accessToken?: string) => {
     }
   });
 
-  if (accessToken) {
-    forwardHeaders.set("Authorization", `Bearer ${accessToken}`);
+  const incomingCookieHeader = req.headers.get("cookie");
+
+  if (incomingCookieHeader) {
+    // Forward browser cookies (including httpOnly auth cookies) to backend.
+    forwardHeaders.set("cookie", incomingCookieHeader);
   }
+
+  // Legacy bearer-token forwarding (deprecated):
+  // if (accessToken) {
+  //   forwardHeaders.set("Authorization", `Bearer ${accessToken}`);
+  // }
 
   return forwardHeaders;
 };
@@ -71,9 +81,7 @@ const proxyRequest = async (
   try {
     const { path } = await params;
     const targetUrl = buildTargetUrl(path, req.url);
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("accessToken")?.value;
-    const headers = resolveForwardHeaders(req, accessToken);
+    const headers = resolveForwardHeaders(req);
     const body = methodAllowsBody(req.method) ? req.body : undefined;
 
     const response = await fetch(targetUrl, {
