@@ -25,6 +25,8 @@ import OtpInput from "@/components/FormFields/OtpInput";
 const ERROR_MESSAGE =
   "Login failed. Please verify your credentials and try again.";
 
+const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "Login";
+
 const resolveErrorMessage = (error: unknown) => {
   if (axios.isAxiosError(error)) {
     return error.response?.data?.message ?? error.message ?? ERROR_MESSAGE;
@@ -403,10 +405,16 @@ const Login = () => {
             alt={companyInfo?.shortDescription || "Company logo"}
             width={800}
             height={800}
-            className="lg:w-[600px] object-contain"
+            className="lg:w-150 object-contain"
           />
         </div>
-      ) : null}
+      ) : (
+        <div className="mx-auto mb-10 flex items-center justify-center rounded-2xl border border-slate-200 bg-white/80 px-6 py-4 shadow-sm backdrop-blur">
+          <span className="text-2xl font-semibold tracking-wide text-slate-900">
+            {COMPANY_NAME}
+          </span>
+        </div>
+      )}
       {/* <h2 className="text-center text-xl font-bold text-slate-900 mb-2">
         Login
       </h2> */}
