@@ -41,7 +41,7 @@ export default function ManageProductCategories() {
 
   const api = productApi
 
-  const categoriesQuery = api.usePaginatedCategories(page, limit, searchTerm)
+  const categoriesQuery = api.useParentPaginatedCategories(page, limit, searchTerm)
   const { data, isLoading, error } = categoriesQuery
   const createMutation = api.useCreateCategory()
   const updateMutation = api.useUpdateCategory()
