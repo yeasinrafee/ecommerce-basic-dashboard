@@ -159,12 +159,13 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
         </p>
         <div className="grid gap-4 md:grid-cols-2">
           <CustomInput
-            label="Weight (grams)"
+            label="Weight (grams/Ml)"
             type="number"
             value={weight === null ? "" : weight}
             onValueChange={(value) => setWeight(value as number | null)}
             placeholder="0"
             min={0}
+            requiredMark
           />
 
           <div>
@@ -176,6 +177,7 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
                 onValueChange={(value) => setLengthCm(value as number | null)}
                 placeholder="0"
                 min={0}
+                requiredMark
               />
               <CustomInput
                 label="Width"
@@ -184,6 +186,7 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
                 onValueChange={(value) => setWidthCm(value as number | null)}
                 placeholder="0"
                 min={0}
+                requiredMark
               />
               <CustomInput
                 label="Height"
@@ -192,6 +195,7 @@ const GeneralInformation: React.FC<GeneralInformationProps> = ({
                 onValueChange={(value) => setHeightCm(value as number | null)}
                 placeholder="0"
                 min={0}
+                requiredMark
               />
             </div>
           </div>
