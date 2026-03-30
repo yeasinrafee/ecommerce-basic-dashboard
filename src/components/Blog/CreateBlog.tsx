@@ -73,7 +73,6 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
       (shortDescription ?? '').toString().trim() &&
       (content ?? '').toString().trim() &&
       (category ?? '') &&
-      Array.isArray(tags) && tags.length > 0 &&
       hasImage
   );
 
@@ -299,7 +298,6 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
         <div className="rounded-2xl border border-slate-200 bg-background px-4 py-4 shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900">
             Tags
-            <span className="ml-1 text-destructive" aria-hidden="true">*</span>
           </h3>
           <div className="mt-4 space-y-3 max-h-65 overflow-y-auto pr-2">
             {tagList.map((t) => (

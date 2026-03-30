@@ -27,12 +27,13 @@ interface Props {
 }
 
 export default function CreateSubcategory({ open, onOpenChange, onSubmit, submitting = false, defaultValues }: Props) {
+  const isEdit = Boolean(defaultValues)
   const {
     register,
     handleSubmit,
     reset,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<FormSchema>({
     resolver: zodResolver(schema),
     defaultValues: { name: defaultValues?.name ?? "", parentId: defaultValues?.parentId ?? "" },
@@ -40,6 +41,7 @@ export default function CreateSubcategory({ open, onOpenChange, onSubmit, submit
 
   React.useEffect(() => {
     reset({ name: defaultValues?.name ?? "", parentId: defaultValues?.parentId ?? "" })
+    setUploadedFiles([])
   }, [open, reset, defaultValues])
 
   const [uploadedFiles, setUploadedFiles] = React.useState<CustomFileUploadFile[]>([])
@@ -51,6 +53,7 @@ export default function CreateSubcategory({ open, onOpenChange, onSubmit, submit
 
   const existingImage = defaultValues?.image as string | undefined
   const showExistingImage = Boolean(defaultValues && existingImage && uploadedFiles.length === 0)
+  const hasChanges = !isEdit || isDirty || uploadedFiles.length > 0
 
   const submit = async (data: FormSchema) => {
     if (onSubmit) {
@@ -72,12 +75,12 @@ export default function CreateSubcategory({ open, onOpenChange, onSubmit, submit
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Create Subcategory"
-      description="Create a new subcategory and assign it to a parent category"
+      title={isEdit ? "Edit Subcategory" : "Create Subcategory"}
+      description={isEdit ? "Edit subcategory details" : "Create a new subcategory and assign it to a parent category"}
       footer={
-        <div className="flex gap-2">
-          <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
-            Create
+        <div className="flex w-full justify-center gap-2">
+          <CustomButton loading={isSubmitting || submitting} disabled={isEdit ? !hasChanges : false} type="button" onClick={handleSubmit(submit)}>
+            {isEdit ? "Update Sub-category" : "Create Sub-category"}
           </CustomButton>
         </div>
       }

@@ -68,6 +68,24 @@ const fetchPaginatedCategories = async (
   };
 };
 
+const fetchParentPaginatedCategories = async (
+  page: number,
+  limit: number,
+  searchTerm?: string
+): Promise<PagedResult<Category>> => {
+  const response = await apiClient.get<ApiResponse<Category[]>>(ProductCategoryRoutes.getParentPaginated, {
+    params: { page, limit, searchTerm }
+  });
+
+  const categories = ensurePayload(response.data, "Failed to load categories");
+  const meta = normalizeMeta(response.data.meta, page, limit, categories.length);
+
+  return {
+    data: categories,
+    meta
+  };
+};
+
 const fetchAllCategories = async (): Promise<Category[]> => {
   const response = await apiClient.get<ApiResponse<Category[]>>(ProductCategoryRoutes.getAll);
   return ensurePayload(response.data, "Failed to load categories");
@@ -88,6 +106,18 @@ export const usePaginatedCategories = (
   return useQuery<PagedResult<Category>>({
     queryKey: categoryKeys.paginated(page, limit, searchTerm),
     queryFn: () => fetchPaginatedCategories(page, limit, searchTerm),
+    placeholderData: keepPreviousData
+  });
+};
+
+export const useParentPaginatedCategories = (
+  page: number,
+  limit = 10,
+  searchTerm?: string
+) => {
+  return useQuery<PagedResult<Category>>({
+    queryKey: [...categoryKeys.all, "parent-paginated", page, limit, searchTerm] as const,
+    queryFn: () => fetchParentPaginatedCategories(page, limit, searchTerm),
     placeholderData: keepPreviousData
   });
 };

@@ -41,7 +41,7 @@ export default function ManageProductCategories() {
 
   const api = productApi
 
-  const categoriesQuery = api.usePaginatedCategories(page, limit, searchTerm)
+  const categoriesQuery = api.useParentPaginatedCategories(page, limit, searchTerm)
   const { data, isLoading, error } = categoriesQuery
   const createMutation = api.useCreateCategory()
   const updateMutation = api.useUpdateCategory()
@@ -185,9 +185,9 @@ export default function ManageProductCategories() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleCreateSubcategory(cat)}>
+                {/* <DropdownMenuItem onClick={() => handleCreateSubcategory(cat)}>
                   Create Subcategory
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 <DropdownMenuItem onClick={() => handleEdit(cat)}>
                   Edit
                 </DropdownMenuItem>
@@ -209,7 +209,7 @@ export default function ManageProductCategories() {
           setModalOpen(v);
           if (!v) setNewSubParentId(undefined);
         }}
-        defaultValues={editing ? { name: editing.name } : undefined}
+        defaultValues={editing ? { name: editing.name, image: (editing as any).image, parentId: (editing as any).parentId ?? null } : undefined}
         initialParentId={editing ? (editing as any).parentId ?? undefined : newSubParentId}
         submitting={createMutation.isPending || updateMutation.isPending}
         onSubmit={handleSaveCategory}

@@ -98,9 +98,7 @@ const createProductSchema = z
     categories: z
       .array(z.string().trim().min(1))
       .min(1, "At least one category is required"),
-    tags: z
-      .array(z.string().trim().min(1))
-      .min(1, "At least one tag is required"),
+    tags: z.array(z.string().trim().min(1)),
     galleryImagesMeta: z.array(
       z.object({
         id: z.string().trim().min(1),

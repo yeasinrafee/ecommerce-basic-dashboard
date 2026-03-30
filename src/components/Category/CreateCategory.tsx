@@ -18,7 +18,7 @@ type FormSchema = z.infer<typeof schema>
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
-  defaultValues?: Partial<FormSchema>
+  defaultValues?: Partial<FormSchema> & { image?: string; parentId?: string | null }
   onSubmit?: (data: FormSchema | FormData) => Promise<void> | void
   submitting?: boolean
   kind?: 'product' | 'blog'
@@ -81,9 +81,9 @@ export default function CreateCategory({
       title={isEdit ? "Update Category" : "Create Category"}
       description={isEdit ? "Edit category details" : "Create a new category"}
       footer={
-        <div className="flex gap-2">
+        <div className="flex justify-center w-full gap-2">
           <CustomButton loading={isSubmitting || submitting} type="button" onClick={handleSubmit(submit)}>
-            {isEdit ? "Update" : "Create"}
+            {isEdit ? "Update Category" : "Create Category"}
           </CustomButton>
         </div>
       }

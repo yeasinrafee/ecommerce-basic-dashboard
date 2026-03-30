@@ -2,6 +2,7 @@ const catBase = '/product-categories';
 
 export const ProductCategoryRoutes = {
   getAllPaginated: `${catBase}/get-all-paginated`,
+  getParentPaginated: `${catBase}/get-parent-categories-paginated`,
   getAll: `${catBase}/get-all`,
   getById: (id: string) => `${catBase}/get/${id}`,
   create: `${catBase}/create`,
