@@ -409,7 +409,7 @@ const Login = () => {
           />
         </div>
       ) : (
-        <div className="mx-auto mb-10 flex items-center justify-center rounded-2xl border border-slate-200 bg-white/80 px-6 py-4 shadow-sm backdrop-blur">
+        <div className="mx-auto mb-10 flex items-center justify-center">
           <span className="text-2xl font-semibold tracking-wide text-slate-900">
             {COMPANY_NAME}
           </span>
