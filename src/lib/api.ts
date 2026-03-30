@@ -1,5 +1,6 @@
 import axios, { AxiosHeaders } from "axios"
-import { getAccessTokenFromCookie } from "@/lib/cookies"
+// Legacy bearer-token auth (deprecated):
+// import { getAccessTokenFromCookie } from "@/lib/cookies"
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api/proxy").replace(/\/$/, "");
 
@@ -34,8 +35,10 @@ apiClient.interceptors.request.use((config) => {
     config.url = normalizeUrlForBase(config.url, config.baseURL)
   }
 
+  // Always include cookies (httpOnly accessToken/refreshToken) on every request.
+  config.withCredentials = true
+
   const headersObj = AxiosHeaders.from(config.headers || {});
-  const token = getAccessTokenFromCookie()
 
   if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
     headersObj.delete('Content-Type');
@@ -43,11 +46,16 @@ apiClient.interceptors.request.use((config) => {
     headersObj.set('Content-Type', 'application/json');
   }
 
-  if (token) {
-    headersObj.set('Authorization', `Bearer ${token}`);
-  } else {
-    headersObj.delete('Authorization');
-  }
+  // Legacy bearer-token auth (deprecated):
+  // const token = getAccessTokenFromCookie()
+  // if (token) {
+  //   headersObj.set('Authorization', `Bearer ${token}`);
+  // } else {
+  //   headersObj.delete('Authorization');
+  // }
+
+  // Cookie-based auth is now handled by the browser automatically via withCredentials=true.
+  headersObj.delete('Authorization');
 
   config.headers = headersObj;
 
