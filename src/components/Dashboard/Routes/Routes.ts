@@ -88,22 +88,26 @@ export const routes: RouteItem[] = [
     ],
   },
   {
-    icon: LuGlobe,
-    label: "Manage Zones",
-    href: "/dashboard/zones/manage",
-  },
-  {
     icon: LuTruck,
-    label: "Shipping",
+    label: "Shipping Management",
     href: "/dashboard/shipping/manage",
-  },
-  {
-    icon: LuTicketPercent,
-    label: "Zone Policies",
-    href: "/dashboard/zone-policies",
     subItems: [
-      { label: "Create Zone Policy", href: "/dashboard/zone-policies/create" },
-      { label: "Manage Zone Policies", href: "/dashboard/zone-policies/manage" },
+      {
+        label: "Manage Zones",
+        href: "/dashboard/zones/manage",
+      },
+      {
+        label: "Shipping",
+        href: "/dashboard/shipping/manage",
+      },
+      {
+        label: "Create Zone Policy",
+        href: "/dashboard/zone-policies/create",
+      },
+      {
+        label: "Manage Zone Policies",
+        href: "/dashboard/zone-policies/manage",
+      },
     ],
   },
   {
@@ -113,12 +117,14 @@ export const routes: RouteItem[] = [
     subItems: [
       { label: "Create Blog", href: "/dashboard/blog/create" },
       { label: "Manage Blogs", href: "/dashboard/blog/manage" },
+      { label: "Blog Categories", href: "/dashboard/categories/blog-categories/manage" },
+      { label: "Blog Tags", href: "/dashboard/tags/blog-tags/manage" },
     ],
   },
   // --- Users ---
   {
     icon: LuTicketPercent,
-    label: "Promos",
+    label: "Promo & Offers",
     href: "/admin/promos",
     subItems: [
       { 
