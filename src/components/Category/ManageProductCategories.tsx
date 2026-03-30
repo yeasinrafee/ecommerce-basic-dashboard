@@ -209,7 +209,7 @@ export default function ManageProductCategories() {
           setModalOpen(v);
           if (!v) setNewSubParentId(undefined);
         }}
-        defaultValues={editing ? { name: editing.name } : undefined}
+        defaultValues={editing ? { name: editing.name, image: (editing as any).image, parentId: (editing as any).parentId ?? null } : undefined}
         initialParentId={editing ? (editing as any).parentId ?? undefined : newSubParentId}
         submitting={createMutation.isPending || updateMutation.isPending}
         onSubmit={handleSaveCategory}

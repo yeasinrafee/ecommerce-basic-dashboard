@@ -18,7 +18,7 @@ type FormSchema = z.infer<typeof schema>
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
-  defaultValues?: Partial<FormSchema>
+  defaultValues?: Partial<FormSchema> & { image?: string; parentId?: string | null }
   onSubmit?: (data: FormSchema | FormData) => Promise<void> | void
   submitting?: boolean
   kind?: 'product' | 'blog'
