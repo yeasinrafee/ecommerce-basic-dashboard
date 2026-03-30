@@ -396,16 +396,16 @@ const Login = () => {
   return (
     <form
       onSubmit={handleLoginSubmit}
-      className="space-y-6 border shadow-sm border-slate-200 rounded p-4 w-full max-w-sm md:max-w-100"
+      className="space-y-6 border shadow-sm border-slate-200 bg-white rounded p-6 w-full max-w-[340px] md:max-w-[480px]"
     >
       {companyInfo?.logo ? (
-        <div className="mx-auto mb-10">
+        <div className="mx-auto mb-4 w-full flex items-center justify-center">
           <Image
             src={companyInfo.logo}
             alt={companyInfo?.shortDescription || "Company logo"}
             width={800}
             height={800}
-            className="lg:w-150 object-contain"
+            className="size-[80px] object-contain"
           />
         </div>
       ) : (
