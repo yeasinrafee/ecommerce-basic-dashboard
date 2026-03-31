@@ -146,6 +146,7 @@ export default function CreateBlog({ open, onOpenChange, defaultValues, onSave, 
   const isDirty = React.useMemo(() => {
     // only enforce dirty-check in edit mode
     if (!defaultValues) return true;
+    if (imageFiles.length > 0 || removedExistingImage) return true;
     const initial = initialSnapshotRef.current ?? {};
     const current = {
       title: title ?? '',
