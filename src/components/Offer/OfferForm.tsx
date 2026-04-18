@@ -29,6 +29,8 @@ const nullableDateSchema = z.preprocess((value) => {
 	return new Date(String(value));
 }, z.date().nullable());
 
+const getDateKey = (value: Date | null | undefined) => value ? value.toISOString().slice(0, 10) : null;
+
 const formSchema = z.object({
 	discountType: z.enum(["PERCENTAGE_DISCOUNT", "FLAT_DISCOUNT", "NONE"]),
 	discountValue: nullableNumberSchema,
@@ -45,7 +47,10 @@ const formSchema = z.object({
 		});
 	}
 
-	if (data.discountStartDate && data.discountEndDate && data.discountEndDate < data.discountStartDate) {
+	const startDateKey = getDateKey(data.discountStartDate);
+	const endDateKey = getDateKey(data.discountEndDate);
+
+	if (startDateKey && endDateKey && endDateKey < startDateKey) {
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
 			path: ["discountEndDate"],
@@ -91,13 +96,6 @@ const calculateOfferPrice = (basePrice: number, discountType: FormValues["discou
 	}
 
 	return basePrice;
-};
-
-const formatDateOnly = (value: string | null | undefined) => {
-	if (!value) return "-";
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return "-";
-	return date.toLocaleDateString();
 };
 
 const OfferForm = ({ offerId, title, description, onSuccess }: OfferFormProps) => {
