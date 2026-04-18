@@ -49,6 +49,12 @@ export interface BulkUpdateOfferStatusPayload {
 	status: 'ACTIVE' | 'INACTIVE';
 }
 
+export interface OfferProductSearchQuery {
+	page?: number;
+	limit?: number;
+	searchTerm?: string | null;
+}
+
 const ensurePayload = <T>(response: ApiResponse<T>, fallbackMessage: string) => {
 	if (!response.success || response.data == null) {
 		throw new Error(response.message || fallbackMessage);
@@ -73,6 +79,7 @@ const normalizeMeta = (meta: Record<string, unknown>, page: number, limit: numbe
 export const offerKeys = {
 	all: ['offers'] as const,
 	paginated: (page: number, limit: number) => [...offerKeys.all, 'paginated', page, limit] as const,
+	productSearch: (page: number, limit: number, searchTerm?: string | null) => [...offerKeys.all, 'product-search', page, limit, searchTerm ?? null] as const,
 	detail: (id: string) => [...offerKeys.all, 'detail', id] as const
 };
 
@@ -87,6 +94,19 @@ const fetchPaginatedOffers = async (page: number, limit: number): Promise<PagedR
 const fetchAllOffers = async (): Promise<Offer[]> => {
 	const response = await apiClient.get<ApiResponse<Offer[]>>(OfferRoutes.getAll);
 	return ensurePayload(response.data, 'Failed to load offers');
+};
+
+const fetchOfferProducts = async ({ page = 1, limit = 8, searchTerm }: OfferProductSearchQuery): Promise<PagedResult<Product>> => {
+	const params: Record<string, unknown> = { page, limit };
+	if (searchTerm) {
+		params.searchTerm = searchTerm;
+	}
+
+	const response = await apiClient.get<ApiResponse<Product[]>>(OfferRoutes.searchProducts, { params });
+	const products = ensurePayload(response.data, 'Failed to load products');
+	const meta = normalizeMeta(response.data.meta as Record<string, unknown>, page, limit, products.length);
+
+	return { data: products, meta };
 };
 
 const fetchOffer = async (id: string): Promise<Offer> => {
@@ -132,6 +152,14 @@ export const useAllOffers = () => {
 	return useQuery<Offer[]>({
 		queryKey: offerKeys.all,
 		queryFn: fetchAllOffers
+	});
+};
+
+export const useOfferProductSearch = (searchTerm?: string | null, page = 1, limit = 8) => {
+	return useQuery<PagedResult<Product>>({
+		queryKey: offerKeys.productSearch(page, limit, searchTerm ?? null),
+		queryFn: () => fetchOfferProducts({ page, limit, searchTerm: searchTerm ?? null }),
+		placeholderData: keepPreviousData
 	});
 };
 

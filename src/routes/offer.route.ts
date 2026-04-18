@@ -2,6 +2,7 @@ const offerBase = '/offers';
 
 export const OfferRoutes = {
 	getAllPaginated: `${offerBase}/get-all-paginated`,
+	searchProducts: `${offerBase}/search-products`,
 	getAll: `${offerBase}/get-all`,
 	getById: (id: string) => `${offerBase}/get-one/${id}`,
 	create: `${offerBase}/create`,

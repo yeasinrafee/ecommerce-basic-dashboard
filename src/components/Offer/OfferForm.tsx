@@ -14,8 +14,8 @@ import CustomDatePicker from "@/components/FormFields/CustomDatePicker";
 import CustomInput from "@/components/FormFields/CustomInput";
 import CustomSelect from "@/components/FormFields/CustomSelect";
 import { Input } from "@/components/ui/input";
-import { usePaginatedProducts, type Product } from "@/hooks/product.api";
-import { useCreateOffer, useGetOffer, useUpdateOffer } from "@/hooks/offer.api";
+import type { Product } from "@/hooks/product.api";
+import { useCreateOffer, useGetOffer, useOfferProductSearch, useUpdateOffer } from "@/hooks/offer.api";
 import { Search, X } from "lucide-react";
 
 const nullableNumberSchema = z.preprocess((value) => {
@@ -147,14 +147,11 @@ const OfferForm = ({ offerId, title, description, onSuccess }: OfferFormProps) =
 		return () => window.clearTimeout(handle);
 	}, [searchInput]);
 
-	const { data: productQuery } = usePaginatedProducts(1, 8, debouncedSearch || undefined);
+	const { data: productQuery } = useOfferProductSearch(debouncedSearch || undefined, 1, 8);
 	const availableProducts = React.useMemo(() => {
 		const products = productQuery?.data ?? [];
 		const selectedIds = new Set(selectedProducts.map((item) => item.id));
-		return products.filter((product) => {
-			const hasIndividualDiscount = product.discountType && product.discountType !== "NONE";
-			return !hasIndividualDiscount && !selectedIds.has(product.id);
-		});
+		return products.filter((product) => !selectedIds.has(product.id));
 	}, [productQuery, selectedProducts]);
 
 	React.useEffect(() => {
@@ -342,7 +339,7 @@ const OfferForm = ({ offerId, title, description, onSuccess }: OfferFormProps) =
 														<div className="flex items-center justify-between gap-3">
 															<div className="min-w-0">
 																<p className="truncate text-sm font-medium text-slate-900 flex items-center gap-1">{product.name} <span className="text-sm font-semibold text-slate-900">- ${money.format(basePrice)}</span></p>
-																<p className="truncate text-xs text-slate-500">SKU: {product.sku || "-"}</p>
+																<p className="truncate text-xs text-slate-500">SKU: {(product as Product & { sku?: string | null }).sku || "-"}</p>
 															</div>
 														</div>
 														<div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
@@ -353,12 +350,12 @@ const OfferForm = ({ offerId, title, description, onSuccess }: OfferFormProps) =
 												</button>
 											);
 										}) : (
-											<div className="px-4 py-8 text-center text-sm text-slate-500">No eligible products found. Products with their own discounts are hidden here.</div>
+													<div className="px-4 py-8 text-center text-sm text-slate-500">No products found for this search.</div>
 										)}
 									</div>
 								</div>
 							) : null}
-							<p className="text-xs text-slate-500">Products with individual discounts or active offers are hidden from search.</p>
+										<p className="text-xs text-slate-500">Search results are filtered by the backend; products already in other offers can still appear here.</p>
 						</div>
 
 						<div className="space-y-4">
@@ -385,7 +382,7 @@ const OfferForm = ({ offerId, title, description, onSuccess }: OfferFormProps) =
 													</div>
 													<div>
 														<p className="font-medium text-slate-900">{product.name}</p>
-														<p className="text-xs text-slate-500">SKU: {product.sku || "-"}</p>
+														<p className="text-xs text-slate-500">SKU: {(product as Product & { sku?: string | null }).sku || "-"}</p>
 														<div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-600">
 															<span>Base: ${money.format(basePrice)}</span>
 															<span>Offer: ${money.format(offerPrice)}</span>

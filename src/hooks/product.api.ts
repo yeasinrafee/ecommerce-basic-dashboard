@@ -8,6 +8,8 @@ export interface Product {
 	id: string;
 	name: string;
 	slug: string;
+	sku?: string | null;
+	discountType?: string | null;
 	image?: string | null;
 	brand?: any;
 	categories?: any[];
