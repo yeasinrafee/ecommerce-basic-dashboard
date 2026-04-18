@@ -218,6 +218,19 @@ const OfferForm = ({ offerId, title, description, onSuccess }: OfferFormProps) =
 			await createMutation.mutateAsync(payload);
 		}
 
+		reset({
+			discountType: "NONE",
+			discountValue: null,
+			discountStartDate: null,
+			discountEndDate: null,
+			status: "ACTIVE",
+			productIds: []
+		});
+		setSelectedProducts([]);
+		setSearchInput("");
+		setDebouncedSearch("");
+		setSearchOpen(false);
+
 		onSuccess?.();
 		router.push("/dashboard/offers/manage");
 	};
