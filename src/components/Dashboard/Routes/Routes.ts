@@ -135,6 +135,14 @@ export const routes: RouteItem[] = [
         label: "Manage Promos", 
         href: "/dashboard/promo/manage", 
       },
+       {
+        label: "Create Offer",
+        href: "/dashboard/offers/create",
+      },
+      {
+        label: "Manage Offers",
+        href: "/dashboard/offers/manage",
+      },
     ],
   },
   // --- Web Management ---
